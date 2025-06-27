@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "688118394697",
+    "project_id": "mayfair-3675d",
+    "storage_bucket": "mayfair-3675d.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:688118394697:android:ea1f62399974a4c5e2b498",
+        "android_client_info": {
+          "package_name": "com.mayfair"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCNvL18O61uDoNXk3-aDs_IE_GIxEYb8hM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
