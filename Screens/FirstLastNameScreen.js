@@ -11,7 +11,7 @@ import {
 import Header from '../Layout/header';
 import NextButton from '../Components/NextButton';
 import BackButton from '../Components/BackButton';
-import TextField from '../Components/TextField';
+import TextField from '../Components/TextFields';
 
 export default function FirstLastNameScreen() {
   const navigation = useNavigation();

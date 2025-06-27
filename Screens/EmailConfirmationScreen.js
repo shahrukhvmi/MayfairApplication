@@ -3,7 +3,7 @@ import { StyleSheet, Text, View, ScrollView } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useForm, Controller } from 'react-hook-form';
 
-import TextField from '../Components/TextField';
+import TextField from '../Components/TextFields';
 import NextButton from '../Components/NextButton';
 import BackButton from '../Components/BackButton';
 import Header from '../Layout/header';

@@ -10,7 +10,7 @@ import {
 } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 
-const TextField = ({
+const TextFields = ({
   label,
   placeholder = '',
   type = 'text',
@@ -121,4 +121,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default TextField;
+export default TextFields;

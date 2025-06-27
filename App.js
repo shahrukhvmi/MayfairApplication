@@ -1,8 +1,7 @@
-import React, {useEffect} from 'react';
-import {View, Text} from 'react-native';
-import {OneSignal, LogLevel} from 'react-native-onesignal';
-import {NavigationContainer} from '@react-navigation/native';
-import {createNativeStackNavigator} from '@react-navigation/native-stack';
+import React, { useEffect } from 'react';
+import { OneSignal, LogLevel } from 'react-native-onesignal';
+import { NavigationContainer } from '@react-navigation/native';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import SplashScreen from './Screens/SplashScreen';
 import InitialScreen from './Screens/InitialScreen';
 import AcknowledgmentScreen from './Screens/AcknowledgmentScreen';
@@ -10,6 +9,17 @@ import FirstLastNameScreen from './Screens/FirstLastNameScreen';
 import EmailConfirmation from './Screens/EmailConfirmationScreen';
 import PersonalDetailScreen from './Screens/PersonalDetailScreen';
 import ResidentialAddressScreen from './Screens/ResidentialAddressScreen';
+import PreferredPhoneNumber from './Screens/PreferredPhoneNumber';
+import Ethnicity from './Screens/Ethnicity';
+import CalculateWeight from './Screens/CalculateWeight';
+import CalculateHeight from './Screens/CalculateHeight';
+import BMI from './Screens/BMI';
+import GPDetails from './Screens/GPDetails';
+import ConfirmationSummary from './Screens/ConfirmationSummary';
+import DoseSelection from './Screens/DoseSelection';
+import CheckoutScreen from './Screens/CheckoutScreen';
+import PatientConsent from './Screens/PatientConsent';
+import MedicalQuestions from './Screens/MedicalQuestions';
 
 const Stack = createNativeStackNavigator();
 
@@ -36,37 +46,103 @@ const App = () => {
         <Stack.Screen
           name="Splash"
           component={SplashScreen}
-          options={{headerShown: false}}
+          options={{ headerShown: false }}
         />
         <Stack.Screen
           name="Initial"
           component={InitialScreen}
-          options={{headerShown: false}}
+          options={{ headerShown: false }}
         />
         <Stack.Screen
           name="Acknowledgment"
           component={AcknowledgmentScreen}
-          options={{headerShown: false}}
+          options={{ headerShown: false }}
         />
         <Stack.Screen
           name="signup"
           component={FirstLastNameScreen}
-          options={{headerShown: false}}
+          options={{ headerShown: false }}
         />
         <Stack.Screen
           name="email-confirmation"
           component={EmailConfirmation}
-          options={{headerShown: false}}
+          options={{ headerShown: false }}
         />
         <Stack.Screen
           name="personal-details"
           component={PersonalDetailScreen}
-          options={{headerShown: false}}
+          options={{ headerShown: false }}
         />
         <Stack.Screen
           name="residential-address"
           component={ResidentialAddressScreen}
-          options={{headerShown: false}}
+          options={{ headerShown: false }}
+        />
+
+        <Stack.Screen
+          name="preferred-phone-number"
+          component={PreferredPhoneNumber}
+          options={{ headerShown: false }}
+        />
+
+        <Stack.Screen
+          name="ethnicity"
+          component={Ethnicity}
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="calculate-height"
+          component={CalculateHeight}
+          options={{ headerShown: false }}
+        />
+
+        <Stack.Screen
+          name="calculate-weight"
+          component={CalculateWeight}
+          options={{ headerShown: false }}
+        />
+
+
+        <Stack.Screen
+          name="bmi"
+          component={BMI}
+          options={{ headerShown: false }}
+        />
+
+        <Stack.Screen
+          name="medical-questions"
+          component={MedicalQuestions}
+          options={{ headerShown: false }}
+        />
+
+        <Stack.Screen
+          name="patient-consent"
+          component={PatientConsent}
+          options={{ headerShown: false }}
+        />
+
+        <Stack.Screen
+          name="gp-detail"
+          component={GPDetails}
+          options={{ headerShown: false }}
+        />
+
+        <Stack.Screen
+          name="confirmation-summary"
+          component={ConfirmationSummary}
+          options={{ headerShown: false }}
+        />
+
+        <Stack.Screen
+          name="dose-selection"
+          component={DoseSelection}
+          options={{ headerShown: false }}
+        />
+
+        <Stack.Screen
+          name="checkout"
+          component={CheckoutScreen}
+          options={{ headerShown: false }}
         />
       </Stack.Navigator>
     </NavigationContainer>
