@@ -1,152 +1,153 @@
-import React from 'react';
-import { useNavigation } from '@react-navigation/native';
-import { useForm, Controller } from 'react-hook-form';
+import React, { useEffect, useState } from 'react';
 import {
-  ScrollView,
-  StyleSheet,
-  Text,
   View,
+  Text,
+  StyleSheet,
+  KeyboardAvoidingView,
+  Platform,
 } from 'react-native';
-
-import Header from '../Layout/header';
+import { useForm } from 'react-hook-form';
+import { useNavigation } from '@react-navigation/native';
+import useSignupStore from '../store/signupStore';
+import useAuthStore from '../store/authStore';
+import PageLoader from '../Components/PageLoader';
 import NextButton from '../Components/NextButton';
 import BackButton from '../Components/BackButton';
-import TextField from '../Components/TextFields';
+import TextFields from '../Components/TextFields';
+import Header from '../Layout/header';
 
-export default function FirstLastNameScreen() {
+const SignUpScreen = () => {
   const navigation = useNavigation();
+  const [showLoader, setShowLoader] = useState(false);
 
-  // ✅ Initialize react-hook-form
+  const { token } = useAuthStore();
+  const { firstName, lastName, setFirstName, setLastName } = useSignupStore();
+
   const {
-    control,
+    register,
     handleSubmit,
+    setValue,
+    trigger,
+    watch,
     formState: { errors, isValid },
   } = useForm({
+    mode: 'onChange',
     defaultValues: {
       firstName: '',
       lastName: '',
     },
-    mode: 'onChange',
   });
 
-  // ✅ On Submit
-  const onSubmit = (data) => {
-    console.log('Form Data:', data);
-    navigation.navigate('email-confirmation', { ...data });
+  useEffect(() => {
+    setValue('firstName', firstName);
+    setValue('lastName', lastName);
+
+    if (firstName || lastName) {
+      trigger(['firstName', 'lastName']);
+    }
+  }, [firstName, lastName, setValue, trigger]);
+
+  const onSubmit = async (data) => {
+    setFirstName(data.firstName);
+    setLastName(data.lastName);
+
+    setShowLoader(true);
+    await new Promise((res) => setTimeout(res, 500));
+
+    setShowLoader(false); // ✅ reset loader before navigating
+    navigation.navigate('email-confirmation');
   };
+
 
   return (
     <>
       <Header />
 
-      <ScrollView contentContainerStyle={styles.container}>
-        {/* Top Progress */}
-        <View style={styles.progressBarContainer}>
-          <View style={styles.progressBar} />
-        </View>
-        <Text style={styles.progressText}>10% Completed</Text>
+      <KeyboardAvoidingView
+        style={styles.wrapper}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      >
+        <View style={styles.container}>
+          <Text style={styles.heading}>Enter your full legal name</Text>
+          <Text style={styles.description}>
+            We require this to generate your prescription if you qualify for the treatment.
+          </Text>
 
-        {/* Heading */}
-        <Text style={styles.heading}>Enter your full legal name</Text>
-        <Text style={styles.subtext}>
-          We require this to generate your prescription if you qualify for the treatment.
-        </Text>
-
-        {/* First Name */}
-        <Controller
-          control={control}
-          name="firstName"
-          rules={{ required: 'First name is required' }}
-          render={({ field: { onChange, value } }) => (
-            <TextField
+          <View style={[styles.form, showLoader && { opacity: 0.5 }]}>
+            <TextFields
               label="First Name"
-              placeholder="Enter first name"
-              value={value}
-              onChangeText={onChange}
+              name="firstName"
+              placeholder="First Name"
+              register={register}
+              errors={errors}
               required
             />
-          )}
-        />
-        {errors.firstName && (
-          <Text style={styles.error}>{errors.firstName.message}</Text>
-        )}
-
-        {/* Last Name */}
-        <Controller
-          control={control}
-          name="lastName"
-          rules={{ required: 'Last name is required' }}
-          render={({ field: { onChange, value } }) => (
-            <TextField
+            <TextFields
               label="Last Name"
-              placeholder="Enter last name"
-              value={value}
-              onChangeText={onChange}
+              name="lastName"
+              placeholder="Last Name"
+              register={register}
+              errors={errors}
               required
             />
+
+            <NextButton
+              label="Next"
+              onPress={handleSubmit(onSubmit)}
+              disabled={!isValid}
+            />
+
+            <BackButton
+              label="Back"
+              onPress={() => navigation.navigate('Acknowledgment')}
+              style={styles.backButton}
+            />
+          </View>
+
+          {showLoader && (
+            <View style={styles.loaderOverlay}>
+              <PageLoader />
+            </View>
           )}
-        />
-        {errors.lastName && (
-          <Text style={styles.error}>{errors.lastName.message}</Text>
-        )}
-
-        {/* Next Button */}
-        <NextButton
-          label="Next"
-          loading={false}
-          disabled={!isValid}
-          onPress={handleSubmit(onSubmit)}
-        />
-
-        <BackButton
-
-          label="Back"
-          onPress={() => navigation.goBack()}
-        />
-      </ScrollView>
+        </View>
+      </KeyboardAvoidingView>
     </>
   );
-}
+};
+
+export default SignUpScreen;
 
 const styles = StyleSheet.create({
+  wrapper: {
+    flex: 1,
+    backgroundColor: '#fff',
+  },
   container: {
+    flex: 1,
     padding: 20,
-    backgroundColor: '#f7f4ff',
-    flexGrow: 1,
+    justifyContent: 'flex-start',
   },
-  progressBarContainer: {
-    height: 4,
-    backgroundColor: '#ddd',
-    borderRadius: 2,
-    marginBottom: 8,
+  heading: {
+    fontSize: 22,
+    fontWeight: 'bold',
+    color: '#111',
+    marginBottom: 10,
   },
-  progressBar: {
-    width: '10%',
-    height: '100%',
-    backgroundColor: '#4B0082',
-    borderRadius: 2,
-  },
-  progressText: {
-    textAlign: 'center',
-    fontSize: 12,
+  description: {
+    fontSize: 14,
     color: '#555',
     marginBottom: 20,
   },
-   heading: {
-        fontSize: 26,
-        fontWeight: '600',
-        color: '#2e2e2e',
-        fontWeight: 'bold',
-        fontFamily: 'serif',
-        marginBottom: 6,
-    },
-  subtext: {
-    color: '#555',
-    fontSize: 14,
-    marginBottom: 30,
+  form: {
+    gap: 16,
   },
-  error: {
-    color: 'red',
-    marginBottom: 10,
+  loaderOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(255,255,255,0.7)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  backButton: {
+    marginTop: 16,
   },
 });

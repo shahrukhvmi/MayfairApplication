@@ -1,153 +1,268 @@
-import React from 'react';
-import { StyleSheet, Text, View, ScrollView } from 'react-native';
+// 📦 Required imports
+import React, { useEffect, useState } from 'react';
+import {
+    View,
+    Text,
+    StyleSheet,
+    KeyboardAvoidingView,
+    Platform,
+    TouchableOpacity,
+} from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { useForm, Controller } from 'react-hook-form';
+import { Controller, useForm } from 'react-hook-form';
+import { useMutation } from '@tanstack/react-query';
+import Toast from 'react-native-toast-message';
 
-import TextField from '../Components/TextFields';
+// 🛒 Stores
+import useSignupStore from '../store/signupStore';
+import useAuthStore from '../store/authStore';
+import usePasswordReset from '../store/usePasswordReset';
+
+// 📦 API
+import { registerUser } from '../api/authApi';
+import loginApi from '../api/loginApi';
+
+// 🧱 Components
+import TextFields from '../Components/TextFields';
 import NextButton from '../Components/NextButton';
 import BackButton from '../Components/BackButton';
+import PageLoader from '../Components/PageLoader';
+import LoginModal from '../Components/Login/LoginModal';
 import Header from '../Layout/header';
+import useLoginModalStore from '../store/useLoginModalStore';
+import useUserDataStore from '../store/userDataStore';
 
-const EmailConfirmation = () => {
+const EmailConfirmationScreen = () => {
     const navigation = useNavigation();
+    const [showLoader, setShowLoader] = useState(false);
+    const [already, setAlready] = useState(false);
+    console.log(already, "already")
+    const {
+        firstName,
+        lastName,
+        setFirstName,
+        setLastName,
+        email,
+        confirmationEmail,
+        setEmail,
+        setConfirmationEmail,
+    } = useSignupStore();
+
+    const { setUserData } = useUserDataStore();
+    const { token, setToken } = useAuthStore();
+    const { setIsPasswordReset, setShowResetPassword } = usePasswordReset();
 
     const {
-        control,
+        register,
         handleSubmit,
-        watch,
+        setValue,
+        getValues,
+        trigger,
+        control,
         formState: { errors, isValid },
     } = useForm({
-        defaultValues: {
-            email: '',
-            confirmEmail: '',
-        },
         mode: 'onChange',
+        defaultValues: { email: '', confirmationEmail: '' },
+    });
+    const { showLoginModal, closeLoginModal, openLoginModal } =
+        useLoginModalStore();
+    useEffect(() => {
+        setValue('email', email);
+        setValue('confirmationEmail', confirmationEmail);
+        if (email) trigger(['email', 'confirmationEmail']);
+    }, [email, confirmationEmail]);
+
+    const registerMutation = useMutation({
+        mutationFn: registerUser,
+        onSuccess: (res) => {
+
+            console.log(res, 'Register User Response');
+            const user = res?.data?.data;
+            console.log(user, 'Register User Response');
+            setUserData(user);
+            setToken(user?.token);
+            setIsPasswordReset(true);
+            setShowLoader(false);
+            navigation.navigate('steps-information');
+        },
+        onError: (error) => {
+            console.log(error, 'Register User Error');
+            const emailError = error?.response?.data?.errors?.email;
+            console.log(emailError, 'Email Error');
+            if (emailError === 'The email has already been taken.')
+                setAlready(true);
+            if (emailError) Toast.show({ type: 'error', text1: emailError });
+            setShowLoader(false);
+        },
     });
 
-    const email = watch('email');
+    const loginMutation = useMutation({
+        mutationFn: loginApi,
+        onMutate: () => setShowLoader(true),
+        onSuccess: (resp) => {
+            const user = resp?.data?.data;
+            if (!user?.token) throw new Error("No token in response");
+
+            setToken(user.token);
+            Fetcher.axiosSetup.defaults.headers.common.Authorization =
+                `Bearer ${user.token}`;
+            setShowLoader(false);
+            closeLoginModal();
+
+            setFirstName(user.fname);
+            setLastName(user.lname);
+            setEmail(user.email);
+
+            navigation.reset({
+                index: 0,
+                routes: [{ name: "dashboard" }],
+            });
+        },
+        onError: (error) => {
+            setShowLoader(false);
+            const errs = error?.response?.data?.errors;
+            if (errs && typeof errs === "object") {
+                Object.values(errs).flat().forEach((msg) =>
+                    Toast.show({ type: "error", text1: msg })
+                );
+            } else {
+                Toast.show({ type: "error", text1: "Login failed" });
+            }
+        },
+    });
 
     const onSubmit = (data) => {
-        console.log('Submitted:', data);
-        // Pass to next step or save to context
-        navigation.navigate('personal-details', { ...data });
+
+        console.log(data, 'Form Data');
+        setEmail(data.email);
+        setConfirmationEmail(data.confirmationEmail);
+        setShowLoader(true);
+
+        registerMutation.mutate({
+            email: data.email,
+            email_confirmation: data.confirmationEmail,
+            fname: firstName,
+            lname: lastName,
+            company_id: 1,
+        });
+
+        setShowLoader(false);
     };
 
     return (
         <>
             <Header />
-            <ScrollView contentContainerStyle={styles.container}>
-                {/* Progress Bar */}
-                <View style={styles.progressBarContainer}>
-                    <View style={styles.progressBar} />
+
+            <KeyboardAvoidingView
+                style={styles.wrapper}
+                behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+            >
+                <View style={styles.container}>
+                    <Text style={styles.heading}>Enter your email address</Text>
+                    <Text style={styles.description}>
+                        This is where we will send information about your order.
+                    </Text>
+
+                    <View style={[styles.form, showLoader && { opacity: 0.5 }]}>
+                        <Controller
+                            control={control}
+                            name="email"
+                            rules={{ required: 'Email is required' }}
+                            render={({ field: { onChange, onBlur, value } }) => (
+                                <TextFields
+                                    label="Email Address"
+                                    placeholder="Email Address"
+                                    value={value}
+                                    onChangeText={onChange}
+                                    onBlur={onBlur}
+                                />
+                            )}
+                        />
+                        <Controller
+                            control={control}
+                            name="confirmationEmail"
+                            rules={{
+                                required: 'Confirm email is required',
+                                validate: value => value === getValues('email') || 'Emails must match',
+                            }}
+                            render={({ field: { onChange, onBlur, value } }) => (
+                                <TextFields
+                                    label="Confirm Email Address"
+                                    placeholder="Confirm Email Address"
+                                    value={value}
+                                    onChangeText={onChange}
+                                    onBlur={onBlur}
+                                />
+                            )}
+                        />
+
+                        {already && (
+                            <Text style={styles.alreadyText}>
+                                This email is already taken.{' '}
+                                <Text onPress={() => openLoginModal()} style={styles.loginLink}>
+                                    Click here to login.
+                                </Text>
+                            </Text>
+                        )}
+
+                        <NextButton
+                            label="Next"
+                            onPress={handleSubmit(onSubmit)}
+                            disabled={!isValid}
+                        />
+
+                        <BackButton
+                            label="Back"
+                            onPress={() => navigation.navigate('SignUp')}
+                            style={styles.backButton}
+                        />
+                    </View>
+
+                    {showLoader && (
+                        <View style={styles.loaderOverlay}>
+                            <PageLoader />
+                        </View>
+                    )}
                 </View>
-                <Text style={styles.progressText}>20% Completed</Text>
+            </KeyboardAvoidingView>
 
-                {/* Heading */}
-                <Text style={styles.heading}>Please enter your email</Text>
-                <Text style={styles.subtext}>
-                    This is where we’ll send information from your prescriber and pharmacy.
-                </Text>
-
-                {/* Email Field */}
-                <Controller
-                    control={control}
-                    name="email"
-                    rules={{
-                        required: 'Email is required',
-                        pattern: {
-                            value: /\S+@\S+\.\S+/,
-                            message: 'Enter a valid email address',
-                        },
-                    }}
-                    render={({ field: { onChange, value } }) => (
-                        <TextField
-                            label="Email Address"
-                            placeholder="Enter your email"
-                            value={value}
-                            onChangeText={onChange}
-                            required
-                        />
-                    )}
-                />
-                {errors.email && (
-                    <Text style={styles.error}>{errors.email.message}</Text>
-                )}
-
-                {/* Confirm Email Field */}
-                <Controller
-                    control={control}
-                    name="confirmEmail"
-                    rules={{
-                        required: 'Please confirm your email',
-                        validate: (value) =>
-                            value === email || 'Email addresses must match',
-                    }}
-                    render={({ field: { onChange, value } }) => (
-                        <TextField
-                            label="Confirm Email Address"
-                            placeholder="Confirm your email"
-                            value={value}
-                            onChangeText={onChange}
-                            required
-                        />
-                    )}
-                />
-                {errors.confirmEmail && (
-                    <Text style={styles.error}>{errors.confirmEmail.message}</Text>
-                )}
-
-                {/* Next & Back Buttons */}
-                <NextButton
-                    label="Next"
-                    disabled={!isValid}
-                    onPress={handleSubmit(onSubmit)}
-                />
-
-                <BackButton label="Back" onPress={() => navigation.goBack()} />
-            </ScrollView>
+            {/* Login Modal */}
+            <LoginModal
+                modes="login"
+                show={showLoginModal}
+                onClose={closeLoginModal}
+                isLoading={showLoader}
+                onLogin={(formData) =>
+                    loginMutation.mutate({ ...formData, company_id: 1 })
+                }
+            />
         </>
     );
 };
 
-export default EmailConfirmation;
+export default EmailConfirmationScreen;
 
 const styles = StyleSheet.create({
-    container: {
-        padding: 20,
-        backgroundColor: '#f7f4ff',
-        flexGrow: 1,
+    wrapper: { flex: 1, backgroundColor: '#fff' },
+    container: { flex: 1, padding: 20, justifyContent: 'flex-start' },
+    heading: { fontSize: 22, fontWeight: 'bold', color: '#111', marginBottom: 10 },
+    description: { fontSize: 14, color: '#555', marginBottom: 20 },
+    form: { gap: 16 },
+    backButton: { marginTop: 16 },
+    loaderOverlay: {
+        ...StyleSheet.absoluteFillObject,
+        backgroundColor: 'rgba(255,255,255,0.7)',
+        justifyContent: 'center',
+        alignItems: 'center',
     },
-    progressBarContainer: {
-        height: 4,
-        backgroundColor: '#ddd',
-        borderRadius: 2,
-        marginBottom: 8,
-    },
-    progressBar: {
-        width: '20%',
-        height: '100%',
-        backgroundColor: '#4B0082',
-        borderRadius: 2,
-    },
-    progressText: {
-        textAlign: 'center',
-        fontSize: 12,
-        color: '#555',
-        marginBottom: 20,
-    },
-    heading: {
-        fontSize: 26,
-        fontWeight: '600',
-        color: '#2e2e2e',
-        marginBottom: 10,
-    },
-    subtext: {
-        color: '#555',
-        fontSize: 14,
-        marginBottom: 30,
-    },
-    error: {
+    alreadyText: {
         color: 'red',
+        fontSize: 13,
         marginBottom: 10,
+    },
+    loginLink: {
+        color: '#2563EB',
+        textDecorationLine: 'underline',
+        fontWeight: '600',
     },
 });

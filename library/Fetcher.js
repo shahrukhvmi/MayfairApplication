@@ -1,25 +1,26 @@
+// library/Fetcher.js
 import axios from "axios";
-import { app_url } from "../config/constants"
-import useAuthStore from "../store/authStore" // Import Auth Store
+import { app_url } from "../config/constants";
+import useAuthStore from "../store/authStore";
+// import useAuthStore from "../store/authStore";
 
 class Fetcher {
   constructor() {
-    this.axiosSetup = null;
-    this.setup();
-  }
-
-  setup = async () => {
     this.axiosSetup = axios.create({
       baseURL: app_url,
       timeout: 20000,
       headers: {
         Accept: "application/json",
-        "Content-type": "application/json",
+        "Content-Type": "application/json",
         "Company-Id": 1,
       },
     });
 
-    // ✅ Attach Bearer Token
+    this.attachInterceptors();
+  }
+
+  attachInterceptors = () => {
+    // ✅ Request Interceptor: Add Bearer Token
     this.axiosSetup.interceptors.request.use(
       (config) => {
         const token = useAuthStore.getState().token;
@@ -31,22 +32,15 @@ class Fetcher {
       (error) => Promise.reject(error)
     );
 
-    // ✅ Error Handling
+    // ✅ Response Interceptor: Handle 401
     this.axiosSetup.interceptors.response.use(
       (response) => response,
       (error) => {
-        if (error.response) {
-          const { status } = error.response;
+        if (error.response?.status === 401) {
+          useAuthStore.getState().clearToken();
 
-          if (status === 401) {
-            // ⭐ 1. Clear token
-            useAuthStore.getState().clearToken();
-
-            // ⭐ 2. Toast Message
-
-            // ⭐ 3. Redirect to Login
-            // Router.replace("/login"); // ✅ Important: use replace, not push
-          }
+          // TODO: Show a toast or alert here
+          // TODO: Navigate to login screen if needed
         }
 
         return Promise.reject(error);
@@ -54,21 +48,10 @@ class Fetcher {
     );
   };
 
-  get = (route, params) => {
-    return this.axiosSetup.get(route, params);
-  };
-
-  post = (route, params, extra) => {
-    return this.axiosSetup.post(route, params, extra);
-  };
-
-  patch = (route, params, extra) => {
-    return this.axiosSetup.patch(route, params, extra);
-  };
-
-  put = (route, params, extra) => {
-    return this.axiosSetup.put(route, params, extra);
-  };
+  get = (url, config = {}) => this.axiosSetup.get(url, config);
+  post = (url, data = {}, config = {}) => this.axiosSetup.post(url, data, config);
+  patch = (url, data = {}, config = {}) => this.axiosSetup.patch(url, data, config);
+  put = (url, data = {}, config = {}) => this.axiosSetup.put(url, data, config);
 }
 
 export default new Fetcher();

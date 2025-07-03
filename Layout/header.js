@@ -1,187 +1,153 @@
-import Ionicons from 'react-native-vector-icons/Ionicons';
-import { useNavigation } from '@react-navigation/native';
-
-import { useState } from 'react';
+// Header.jsx
+import React, { useState } from "react";
 import {
+    Alert,
     Image,
-    Modal,
     StyleSheet,
     Text,
-    TextInput,
     TouchableOpacity,
     View,
-} from 'react-native';
+} from "react-native";
+import Ionicons from 'react-native-vector-icons/Ionicons';
+
+import { useNavigation } from "@react-navigation/native";
+import { useMutation } from "@tanstack/react-query";
+import Toast from "react-native-toast-message";
+import LoginModal from "../Components/Login/LoginModal";
+import useLoginModalStore from "../store/useLoginModalStore";
+import { Login } from "../api/loginApi";
+import useSignupStore from "../store/signupStore";
+import Fetcher from "../library/Fetcher";
+import useAuthStore from "../store/authStore"; // ✅ get token
+import Dropdown from "../Components/Dropdown";
 
 const Header = () => {
-    const [showModal, setShowModal] = useState(false);
-    const [email, setEmail] = useState('');
-    const [password, setPassword] = useState('');
-    const [secure, setSecure] = useState(true);
     const navigation = useNavigation();
+    const [showLoader, setShowLoader] = useState(false);
+    const { showLoginModal, closeLoginModal, openLoginModal } =
+        useLoginModalStore();
+
+    const { setFirstName, setLastName, setEmail, firstName } = useSignupStore();
+    const { token, clearToken, setToken } = useAuthStore();
+    const { firstName: userFirstName, clearFirstName, clearLastName, clearEmail } = useSignupStore();
+
+    const [anchorVisible, setAnchorVisible] = useState(false); // dropdown state
+
+    const handleLogout = () => {
+        clearToken();
+        clearFirstName();
+        clearLastName();
+        clearEmail();
+        navigation.reset({ index: 0, routes: [{ name: "Initial" }] }); // or navigate to login screen
+    };
+
+    const loginMutation = useMutation({
+        mutationFn: Login,
+        onMutate: () => setShowLoader(true),
+        onSuccess: (resp) => {
+            const user = resp?.data?.data;
+            if (!user?.token) throw new Error("No token in response");
+
+            setToken(user.token);
+            Fetcher.axiosSetup.defaults.headers.common.Authorization =
+                `Bearer ${user.token}`;
+            setShowLoader(false);
+            closeLoginModal();
+
+            setFirstName(user.fname);
+            setLastName(user.lname);
+            setEmail(user.email);
+
+            navigation.reset({
+                index: 0,
+                routes: [{ name: "dashboard" }],
+            });
+        },
+        onError: (error) => {
+            setShowLoader(false);
+            const errs = error?.response?.data?.errors;
+            if (errs && typeof errs === "object") {
+                Object.values(errs).flat().forEach((msg) =>
+                    Toast.show({ type: "error", text1: msg })
+                );
+            } else {
+                Toast.show({ type: "error", text1: "Login failed" });
+            }
+        },
+    });
+
     return (
         <>
             <View style={styles.header}>
+                {/* Logo */}
                 <TouchableOpacity onPress={() => navigation.navigate("Initial")}>
-
-
-
                     <Image
-                        source={require('../assets/images/logo.png')} // Adjust the path as necessary
+                        source={require("../assets/images/logo.png")}
                         style={styles.logo}
                     />
                 </TouchableOpacity>
-                <TouchableOpacity onPress={() => setShowModal(true)}>
-                    <Text style={styles.loginText}>Login</Text>
-                </TouchableOpacity>
+
+                {/* Right side — login or profile */}
+                <Dropdown
+                    token={token}
+                    userFirstName={userFirstName}
+                    handleLogout={handleLogout}
+                    openLoginModal={openLoginModal}
+                />
+
             </View>
 
-            {/* Modal */}
-            <Modal transparent animationType="fade" visible={showModal}>
-                <View style={styles.modalWrapper}>
-                    <View style={styles.modalBox}>
-                        <TouchableOpacity
-                            style={styles.closeBtn}
-                            onPress={() => setShowModal(false)}
-                        >
-                            {/* <Ionicons name="close" size={24} color="#333" /> */}
-                        </TouchableOpacity>
+            {/* Login Modal */}
+            <LoginModal
+                modes="login"
+                show={showLoginModal}
+                onClose={closeLoginModal}
+                isLoading={showLoader}
+                onLogin={(formData) =>
+                    loginMutation.mutate({ ...formData, company_id: 1 })
+                }
+            />
 
-                        <Text style={styles.modalTitle}>Login</Text>
-
-                        <Text style={styles.label}>
-                            Email Address <Text style={{ color: 'red' }}>*</Text>
-                        </Text>
-                        <TextInput
-                            value={email}
-                            onChangeText={setEmail}
-                            placeholder="Enter your email"
-                            style={styles.input}
-                            keyboardType="email-address"
-                            autoCapitalize="none"
-                        />
-
-                        <Text style={styles.label}>
-                            Password <Text style={{ color: 'red' }}>*</Text>
-                        </Text>
-                        <View style={styles.passwordContainer}>
-                            <TextInput
-                                value={password}
-                                onChangeText={setPassword}
-                                placeholder="Enter your password"
-                                style={[styles.input, { flex: 1 }]}
-                                secureTextEntry={secure}
-                            />
-                            <TouchableOpacity onPress={() => setSecure(!secure)}>
-                                {/* <Ionicons
-                                    name={secure ? 'eye-outline' : 'eye-off-outline'}
-                                    size={20}
-                                    color="#666"
-                                    style={{ marginLeft: 8 }}
-                                /> */}
-                            </TouchableOpacity>
-                        </View>
-
-                        <TouchableOpacity style={styles.loginButton}>
-                            <Text style={styles.loginButtonText}>Login</Text>
-                        </TouchableOpacity>
-
-                        <Text style={styles.infoText}>
-                            Are you a new patient?{' '}
-                            <Text style={styles.link}>Get started with the consultation</Text>
-                        </Text>
-                        <TouchableOpacity>
-                            <Text style={styles.link}>Forgot Password?</Text>
-                        </TouchableOpacity>
-                    </View>
-                </View>
-            </Modal>
+            <Toast />
         </>
     );
 };
 
 const styles = StyleSheet.create({
     header: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
+        flexDirection: "row",
+        justifyContent: "space-between",
+        alignItems: "center",
         paddingVertical: 12,
         paddingHorizontal: 16,
-        backgroundColor: '#fff',
+        backgroundColor: "#fff",
         borderBottomWidth: 1,
-        borderBottomColor: '#eee',
+        borderBottomColor: "#eee",
     },
     logo: {
         width: 120,
         height: 50,
-        resizeMode: 'contain',
+        resizeMode: "contain",
     },
     loginText: {
-        fontWeight: '600',
+        fontWeight: "600",
         fontSize: 16,
-        color: '#4B0082',
+        color: "#4B0082",
     },
-    modalWrapper: {
-        flex: 1,
-        backgroundColor: 'rgba(0,0,0,0.5)',
-        justifyContent: 'center',
-        alignItems: 'center',
+    profileWrapper: {
+        flexDirection: "row",
+        alignItems: "center",
     },
-    modalBox: {
-        backgroundColor: '#fff',
-        width: '90%',
-        borderRadius: 12,
-        padding: 20,
-        elevation: 10,
+    profileImage: {
+        width: 32,
+        height: 32,
+        borderRadius: 50,
+        marginRight: 8,
     },
-    closeBtn: {
-        alignSelf: 'flex-end',
-    },
-    modalTitle: {
-        fontSize: 20,
-        fontWeight: 'bold',
-        marginBottom: 20,
-        alignSelf: 'center',
-    },
-    label: {
-        fontSize: 14,
-        fontWeight: 'bold',
-        marginTop: 10,
-        marginBottom: 5,
-    },
-    input: {
-        backgroundColor: '#f3f3ff',
-        borderWidth: 1,
-        borderColor: '#ccc',
-        borderRadius: 8,
-        paddingHorizontal: 10,
-        paddingVertical: 12,
-        marginBottom: 10,
-    },
-    passwordContainer: {
-        flexDirection: 'row',
-        alignItems: 'center',
-    },
-    loginButton: {
-        backgroundColor: '#4B0082',
-        borderRadius: 30,
-        paddingVertical: 14,
-        marginTop: 15,
-        alignItems: 'center',
-    },
-    loginButtonText: {
-        color: '#fff',
-        fontWeight: 'bold',
-        fontSize: 16,
-    },
-    infoText: {
-        textAlign: 'center',
-        fontSize: 13,
-        marginTop: 20,
-        color: '#333',
-    },
-    link: {
-        color: '#4B0082',
-        textDecorationLine: 'underline',
+    profileText: {
+        fontWeight: "600",
+        fontSize: 15,
+        color: "#4B0082",
     },
 });
 

@@ -65,7 +65,7 @@ export default function ResidentialAddressScreen() {
                         )}
                     />
                     <TouchableOpacity style={styles.insideSearchButton}>
-                        <Ionicons name="search" size={16} color="#fff" />
+                        <Ionicons name="search" size={22} color="#fff" />
                     </TouchableOpacity>
                 </View>
 
@@ -237,8 +237,8 @@ const styles = StyleSheet.create({
         tran1form: [{ translateY: -12 }],
         backgroundColor: '#4B0082',
         borderRadius: 4,
-        paddingHorizontal: 18,
-        paddingVertical: 19,
+        paddingHorizontal: 12,
+        paddingVertical: 13,
         justifyContent: 'center',
         alignItems: 'center',
     },

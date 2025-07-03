@@ -33,7 +33,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     textDecorationLine: 'underline',
     fontWeight: '500',
-    marginVertical: 10,
+    // marginVertical: 4,
   },
   disabled: {
     opacity: 0.5,

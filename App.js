@@ -6,7 +6,6 @@ import SplashScreen from './Screens/SplashScreen';
 import InitialScreen from './Screens/InitialScreen';
 import AcknowledgmentScreen from './Screens/AcknowledgmentScreen';
 import FirstLastNameScreen from './Screens/FirstLastNameScreen';
-import EmailConfirmation from './Screens/EmailConfirmationScreen';
 import PersonalDetailScreen from './Screens/PersonalDetailScreen';
 import ResidentialAddressScreen from './Screens/ResidentialAddressScreen';
 import PreferredPhoneNumber from './Screens/PreferredPhoneNumber';
@@ -20,6 +19,9 @@ import DoseSelection from './Screens/DoseSelection';
 import CheckoutScreen from './Screens/CheckoutScreen';
 import PatientConsent from './Screens/PatientConsent';
 import MedicalQuestions from './Screens/MedicalQuestions';
+import Dashboard from './Screens/Dashboard';
+import EmailConfirmationScreen from './Screens/EmailConfirmationScreen';
+import StepsInformation from './Screens/StepsInformation';
 
 const Stack = createNativeStackNavigator();
 
@@ -65,7 +67,13 @@ const App = () => {
         />
         <Stack.Screen
           name="email-confirmation"
-          component={EmailConfirmation}
+          component={EmailConfirmationScreen}
+          options={{ headerShown: false }}
+        />
+
+        <Stack.Screen
+          name="steps-information"
+          component={StepsInformation}
           options={{ headerShown: false }}
         />
         <Stack.Screen
@@ -144,6 +152,13 @@ const App = () => {
           component={CheckoutScreen}
           options={{ headerShown: false }}
         />
+
+        <Stack.Screen
+          name="dashboard"
+          component={Dashboard}
+          options={{ headerShown: false }}
+        />
+
       </Stack.Navigator>
     </NavigationContainer>
   );

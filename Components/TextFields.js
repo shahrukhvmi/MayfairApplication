@@ -64,7 +64,7 @@ const TextFields = ({
             onPress={() => setShowPassword(prev => !prev)}
           >
             <Ionicons
-              name={showPassword ? 'eye-off-outline' : 'eye-outline'}
+              name={showPassword ? 'eye-outline' : 'eye-off-outline'}
               size={20}
               color="#999"
             />
@@ -115,6 +115,7 @@ const styles = StyleSheet.create({
     right: 10,
     top: '50%',
     marginTop: -10,
+    zIndex: 1,
   },
   disabled: {
     backgroundColor: '#eee',
