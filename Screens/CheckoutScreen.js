@@ -1,5 +1,5 @@
-import { useNavigation } from '@react-navigation/native';
-import { useRef, useState } from 'react';
+import {useNavigation} from '@react-navigation/native';
+import {useRef, useState} from 'react';
 import {
   View,
   Text,
@@ -16,6 +16,7 @@ export default function CheckoutSteps() {
   const scrollRef = useRef();
   const [formData, setFormData] = useState({});
   const [isChecked, setIsChecked] = useState(false);
+  const [shippingCheckbox, setShippingCheckbox] = useState(false);
   const [loading, setLoading] = useState(false);
   const [thankYou, setThankYou] = useState(false);
   const [password, setPassword] = useState('');
@@ -52,8 +53,6 @@ export default function CheckoutSteps() {
 
   return (
     <>
-
-    
       <Header />
       <ScrollView style={styles.container} ref={scrollRef}>
         <Text style={styles.heading}>Complete Your Checkout</Text>
@@ -90,10 +89,9 @@ export default function CheckoutSteps() {
               }
               setShowNextSteps(true);
               setTimeout(() => {
-                scrollRef.current?.scrollToEnd({ animated: true });
+                scrollRef.current?.scrollToEnd({animated: true});
               }, 200); // Smooth scroll to next part
-            }}
-          >
+            }}>
             <Text style={styles.nextText}>Set Password</Text>
           </TouchableOpacity>
         </View>
@@ -102,16 +100,32 @@ export default function CheckoutSteps() {
           <>
             {/* Step 2: Shipping */}
             <View style={styles.card}>
+              <Text style={styles.subHeading}>Shipping Address</Text>
               <TextFields label="First Name" placeholder="First Name" />
               <TextFields label="Last Name" placeholder="Last Name" />
               <TextFields label="Country" placeholder="Country" />
               <TextFields label="Postcode" placeholder="Postcode" />
               <TextFields label="Street Address" placeholder="Street Address" />
               <TextFields label="City" placeholder="City" />
+              <TouchableOpacity
+                style={styles.checkboxRow}
+                onPress={() => setShippingCheckbox(!shippingCheckbox)}>
+                <View
+                  style={[
+                    styles.checkbox,
+                    shippingCheckbox && styles.checkedBox,
+                  ]}>
+                  {shippingCheckbox && <Text style={styles.tick}>✓</Text>}
+                </View>
+                <Text style={{marginLeft: 10, fontSize: 14}}>
+                  Make billing address same as shipping address
+                </Text>
+              </TouchableOpacity>
             </View>
 
             {/* Step 3: Billing */}
             <View style={styles.card}>
+              <Text style={styles.subHeading}>Blling Address</Text>
               <TextFields label="Country" placeholder="Country" />
               <TextFields label="Postcode" placeholder="Postcode" />
               <TextFields label="Address" placeholder="Address" />
@@ -121,20 +135,21 @@ export default function CheckoutSteps() {
 
             {/* Step 4: Consent */}
             <View style={styles.card}>
+              <Text style={styles.subHeading}>Product Concent</Text>
               <Text style={styles.paragraph}>
-                • Treatment guidelines...{'\n'}• I confirm that I’ve read and agree...
+                • Treatment guidelines...{'\n'}• I confirm that I’ve read and
+                agree...
               </Text>
-              <View style={styles.checkboxRow}>
-                <TouchableOpacity
-                  onPress={() => setIsChecked(!isChecked)}
-                  style={[styles.checkbox, isChecked && styles.checkedBox]}
-                >
+              <TouchableOpacity
+                style={styles.checkboxRow}
+                onPress={() => setIsChecked(!isChecked)}>
+                <View style={[styles.checkbox, isChecked && styles.checkedBox]}>
                   {isChecked && <Text style={styles.tick}>✓</Text>}
-                </TouchableOpacity>
-                <Text style={{ marginLeft: 10, fontSize: 14 }}>
+                </View>
+                <Text style={{marginLeft: 10, fontSize: 14}}>
                   I accept all terms and conditions
                 </Text>
-              </View>
+              </TouchableOpacity>
             </View>
 
             {/* Step 5: Summary */}
@@ -146,7 +161,9 @@ export default function CheckoutSteps() {
               <Text style={styles.total}>Total: £703.00</Text>
             </View>
 
-            <TouchableOpacity onPress={handleSubmit} style={styles.submitButton}>
+            <TouchableOpacity
+              onPress={handleSubmit}
+              style={styles.submitButton}>
               <Text style={styles.submitText}>Submit Order</Text>
             </TouchableOpacity>
           </>
@@ -157,7 +174,7 @@ export default function CheckoutSteps() {
           <View style={styles.modalOverlay}>
             <View style={styles.modalBox}>
               <ActivityIndicator size="large" color="#4B0082" />
-              <Text style={{ marginTop: 12 }}>Processing payment...</Text>
+              <Text style={{marginTop: 12}}>Processing payment...</Text>
             </View>
           </View>
         </Modal>
@@ -190,10 +207,11 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   subHeading: {
-    textAlign: 'center',
-    color: '#666',
+    textAlign: 'left',
+    color: '#1A1A1A',
     marginBottom: 16,
-    fontSize: 14,
+    fontSize: 20,
+    fontWeight: '600',
   },
   card: {
     backgroundColor: '#fff',
@@ -203,7 +221,7 @@ const styles = StyleSheet.create({
     shadowColor: '#000',
     shadowOpacity: 0.05,
     shadowRadius: 4,
-    shadowOffset: { width: 0, height: 2 },
+    shadowOffset: {width: 0, height: 2},
     elevation: 2,
   },
   paragraph: {

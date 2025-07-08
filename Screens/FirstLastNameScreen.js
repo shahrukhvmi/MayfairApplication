@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, {useEffect, useState} from 'react';
 import {
   View,
   Text,
@@ -6,8 +6,8 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
-import { useForm } from 'react-hook-form';
-import { useNavigation } from '@react-navigation/native';
+import {Controller, useForm} from 'react-hook-form';
+import {useNavigation} from '@react-navigation/native';
 import useSignupStore from '../store/signupStore';
 import useAuthStore from '../store/authStore';
 import PageLoader from '../Components/PageLoader';
@@ -20,16 +20,17 @@ const SignUpScreen = () => {
   const navigation = useNavigation();
   const [showLoader, setShowLoader] = useState(false);
 
-  const { token } = useAuthStore();
-  const { firstName, lastName, setFirstName, setLastName } = useSignupStore();
+  const {token} = useAuthStore();
+  const {firstName, lastName, setFirstName, setLastName} = useSignupStore();
 
   const {
+    control,
     register,
     handleSubmit,
     setValue,
     trigger,
     watch,
-    formState: { errors, isValid },
+    formState: {errors, isValid},
   } = useForm({
     mode: 'onChange',
     defaultValues: {
@@ -47,17 +48,16 @@ const SignUpScreen = () => {
     }
   }, [firstName, lastName, setValue, trigger]);
 
-  const onSubmit = async (data) => {
+  const onSubmit = async data => {
     setFirstName(data.firstName);
     setLastName(data.lastName);
 
     setShowLoader(true);
-    await new Promise((res) => setTimeout(res, 500));
+    await new Promise(res => setTimeout(res, 500));
 
     setShowLoader(false); // ✅ reset loader before navigating
     navigation.navigate('email-confirmation');
   };
-
 
   return (
     <>
@@ -65,30 +65,43 @@ const SignUpScreen = () => {
 
       <KeyboardAvoidingView
         style={styles.wrapper}
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-      >
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
         <View style={styles.container}>
           <Text style={styles.heading}>Enter your full legal name</Text>
           <Text style={styles.description}>
-            We require this to generate your prescription if you qualify for the treatment.
+            We require this to generate your prescription if you qualify for the
+            treatment.
           </Text>
 
-          <View style={[styles.form, showLoader && { opacity: 0.5 }]}>
-            <TextFields
-              label="First Name"
+          <View style={[styles.form, showLoader && {opacity: 0.5}]}>
+            <Controller
+              control={control}
               name="firstName"
-              placeholder="First Name"
-              register={register}
-              errors={errors}
-              required
+              rules={{required: true}}
+              render={({field: {onChange, value}}) => (
+                <TextFields
+                  label="First Name"
+                  placeholder="First Name"
+                  onChangeText={onChange}
+                  value={value}
+                  required
+                />
+              )}
             />
-            <TextFields
-              label="Last Name"
+
+            <Controller
+              control={control}
               name="lastName"
-              placeholder="Last Name"
-              register={register}
-              errors={errors}
-              required
+              rules={{required: true}}
+              render={({field: {onChange, value}}) => (
+                <TextFields
+                  label="Last Name"
+                  placeholder="Last Name"
+                  onChangeText={onChange}
+                  value={value}
+                  required
+                />
+              )}
             />
 
             <NextButton

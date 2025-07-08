@@ -1,7 +1,8 @@
 // library/Fetcher.js
-import axios from "axios";
-import { app_url } from "../config/constants";
-import useAuthStore from "../store/authStore";
+import axios from 'axios';
+import {app_url} from '../config/constants';
+import useAuthStore from '../store/authStore';
+import {logApiError, logApiSuccess} from '../utils/logApiDebug';
 // import useAuthStore from "../store/authStore";
 
 class Fetcher {
@@ -10,9 +11,9 @@ class Fetcher {
       baseURL: app_url,
       timeout: 20000,
       headers: {
-        Accept: "application/json",
-        "Content-Type": "application/json",
-        "Company-Id": 1,
+        Accept: 'application/json',
+        'Content-Type': 'application/json',
+        'Company-Id': 1,
       },
     });
 
@@ -22,20 +23,28 @@ class Fetcher {
   attachInterceptors = () => {
     // ✅ Request Interceptor: Add Bearer Token
     this.axiosSetup.interceptors.request.use(
-      (config) => {
+      config => {
         const token = useAuthStore.getState().token;
         if (token) {
           config.headers.Authorization = `Bearer ${token}`;
         }
         return config;
       },
-      (error) => Promise.reject(error)
+      error => {
+        logApiError(error);
+        return Promise.reject(error);
+      },
     );
 
     // ✅ Response Interceptor: Handle 401
     this.axiosSetup.interceptors.response.use(
-      (response) => response,
-      (error) => {
+      response => {
+        logApiSuccess(response); // Log successful response
+        return response;
+      },
+      error => {
+        logApiError(error); // Log error response
+
         if (error.response?.status === 401) {
           useAuthStore.getState().clearToken();
 
@@ -44,13 +53,15 @@ class Fetcher {
         }
 
         return Promise.reject(error);
-      }
+      },
     );
   };
 
   get = (url, config = {}) => this.axiosSetup.get(url, config);
-  post = (url, data = {}, config = {}) => this.axiosSetup.post(url, data, config);
-  patch = (url, data = {}, config = {}) => this.axiosSetup.patch(url, data, config);
+  post = (url, data = {}, config = {}) =>
+    this.axiosSetup.post(url, data, config);
+  patch = (url, data = {}, config = {}) =>
+    this.axiosSetup.patch(url, data, config);
   put = (url, data = {}, config = {}) => this.axiosSetup.put(url, data, config);
 }
 

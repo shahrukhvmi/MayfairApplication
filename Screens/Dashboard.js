@@ -1,5 +1,5 @@
 import React from 'react';
-import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 
 import DashboardHome from './DashboardHome';
@@ -12,12 +12,17 @@ const Tab = createBottomTabNavigator();
 const Dashboard = () => {
   return (
     <Tab.Navigator
-      screenOptions={({ route }) => ({
+      screenOptions={({route}) => ({
         headerShown: false,
         tabBarActiveTintColor: '#4B0082',
         tabBarInactiveTintColor: 'gray',
-        tabBarLabelStyle: { fontSize: 12 },
-        tabBarIcon: ({ color, size }) => {
+        tabBarStyle: {
+          paddingTop: 10,
+          paddingBottom: 15,
+          height: 70,
+        },
+        tabBarLabelStyle: {fontSize: 12},
+        tabBarIcon: ({color, size}) => {
           let iconName;
           switch (route.name) {
             case 'Dashboard':
@@ -37,8 +42,7 @@ const Dashboard = () => {
           }
           return <Ionicons name={iconName} size={size} color={color} />;
         },
-      })}
-    >
+      })}>
       <Tab.Screen name="Dashboard" component={DashboardHome} />
       <Tab.Screen name="Orders" component={OrdersScreen} />
       <Tab.Screen name="Address Book" component={AddressBookScreen} />
