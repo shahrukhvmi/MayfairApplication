@@ -1,9 +1,7 @@
-import Fetcher from "../library/Fetcher";
+import Fetcher from '../library/Fetcher';
 
-export const Login = async (data) => {
-    return Fetcher.post("auth/login", data);
+export const Login = async data => {
+  return Fetcher.post('/auth/login', data);
 };
 
-
-
-export default { Login };
+export default {Login};
