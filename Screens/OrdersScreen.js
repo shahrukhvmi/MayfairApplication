@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -10,44 +10,42 @@ import {
   ScrollView,
 } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import {Picker} from '@react-native-picker/picker';
-import {useMutation} from '@tanstack/react-query';
+import { Picker } from '@react-native-picker/picker';
+import { useMutation } from '@tanstack/react-query';
 import Toast from 'react-native-toast-message';
 import useOrderId from '../store/useOrderIdStore';
 import usePaginationStore from '../store/pagination';
-import {useStatusStore} from '../store/useStatusStore';
+import { useStatusStore } from '../store/useStatusStore';
 import GetOrdersApi from '../api/getOrders';
-import {useNavigation} from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
+import Header from '../Layout/header';
 
 const OrdersScreen = () => {
-  /* ───────────────── state ───────────────── */
   const [searchValue, setSearchValue] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [data, setData] = useState(null);
 
-  const {currentPage, setCurrentPage} = usePaginationStore();
-  const {status, setStatus} = useStatusStore();
-  const {setOrderId} = useOrderId();
+  const { currentPage, setCurrentPage } = usePaginationStore();
+  const { status, setStatus } = useStatusStore();
+  const { setOrderId } = useOrderId();
 
   const navigation = useNavigation();
 
-  /* ─────────────── fetch orders ────────────── */
   const getOrdersMutation = useMutation(GetOrdersApi, {
     onSuccess: res => {
       setData(res?.data?.myorders);
       setIsLoading(false);
     },
     onError: () => {
-      Toast.show({type: 'error', text1: 'Something went wrong'});
+      Toast.show({ type: 'error', text1: 'Something went wrong' });
       setIsLoading(false);
     },
   });
 
   useEffect(() => {
-    getOrdersMutation.mutate({page: currentPage});
+    getOrdersMutation.mutate({ page: currentPage });
   }, [currentPage]);
 
-  /* ──────────────── filters ───────────────── */
   const filteredOrders = data?.allorders?.filter(order => {
     const q = searchValue.toLowerCase();
     const matchesSearch =
@@ -61,7 +59,6 @@ const OrdersScreen = () => {
     return matchesSearch && matchesStatus;
   });
 
-  /* ──────────────── helpers ───────────────── */
   const pillStyle = s => {
     switch (s.toLowerCase()) {
       case 'processing':
@@ -77,15 +74,12 @@ const OrdersScreen = () => {
     }
   };
 
-  //Send Order ID
   const handleSendId = id => {
     setOrderId(id);
-    console.log(id, 'ID');
     navigation.navigate('order-detail');
   };
 
-  /* ─────────────── render row ─────────────── */
-  const renderRow = ({item}) => {
+  const renderRow = ({ item }) => {
     const treatments = [...new Set(item.items.map(i => i.product))].join('\n');
 
     const grouped = Object.values(
@@ -94,7 +88,7 @@ const OrdersScreen = () => {
           cur.name === '' && cur.label === 'Pack of 5 Needles'
             ? 'Pack of 5 Needles'
             : cur.name;
-        acc[name] = acc[name] || {name, qty: 0};
+        acc[name] = acc[name] || { name, qty: 0 };
         acc[name].qty += cur.quantity;
         return acc;
       }, {}),
@@ -102,30 +96,18 @@ const OrdersScreen = () => {
 
     return (
       <View style={styles.row}>
-        {/* ───────────── cells ───────────── */}
-        <Text style={[styles.cell, styles.id]} numberOfLines={1}>
-          {item.order_id}
-        </Text>
-        <Text style={[styles.cell, styles.date]} numberOfLines={1}>
-          {item.created_at}
-        </Text>
-        <Text style={[styles.cell, styles.treat]} numberOfLines={3}>
-          {treatments}
-        </Text>
+        <Text style={[styles.cell, styles.id]} numberOfLines={1}>{item.order_id}</Text>
+        <Text style={[styles.cell, styles.date]} numberOfLines={1}>{item.created_at}</Text>
+        <Text style={[styles.cell, styles.treat]} numberOfLines={3}>{treatments}</Text>
         <View style={[styles.cell, styles.items]}>
           {grouped.map(g => (
-            <Text key={g.name} numberOfLines={1}>
-              • {g.name} × {g.qty}
-            </Text>
+            <Text key={g.name} numberOfLines={1}>• {g.name} × {g.qty}</Text>
           ))}
         </View>
         <View style={[styles.cell, styles.stat]}>
           <Text style={pillStyle(item.status)}>{item.status}</Text>
         </View>
-        <Text style={[styles.cell, styles.total]} numberOfLines={1}>
-          £{item.total_price}
-        </Text>
-
+        <Text style={[styles.cell, styles.total]} numberOfLines={1}>£{item.total_price}</Text>
         <TouchableOpacity
           style={[styles.cell, styles.eye]}
           onPress={() => handleSendId(item.id)}>
@@ -135,87 +117,113 @@ const OrdersScreen = () => {
     );
   };
 
-  /* ───────────────── view ───────────────── */
   return (
-    <View style={styles.container}>
-      {/* ───── Heading ───── */}
-      <Text style={styles.heading}>My Orders</Text>
-      <Text style={styles.sub}>View your order history</Text>
 
-      {/* ───── Search + status filter ───── */}
-      <View style={styles.topRow}>
-        <View style={styles.searchWrap}>
-          <Ionicons
-            name="search"
-            size={18}
-            color="#888"
-            style={styles.searchIcon}
-          />
-          <TextInput
-            placeholder="Search by Order ID"
-            value={searchValue}
-            onChangeText={setSearchValue}
-            style={styles.searchInput}
-          />
-        </View>
+    <>
 
-        <View style={styles.pickerWrap}>
-          <Text style={styles.pickerLabel}>Sort by status</Text>
-          <Picker
-            selectedValue={status}
-            onValueChange={setStatus}
-            style={styles.picker}
-            mode="dropdown">
-            <Picker.Item label="All" value="all" />
-            <Picker.Item label="Processing" value="processing" />
-            <Picker.Item label="Incomplete" value="incomplete" />
-            <Picker.Item label="Approved" value="approved" />
-            <Picker.Item label="Cancelled" value="cancelled" />
-          </Picker>
-        </View>
-      </View>
+      <Header />
+      <View style={styles.container}>
+        <Text style={styles.heading}>My Orders</Text>
+        <Text style={styles.sub}>View your order history</Text>
 
-      {/* ───── blue note banner ───── */}
-      <View style={styles.banner}>
-        <Ionicons name="bulb-outline" size={16} color="#2563eb" />
-        <Text style={styles.bannerText}>
-          Changes to your shipping address will only apply to future orders and
-          will not affect previous ones
-        </Text>
-      </View>
-
-      {/* ───── column headers ───── */}
-      <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-        <View style={{minWidth: 670}}>
-          {' '}
-          {/* 670 = sum of COL_WIDTH values */}
-          <View style={styles.headerRow}>
-            <Text style={[styles.hCell, styles.id]}>ORDER ID</Text>
-            <Text style={[styles.hCell, styles.date]}>ORDER DATE</Text>
-            <Text style={[styles.hCell, styles.treat]}>TREATMENT</Text>
-            <Text style={[styles.hCell, styles.items]}>ITEMS</Text>
-            <Text style={[styles.hCell, styles.stat]}>STATUS</Text>
-            <Text style={[styles.hCell, styles.total]}>TOTAL</Text>
-            <Text style={[styles.hCell, styles.eye]} />
-          </View>
-          {isLoading ? (
-            <ActivityIndicator style={{marginTop: 30}} size="large" />
-          ) : (
-            <FlatList
-              data={filteredOrders}
-              keyExtractor={i => i.order_id.toString()}
-              renderItem={renderRow}
-              contentContainerStyle={{paddingBottom: 40}}
-              // Remove scrollEnabled={false} to allow vertical scroll
+        {/* Search */}
+        <View style={styles.topRow}>
+          <View style={styles.searchWrap}>
+            <Ionicons name="search" size={18} color="#888" style={styles.searchIcon} />
+            <TextInput
+              placeholder="Search by Order ID"
+              placeholderTextColor="#9CA3AF"
+              value={searchValue}
+              onChangeText={setSearchValue}
+              style={styles.searchInput}
             />
-          )}
+          </View>
         </View>
-      </ScrollView>
-    </View>
+
+        {/* Filter tag */}
+        {/* <View style={styles.statusTagWrapper}>
+        <Text style={styles.statusTagLabel}>Showing:</Text>
+        <View
+          style={[
+            styles.statusTag,
+            status === 'all' ? styles.defaultPill : pillStyle(status),
+          ]}>
+          <Text style={styles.statusTagText}>
+            {status === 'all' ? 'All Orders' : status}
+          </Text>
+        </View>
+      </View> */}
+        {/* processing: { backgroundColor: '#fef3c7', color: '#92400e' },
+  incomplete: { backgroundColor: '#ffedd5', color: '#c2410c' },
+  approved: { backgroundColor: '#d1fae5', color: '#065f46' },
+  cancelled: { backgroundColor: '#fee2e2', color: '#991b1b' },
+  defaultPill: { backgroundColor: '#e5e7eb', color: '#374151' }, */}
+
+        {/* Dropdown */}
+        <View style={styles.filterRow}>
+          <Text style={styles.filterLabel}>Sort by status</Text>
+          <View style={[
+            styles.dropdownWrapper,
+            styles.statusTag,
+            status === 'all' && styles.defaultPill,
+            status === 'processing' && styles.processing,
+            status === 'incomplete' && styles.incomplete,
+            status === 'approved' && styles.approved,
+            status === 'cancelled' && styles.cancelled,
+          ]}>
+            <Picker
+              selectedValue={status}
+              onValueChange={setStatus}
+              style={styles.dropdown}
+              dropdownIconColor="white"
+              mode="dropdown">
+              <Picker.Item label="All" value="all" color="white" />
+              <Picker.Item label="Processing" value="processing" color="white" />
+              <Picker.Item label="Incomplete" value="incomplete" color="white" />
+              <Picker.Item label="Approved" value="approved" color="white" />
+              <Picker.Item label="Cancelled" value="cancelled" color="white" />
+            </Picker>
+          </View>
+        </View>
+
+        {/* Banner */}
+        <View style={styles.banner}>
+          <Ionicons name="bulb-outline" size={16} color="#2563eb" />
+          <Text style={styles.bannerText}>
+            Changes to your shipping address will only apply to future orders and will not affect previous ones
+          </Text>
+        </View>
+
+        {/* Orders table */}
+        <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+          <View style={{ minWidth: 670 }}>
+            <View style={styles.headerRow}>
+              <Text style={[styles.hCell, styles.id]}>ORDER ID</Text>
+              <Text style={[styles.hCell, styles.date]}>ORDER DATE</Text>
+              <Text style={[styles.hCell, styles.treat]}>TREATMENT</Text>
+              <Text style={[styles.hCell, styles.items]}>ITEMS</Text>
+              <Text style={[styles.hCell, styles.stat]}>STATUS</Text>
+              <Text style={[styles.hCell, styles.total]}>TOTAL</Text>
+              <Text style={[styles.hCell, styles.eye]} />
+            </View>
+            {isLoading ? (
+              <ActivityIndicator style={{ marginTop: 30 }} size="large" />
+            ) : (
+              <FlatList
+                data={filteredOrders}
+                keyExtractor={i => i.order_id.toString()}
+                renderItem={renderRow}
+                contentContainerStyle={{ paddingBottom: 40 }}
+              />
+            )}
+          </View>
+        </ScrollView>
+      </View>
+
+    </>
   );
 };
 
-/* ────────────────── styles ────────────────── */
 const COL_WIDTH = {
   id: 70,
   date: 90,
@@ -227,29 +235,83 @@ const COL_WIDTH = {
 };
 
 const styles = StyleSheet.create({
-  container: {flex: 1, backgroundColor: '#fff', padding: 16},
-  heading: {fontSize: 24, fontWeight: 'bold', color: '#1f2937'},
-  sub: {color: '#4b5563', marginBottom: 12},
+  container: { flex: 1, backgroundColor: '#fff', padding: 16 },
+  heading: { fontSize: 24, fontWeight: 'bold', color: '#1f2937' },
+  sub: { color: '#4b5563', marginBottom: 12 },
 
-  /* search + picker */
-  topRow: {flexDirection: 'row', alignItems: 'center', marginBottom: 12},
-  searchWrap: {flex: 1, position: 'relative', marginRight: 12},
-  searchIcon: {position: 'absolute', left: 10, top: 12},
+  topRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+    gap: 10,
+    marginBottom: 16,
+  },
+  searchWrap: { flex: 1, minWidth: '60%', position: 'relative' },
+  searchIcon: { position: 'absolute', left: 12, top: 12, zIndex: 2 },
   searchInput: {
     borderWidth: 1,
     borderColor: '#d1d5db',
-    borderRadius: 8,
-    paddingVertical: 8,
-    paddingLeft: 34,
-    paddingRight: 10,
+    borderRadius: 12,
+    paddingVertical: 10,
+    paddingLeft: 38,
+    paddingRight: 12,
     fontSize: 14,
     color: '#111827',
+    backgroundColor: '#f9fafb',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 2,
   },
-  pickerWrap: {width: 140},
-  pickerLabel: {fontSize: 12, color: '#374151', marginBottom: 2},
-  picker: {borderWidth: 1, borderColor: '#d1d5db', borderRadius: 8},
 
-  /* note banner */
+  filterRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    marginBottom: 16,
+  },
+  filterLabel: {
+    fontSize: 14,
+    color: '#000',
+    fontWeight: '500',
+  },
+  dropdownWrapper: {
+    flex: 1,
+    height: 36,
+    backgroundColor: 'white',
+    borderColor: '#d1d5db',
+    borderWidth: 1,
+    borderRadius: 10,
+    justifyContent: 'center',
+    paddingHorizontal: 4,
+  },
+  dropdown: {
+    // height: 36,
+    color: 'black',
+  },
+
+  statusTagWrapper: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 12,
+  },
+  statusTagLabel: {
+    fontSize: 13,
+    color: '#6b7280',
+  },
+  statusTag: {
+    paddingVertical: 4,
+    paddingHorizontal: 10,
+  },
+  statusTagText: {
+    fontSize: 13,
+    fontWeight: '500',
+    textTransform: 'capitalize',
+    color: '#111',
+  },
+
   banner: {
     flexDirection: 'row',
     backgroundColor: '#eff6ff',
@@ -258,50 +320,56 @@ const styles = StyleSheet.create({
     padding: 10,
     marginBottom: 12,
     alignItems: 'center',
+    borderRadius: 8,
   },
-  bannerText: {marginLeft: 6, fontSize: 13, color: '#2563eb', flex: 1},
+  bannerText: {
+    marginLeft: 6,
+    fontSize: 13,
+    color: '#2563eb',
+    flex: 1,
+  },
 
-  /* header row */
   headerRow: {
     flexDirection: 'row',
     paddingVertical: 8,
     borderBottomWidth: 1,
     borderColor: '#e5e7eb',
+    backgroundColor: '#f3f4f6',
   },
-  hCell: {fontSize: 11, fontWeight: '600', color: '#6b7280'},
+  hCell: { fontSize: 11, fontWeight: '600', color: '#6b7280' },
 
-  /* data rows */
   row: {
     flexDirection: 'row',
     paddingVertical: 14,
     borderBottomWidth: 1,
     borderColor: '#e5e7eb',
+    backgroundColor: '#ffffff',
   },
-  cell: {fontSize: 13, color: '#374151'},
+  cell: { fontSize: 13, color: '#374151' },
 
-  /* column widths */
-  id: {width: COL_WIDTH.id},
-  date: {width: COL_WIDTH.date},
-  treat: {width: COL_WIDTH.treat},
-  items: {width: COL_WIDTH.items},
-  stat: {width: COL_WIDTH.stat, justifyContent: 'center'},
-  total: {width: COL_WIDTH.total},
-  eye: {width: COL_WIDTH.eye, alignItems: 'center'},
+  id: { width: COL_WIDTH.id },
+  date: { width: COL_WIDTH.date },
+  treat: { width: COL_WIDTH.treat },
+  items: { width: COL_WIDTH.items },
+  stat: { width: COL_WIDTH.stat, justifyContent: 'center' },
+  total: { width: COL_WIDTH.total },
+  eye: { width: COL_WIDTH.eye, alignItems: 'center' },
 
-  /* status pill */
   pill: {
-    paddingHorizontal: 6,
-    paddingVertical: 2,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
     borderRadius: 999,
     fontSize: 11,
     overflow: 'hidden',
     textAlign: 'center',
+    fontWeight: '600',
+    textTransform: 'capitalize',
   },
-  processing: {backgroundColor: '#fef3c7', color: '#d97706'},
-  incomplete: {backgroundColor: '#ffedd5', color: '#ea580c'},
-  approved: {backgroundColor: '#d1fae5', color: '#059669'},
-  cancelled: {backgroundColor: '#fee2e2', color: '#b91c1c'},
-  defaultPill: {backgroundColor: '#e5e7eb', color: '#374151'},
+  processing: { backgroundColor: '#fef3c7', color: '#92400e' },
+  incomplete: { backgroundColor: '#ffedd5', color: '#c2410c' },
+  approved: { backgroundColor: '#d1fae5', color: '#065f46' },
+  cancelled: { backgroundColor: '#fee2e2', color: '#991b1b' },
+  defaultPill: { backgroundColor: '#e5e7eb', color: '#374151' },
 });
 
 export default OrdersScreen;
