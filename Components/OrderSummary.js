@@ -275,7 +275,7 @@ const styles = StyleSheet.create({
   },
   applyCouponButton: {
     padding: 8,
-    backgroundColor: '#1f9e8c',
+    backgroundColor: '#4B0082',
     borderRadius: 4,
     justifyContent: 'center',
     alignItems: 'center',
