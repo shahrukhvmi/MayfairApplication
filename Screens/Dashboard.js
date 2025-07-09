@@ -18,10 +18,11 @@ const Dashboard = () => {
         tabBarInactiveTintColor: 'gray',
         tabBarStyle: {
           paddingTop: 10,
-          paddingBottom: 15,
-          height: 70,
+          paddingBottom: 10,
+          height: 60,
         },
-        tabBarLabelStyle: {fontSize: 12},
+        // tabBarLabelStyle: {fontSize: 12},
+        tabBarShowLabel: false, // Hide labels
         tabBarIcon: ({color, size}) => {
           let iconName;
           switch (route.name) {
@@ -40,7 +41,7 @@ const Dashboard = () => {
             default:
               iconName = 'ellipse-outline';
           }
-          return <Ionicons name={iconName} size={size} color={color} />;
+          return <Ionicons name={iconName} size={30} color={color} />;
         },
       })}>
       <Tab.Screen name="Dashboard" component={DashboardHome} />

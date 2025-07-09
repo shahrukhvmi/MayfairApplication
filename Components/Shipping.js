@@ -14,6 +14,7 @@ import SelectField from './SelectField';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 
 import {getProfileData, sendProfileData} from '../api/myProfileApi';
+import PostcodeSearchInput from './PostcodeSearchInput';
 
 const GETADDRESS_KEY = '_UFb05P76EyMidU1VHIQ_A42976';
 
@@ -216,53 +217,49 @@ export default function Shipping({shipmentCountries}) {
               control={control}
               rules={{required: 'Postcode is required'}}
               render={({field}) => (
-                <TextFields
+                <PostcodeSearchInput
                   label="Post code"
-                  placeholder="W1A 1AA"
                   value={field.value}
                   onChangeText={field.onChange}
-                  required
-                  errors={errors}
-                  containerStyle={{flex: 1}}
+                  handleSearch={handleSearch}
+                  addressSearchLoading={addressSearchLoading}
+                  errors={errors?.postalcode?.message}
                 />
               )}
             />
-
-            <TouchableOpacity
-              style={styles.insideSearchButton}
-              onPress={handleSearch}
-              disabled={addressSearchLoading}>
-              {addressSearchLoading ? (
-                <ActivityIndicator color="#fff" />
-              ) : (
-                <Ionicons name="search" size={18} color="#fff" />
-              )}
-            </TouchableOpacity>
           </View>
 
           {/* Address dropdown after search */}
+          {/* Conditional rendering of the address selection dropdown */}
           {manual && addressOptions.length > 0 && (
-            <SelectField
-              label="Select Your Address"
-              value={selectedIndex}
-              onChange={idx => {
-                const selected = addressOptions[idx];
-                setSelectedIndex(idx);
-                setValue('addressone', selected.line_1 || '', {
-                  shouldValidate: true,
-                });
-                setValue('addresstwo', selected.line_2 || '', {
-                  shouldValidate: true,
-                });
-                setValue('city', selected.town_or_city || '', {
-                  shouldValidate: true,
-                });
-              }}
-              options={addressOptions.map((addr, idx) => ({
-                value: idx,
-                label: addr.formatted_address.join(', '),
-              }))}
-              required
+            <Controller
+              name="addressone" // You can change this to any form field name like "addressone"
+              control={control}
+              render={({field}) => (
+                <SelectField
+                  label="Select Your Address"
+                  value={selectedIndex}
+                  onChange={idx => {
+                    const selected = addressOptions[idx];
+                    setSelectedIndex(idx);
+                    setValue('addressone', selected.line_1 || '', {
+                      shouldValidate: true,
+                    });
+                    setValue('addresstwo', selected.line_2 || '', {
+                      shouldValidate: true,
+                    });
+                    setValue('city', selected.town_or_city || '', {
+                      shouldValidate: true,
+                    });
+                  }}
+                  options={addressOptions.map((addr, idx) => ({
+                    value: idx,
+                    label: addr.formatted_address.join(', '),
+                  }))}
+                  required
+                  error={errors?.addressone?.message}
+                />
+              )}
             />
           )}
 

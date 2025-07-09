@@ -12,6 +12,7 @@ import {
 import Header from '../Layout/header';
 import TextFields from '../Components/TextFields';
 import OrderSummary from '../Components/OrderSummary';
+import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 
 export default function CheckoutSteps() {
   const scrollRef = useRef();
@@ -112,13 +113,16 @@ export default function CheckoutSteps() {
               <TouchableOpacity
                 style={styles.checkboxRow}
                 onPress={() => setShippingCheckbox(!shippingCheckbox)}>
-                <View
-                  style={[
-                    styles.checkbox,
-                    shippingCheckbox && styles.checkedBox,
-                  ]}>
-                  {shippingCheckbox && <Text style={styles.tick}>✓</Text>}
-                </View>
+                {shippingCheckbox ? (
+                  <MaterialIcons name="check-box" size={24} color="#47317c" />
+                ) : (
+                  <MaterialIcons
+                    name="check-box-outline-blank"
+                    size={24}
+                    color="#47317c"
+                  />
+                )}
+
                 <Text style={{marginLeft: 10, fontSize: 14}}>
                   Make billing address same as shipping address
                 </Text>
@@ -181,9 +185,15 @@ export default function CheckoutSteps() {
               <TouchableOpacity
                 style={styles.checkboxRow}
                 onPress={() => setIsChecked(!isChecked)}>
-                <View style={[styles.checkbox, isChecked && styles.checkedBox]}>
-                  {isChecked && <Text style={styles.tick}>✓</Text>}
-                </View>
+                {isChecked ? (
+                  <MaterialIcons name="check-box" size={30} color="#47317c" />
+                ) : (
+                  <MaterialIcons
+                    name="check-box-outline-blank"
+                    size={30}
+                    color="#47317c"
+                  />
+                )}
                 <Text style={{marginLeft: 10, fontSize: 14}}>
                   I accept all terms and conditions
                 </Text>
@@ -237,7 +247,7 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: '600',
     color: '#1A1A1A',
-    marginBottom: 4,
+    marginBottom: 18,
     textAlign: 'center',
   },
   subHeading: {
