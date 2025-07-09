@@ -59,11 +59,12 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#ccc',
     borderRadius: 6,
-    overflow: 'hidden',
+    // overflow: 'hidden',
   },
   picker: {
-    height: Platform.OS === 'ios' ? 180 : 50,
+    height: Platform.OS === 'ios' ? 60 : 60,
     width: '100%',
+    color: '#000',
   },
   errorText: {
     color: 'red',

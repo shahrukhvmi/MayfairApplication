@@ -13,6 +13,8 @@ import {useMutation} from '@tanstack/react-query';
 import TextFields from './TextFields';
 import SelectField from './SelectField';
 import {getProfileData, sendProfileData} from '../api/myProfileApi';
+import Ionicons from 'react-native-vector-icons/Ionicons';
+import PostcodeSearchInput from './PostcodeSearchInput';
 
 const GETADDRESS_KEY = '_UFb05P76EyMidU1VHIQ_A42976';
 
@@ -213,32 +215,19 @@ export default function Billing({billingCountries}) {
           <Controller
             name="postalcode"
             control={control}
-            rules={{required: 'Post code is required'}}
+            rules={{required: 'Postcode is required'}}
             render={({field}) => (
-              <TextFields
+              <PostcodeSearchInput
                 label="Post code"
                 value={field.value}
-                onChangeText={field.onChange} // ✅ keeps RHF in sync
-                placeholder="W1A 1AA"
-                required
-                errors={errors}
-                containerStyle={{flex: 1}}
+                onChangeText={field.onChange}
+                handleSearch={handleSearch}
+                addressSearchLoading={addressSearchLoading}
+                errors={errors?.postalcode?.message}
+                isSearchAllowed={isSearchAllowed} // Pass the state that controls visibility
               />
             )}
           />
-
-          {isSearchAllowed && (
-            <TouchableOpacity
-              style={styles.insideSearchButton}
-              onPress={handleSearch}
-              disabled={addressSearchLoading}>
-              {addressSearchLoading ? (
-                <ActivityIndicator color="#fff" />
-              ) : (
-                <Text style={{color: '#fff'}}>Search</Text>
-              )}
-            </TouchableOpacity>
-          )}
         </View>
 
         {/* Address dropdown after search */}
@@ -341,7 +330,7 @@ export default function Billing({billingCountries}) {
 }
 
 const styles = StyleSheet.create({
-  container: {paddingBottom: 60, paddingHorizontal: 20},
+  container: {paddingBottom: 60},
   title: {
     fontSize: 20,
     fontWeight: '700',

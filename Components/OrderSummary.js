@@ -3,7 +3,6 @@ import {
   View,
   Text,
   TouchableOpacity,
-  FlatList,
   StyleSheet,
   TextInput,
 } from 'react-native';
@@ -11,19 +10,16 @@ import Feather from 'react-native-vector-icons/Feather';
 import Entypo from 'react-native-vector-icons/Entypo';
 import {useNavigation} from '@react-navigation/native';
 
-const ITEM_HEIGHT = 72; // Adjust to match your itemContainer height + margin
-
 const OrderSummary = () => {
+  // Example data (replace with your actual data/props)
   const navigation = useNavigation();
-
-  // ...existing data and handlers...
 
   const doses = [
     {product: 'Mounjaro (Tirzepatide)', name: 'Dose 1', qty: 1, price: 20.0},
     {product: 'Mounjaro (Tirzepatide)', name: 'Dose 2', qty: 2, price: 40.0},
     {product: 'Mounjaro (Tirzepatide)', name: 'Dose 3', qty: 1, price: 50.0},
-    {product: 'Mounjaro (Tirzepatide)', name: 'Dose 4', qty: 1, price: 60.0},
   ];
+
   const addons = [
     {name: 'Addon 1', qty: 1, price: 10.0},
     {name: 'Addon 2', qty: 2, price: 15.0},
@@ -33,24 +29,31 @@ const OrderSummary = () => {
     (total, dose) => total + dose.price * dose.qty,
     0,
   );
-  const finalTotal = totalAmount + 10;
+  const finalTotal = totalAmount + 10; // Example of additional shipping or VAT
   const shipping = {country_name: 'UK', country_price: 5.0};
 
   const handleEdit = () => {
     navigation.navigate('dose-selection');
   };
-  const handleRemoveCoupon = () => {};
-  const handleApplyCoupon = () => {};
 
+  const handleRemoveCoupon = () => {
+    // Remove coupon logic
+  };
+
+  const handleApplyCoupon = () => {
+    // Apply coupon logic
+  };
+
+  // Combine doses and addons into one array with a type
   const items = [
     ...doses.map(item => ({...item, type: 'dose'})),
     ...addons.map(item => ({...item, type: 'addon'})),
   ];
 
-  const renderItem = ({item, index}) => {
+  const renderItem = (item, idx) => {
     if (item.type === 'dose') {
       return (
-        <React.Fragment key={index}>
+        <React.Fragment key={idx}>
           <View style={styles.itemContainer}>
             <View style={styles.itemDetails}>
               <Text style={styles.itemTitle}>{item.product}</Text>
@@ -70,8 +73,9 @@ const OrderSummary = () => {
         </React.Fragment>
       );
     }
+    // Addon
     return (
-      <View style={styles.itemContainer} key={index}>
+      <View style={styles.itemContainer} key={idx}>
         <View style={styles.itemDetails}>
           <Text style={styles.itemTitle}>{item.name}</Text>
           <Text style={styles.itemQuantity}>Quantity: x{item.qty}</Text>
@@ -90,17 +94,8 @@ const OrderSummary = () => {
           <Feather name="edit" size={24} color="#47317c" />
         </TouchableOpacity>
       </View>
-      <View style={{height: ITEM_HEIGHT * 3, marginBottom: 8}}>
-        <FlatList
-          data={items}
-          renderItem={renderItem}
-          keyExtractor={(_, idx) => idx.toString()}
-          showsVerticalScrollIndicator={true}
-          nestedScrollEnabled={true}
-        />
-      </View>
+      {items.map(renderItem)}
       <View style={styles.summaryContainer}>
-        {/* ...rest of your summary code... */}
         <View style={styles.summaryRow}>
           <Text style={styles.summaryLabel}>Subtotal</Text>
           <Text style={styles.summaryValue}>£{totalAmount.toFixed(2)}</Text>
@@ -267,7 +262,7 @@ const styles = StyleSheet.create({
   },
   couponInput: {
     flex: 1,
-    padding: 12,
+    padding: 8,
     backgroundColor: '#f0f0f0',
     borderRadius: 4,
     borderTopRightRadius: 0,
