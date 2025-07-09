@@ -1,6 +1,8 @@
 import { useNavigation } from '@react-navigation/native';
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import Header from '../Layout/header';
+import NextButton from '../Components/NextButton';
+import BackButton from '../Components/BackButton';
 
 export default function ConfirmationSummary() {
     const navigation = useNavigation();
@@ -67,20 +69,18 @@ export default function ConfirmationSummary() {
                 </View>
 
                 {/* Confirm Button */}
-                <TouchableOpacity
-                    style={styles.confirmBtn}
-                    onPress={() => navigation.navigate('dose-selection')}
-                >
-                    <Text style={styles.confirmText}>Confirm and proceed</Text>
-                </TouchableOpacity>
 
+
+                <NextButton
+                    onPress={() => navigation.navigate('dose-selection')}
+                    label='Next'
+
+                />
+                <BackButton label='Review all answers' onPress={() => navigation.navigate('dose-selection')} />
+                <BackButton label='Back' onPress={() => navigation.goBack()} />
                 {/* Review + Back */}
-                <TouchableOpacity onPress={() => navigation.navigate('dose-selection')}>
-                    <Text style={styles.link}>Review all answers</Text>
-                </TouchableOpacity>
-                <TouchableOpacity onPress={() => navigation.goBack()}>
-                    <Text style={styles.link}>Back</Text>
-                </TouchableOpacity>
+
+
             </ScrollView>
 
         </>

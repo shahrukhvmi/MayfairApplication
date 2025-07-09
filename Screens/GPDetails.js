@@ -3,6 +3,8 @@ import { useNavigation } from '@react-navigation/native';
 import { useState } from 'react';
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import Header from '../Layout/header';
+import NextButton from '../Components/NextButton';
+import BackButton from '../Components/BackButton';
 
 export default function GPDetails() {
     const navigation = useNavigation();
@@ -46,8 +48,8 @@ export default function GPDetails() {
                     ))}
                 </View>
 
-                {/* Next Button */}
-                <TouchableOpacity
+
+                {/* <TouchableOpacity
                     style={[styles.nextButton, !selected && styles.disabledBtn]}
                     onPress={() => navigation.navigate('confirmation-summary')}
                     disabled={!selected}
@@ -55,10 +57,20 @@ export default function GPDetails() {
                     <Text style={styles.nextText}>Next</Text>
                 </TouchableOpacity>
 
-                {/* Back Link */}
+               
                 <TouchableOpacity onPress={() => navigation.goBack()}>
                     <Text style={styles.backText}>Back</Text>
-                </TouchableOpacity>
+                </TouchableOpacity> */}
+
+
+                <NextButton
+                    onPress={() => navigation.navigate('confirmation-summary')}
+                    
+                />
+                <BackButton
+                    onPress={() => navigation.goBack()}
+                    label='Back'
+                />
             </ScrollView>
         </>
     );

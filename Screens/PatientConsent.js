@@ -9,6 +9,8 @@ import {
     View,
 } from 'react-native';
 import Header from '../Layout/header';
+import NextButton from '../Components/NextButton';
+import BackButton from '../Components/BackButton';
 
 export default function PatientConsent() {
     const navigation = useNavigation();
@@ -67,8 +69,7 @@ export default function PatientConsent() {
                     </Text>
                 </TouchableOpacity>
 
-                {/* Next Button */}
-                <TouchableOpacity
+                {/* <TouchableOpacity
                     style={[styles.nextButton, !accepted && styles.disabledBtn]}
                     disabled={!accepted}
                     onPress={() => navigation.navigate('gp-detail')}
@@ -76,10 +77,19 @@ export default function PatientConsent() {
                     <Text style={styles.nextText}>Next</Text>
                 </TouchableOpacity>
 
-                {/* Back */}
                 <TouchableOpacity onPress={() => navigation.goBack()}>
                     <Text style={styles.backText}>Back</Text>
-                </TouchableOpacity>
+                </TouchableOpacity> */}
+
+
+                <NextButton
+                    onPress={() => navigation.navigate('gp-detail')}
+                    label='Next'
+                />
+                <BackButton
+                    onPress={() => navigation.goBack()}
+                    label='Back'
+                />
             </ScrollView>
         </>
     );
@@ -90,8 +100,8 @@ const styles = StyleSheet.create({
         backgroundColor: '#f8f5ff',
         flexGrow: 1,
         padding: 20,
-        paddingBottom:80,
-        
+        paddingBottom: 80,
+
     },
     progressContainer: {
         height: 4,

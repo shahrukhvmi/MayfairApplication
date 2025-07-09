@@ -109,13 +109,14 @@ export default function PersonalDetails() {
                 {/* Next & Back Buttons */}
                 <NextButton
                     label="Next"
-                    disabled={!gender || !date}
+                    // disabled={!gender || !date}
                     onPress={handleNext}
                 />
 
                 <BackButton
                     label="Back"
                     onPress={() => navigation.goBack()}
+                    
                 />
             </ScrollView>
         </>
@@ -134,6 +135,7 @@ const styles = StyleSheet.create({
         borderRadius: 2,
         marginBottom: 8,
     },
+
     progressBar: {
         width: '30%',
         height: '100%',

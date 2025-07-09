@@ -8,6 +8,9 @@ import {
     View,
 } from 'react-native';
 import Header from '../Layout/header';
+import NextButton from '../Components/NextButton';
+import BackButton from '../Components/BackButton';
+import Ionicons from 'react-native-vector-icons/Ionicons'; // ✅ Added this
 
 export default function Ethnicity() {
     const navigation = useNavigation();
@@ -60,12 +63,24 @@ export default function Ethnicity() {
                         ]}
                         onPress={() => setSelection(opt)}
                     >
-                        <Text style={styles.optionText}>{opt}</Text>
+                        <View style={styles.optionContent}>
+                            <Ionicons
+                                name={
+                                    selection === opt
+                                        ? 'checkmark-circle'
+                                        : 'ellipse-outline'
+                                }
+                                size={20}
+                                color={selection === opt ? '#4B0082' : '#999'}
+                                style={{ marginRight: 4 }}
+                            />
+                            <Text style={styles.optionText}>{opt}</Text>
+                        </View>s
                     </TouchableOpacity>
                 ))}
 
                 {/* Next Button */}
-                <TouchableOpacity
+                {/* <TouchableOpacity
                     style={[
                         styles.nextButton,
                         !selection && styles.disabledBtn,
@@ -76,10 +91,24 @@ export default function Ethnicity() {
                     <Text style={styles.nextText}>Next</Text>
                 </TouchableOpacity>
 
-                {/* Back Button */}
+              
                 <TouchableOpacity onPress={() => navigation.goBack()}>
                     <Text style={styles.backText}>Back</Text>
-                </TouchableOpacity>
+                </TouchableOpacity> */}
+
+
+                <NextButton
+                    label="Next"
+                    onPress={() => navigation.navigate('calculate-height')}
+                // onPress={handleSubmit(onSubmit)}
+                // disabled={!isValid}
+                />
+
+                <BackButton
+                    label="Back"
+                    onPress={() => navigation.goBack()}
+
+                />
             </ScrollView>
 
         </>
@@ -98,6 +127,11 @@ const styles = StyleSheet.create({
         borderRadius: 2,
         overflow: 'hidden',
         marginBottom: 6,
+    },
+    optionContent: {
+        flexDirection: 'row',
+        alignItems: 'start',
+        justifyContent: 'start',
     },
     progressBar: {
         width: '60%',

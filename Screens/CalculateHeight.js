@@ -1,5 +1,5 @@
-import {useNavigation} from '@react-navigation/native';
-import {useState} from 'react';
+import { useNavigation } from '@react-navigation/native';
+import { useState } from 'react';
 import {
   ScrollView,
   StyleSheet,
@@ -9,6 +9,8 @@ import {
   View,
 } from 'react-native';
 import Header from '../Layout/header';
+import NextButton from '../Components/NextButton';
+import BackButton from '../Components/BackButton';
 export default function Step6Height() {
   const navigation = useNavigation();
   const [unit, setUnit] = useState('cm');
@@ -72,14 +74,14 @@ export default function Step6Height() {
               <TextInput
                 placeholder="Feet"
                 keyboardType="numeric"
-                style={[styles.input, {flex: 1, marginRight: 8}]}
+                style={[styles.input, { flex: 1, marginRight: 8 }]}
                 value={feet}
                 onChangeText={setFeet}
               />
               <TextInput
                 placeholder="Inches"
                 keyboardType="numeric"
-                style={[styles.input, {flex: 1}]}
+                style={[styles.input, { flex: 1 }]}
                 value={inches}
                 onChangeText={setInches}
               />
@@ -87,18 +89,28 @@ export default function Step6Height() {
           </>
         )}
 
-        {/* Next */}
-        <TouchableOpacity
+
+        {/* <TouchableOpacity
           style={[styles.nextButton, !canProceed && styles.disabledBtn]}
           disabled={!canProceed}
           onPress={() => navigation.navigate('calculate-weight')}>
           <Text style={styles.nextText}>Next</Text>
         </TouchableOpacity>
 
-        {/* Back */}
         <TouchableOpacity onPress={() => navigation.goBack()}>
           <Text style={styles.backText}>Back</Text>
-        </TouchableOpacity>
+        </TouchableOpacity> */}
+
+        <NextButton
+          // style={[styles.nextButton, !canProceed && styles.disabledBtn]}
+          onPress={() => navigation.navigate('calculate-weight')}
+          label='Next'
+        />
+        <BackButton
+          onPress={() => navigation.goBack()}
+          label='Back'
+
+        />
       </ScrollView>
     </>
   );

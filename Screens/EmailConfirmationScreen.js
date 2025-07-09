@@ -1,5 +1,5 @@
 // 📦 Required imports
-import React, {useEffect, useState} from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -8,9 +8,9 @@ import {
   Platform,
   TouchableOpacity,
 } from 'react-native';
-import {useNavigation} from '@react-navigation/native';
-import {Controller, useForm} from 'react-hook-form';
-import {useMutation} from '@tanstack/react-query';
+import { useNavigation } from '@react-navigation/native';
+import { Controller, useForm } from 'react-hook-form';
+import { useMutation } from '@tanstack/react-query';
 import Toast from 'react-native-toast-message';
 
 // 🛒 Stores
@@ -19,7 +19,7 @@ import useAuthStore from '../store/authStore';
 import usePasswordReset from '../store/usePasswordReset';
 
 // 📦 API
-import {registerUser} from '../api/authApi';
+import { registerUser } from '../api/authApi';
 import loginApi from '../api/loginApi';
 
 // 🧱 Components
@@ -50,10 +50,10 @@ const EmailConfirmationScreen = () => {
     setConfirmationEmail,
   } = useSignupStore();
 
-  const {setUserData} = useUserDataStore();
-  const {token, setToken} = useAuthStore();
-  const {setIsPasswordReset, setShowResetPassword} = usePasswordReset();
-  const {setAuthUserDetail} = useAuthUserDetailStore();
+  const { setUserData } = useUserDataStore();
+  const { token, setToken } = useAuthStore();
+  const { setIsPasswordReset, setShowResetPassword } = usePasswordReset();
+  const { setAuthUserDetail } = useAuthUserDetailStore();
 
   const {
     register,
@@ -62,12 +62,12 @@ const EmailConfirmationScreen = () => {
     getValues,
     trigger,
     control,
-    formState: {errors, isValid},
+    formState: { errors, isValid },
   } = useForm({
     mode: 'onChange',
-    defaultValues: {email: '', confirmationEmail: ''},
+    defaultValues: { email: '', confirmationEmail: '' },
   });
-  const {showLoginModal, closeLoginModal, openLoginModal} =
+  const { showLoginModal, closeLoginModal, openLoginModal } =
     useLoginModalStore();
   useEffect(() => {
     setValue('email', email);
@@ -157,12 +157,12 @@ const EmailConfirmationScreen = () => {
             This is where we will send information about your order.
           </Text>
 
-          <View style={[styles.form, showLoader && {opacity: 0.5}]}>
+          <View style={[styles.form, showLoader && { opacity: 0.5 }]}>
             <Controller
               control={control}
               name="email"
-              rules={{required: 'Email is required'}}
-              render={({field: {onChange, onBlur, value}}) => (
+              rules={{ required: 'Email is required' }}
+              render={({ field: { onChange, onBlur, value } }) => (
                 <TextFields
                   label="Email Address"
                   placeholder="Email Address"
@@ -180,7 +180,7 @@ const EmailConfirmationScreen = () => {
                 validate: value =>
                   value === getValues('email') || 'Emails must match',
               }}
-              render={({field: {onChange, onBlur, value}}) => (
+              render={({ field: { onChange, onBlur, value } }) => (
                 <TextFields
                   label="Confirm Email Address"
                   placeholder="Confirm Email Address"
@@ -200,19 +200,20 @@ const EmailConfirmationScreen = () => {
               </Text>
             )}
 
-            <NextButton
-              label="Next"
-              onPress={handleSubmit(onSubmit)}
-              disabled={!isValid}
-            />
 
-            <BackButton
-              label="Back"
-              onPress={() => navigation.navigate('signup')}
-              style={styles.backButton}
-            />
           </View>
+          <NextButton
+            label="Next"
+            onPress={() => navigation.navigate('personal-details')}
+            // onPress={handleSubmit(onSubmit)}
+            // disabled={!isValid}
+          />
 
+          <BackButton
+            label="Back"
+            onPress={() => navigation.navigate('signup')}
+
+          />
           {showLoader && (
             <View style={styles.loaderOverlay}>
               <PageLoader />
@@ -227,7 +228,7 @@ const EmailConfirmationScreen = () => {
         show={showLoginModal}
         onClose={closeLoginModal}
         isLoading={showLoader}
-        onLogin={formData => loginMutation.mutate({...formData, company_id: 1})}
+        onLogin={formData => loginMutation.mutate({ ...formData, company_id: 1 })}
       />
     </>
   );
@@ -236,12 +237,11 @@ const EmailConfirmationScreen = () => {
 export default EmailConfirmationScreen;
 
 const styles = StyleSheet.create({
-  wrapper: {flex: 1, backgroundColor: '#fff'},
-  container: {flex: 1, padding: 20, justifyContent: 'flex-start'},
-  heading: {fontSize: 22, fontWeight: 'bold', color: '#111', marginBottom: 10},
-  description: {fontSize: 14, color: '#555', marginBottom: 20},
-  form: {gap: 16},
-  backButton: {marginTop: 16},
+  wrapper: { flex: 1, backgroundColor: '#fff' },
+  container: { flex: 1, padding: 20, justifyContent: 'flex-start' },
+  heading: { fontSize: 22, fontWeight: 'bold', color: '#111', marginBottom: 10 },
+  description: { fontSize: 14, color: '#555', marginBottom: 20 },
+  form: { gap: 10 },
   loaderOverlay: {
     ...StyleSheet.absoluteFillObject,
     backgroundColor: 'rgba(255,255,255,0.7)',

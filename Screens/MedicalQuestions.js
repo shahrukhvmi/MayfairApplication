@@ -1,5 +1,5 @@
-import {useNavigation} from '@react-navigation/native';
-import {useState} from 'react';
+import { useNavigation } from '@react-navigation/native';
+import { useState } from 'react';
 import {
   ScrollView,
   StyleSheet,
@@ -7,7 +7,10 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import Ionicons from 'react-native-vector-icons/Ionicons'; // ✅ Added this
 import Header from '../Layout/header';
+import NextButton from '../Components/NextButton';
+import BackButton from '../Components/BackButton';
 
 const questions = [
   'Do you have any allergies or intolerances?',
@@ -25,7 +28,7 @@ export default function MedicalQuestions() {
   const [answers, setAnswers] = useState({});
 
   const handleSelect = (questionIndex, answer) => {
-    setAnswers({...answers, [questionIndex]: answer});
+    setAnswers({ ...answers, [questionIndex]: answer });
   };
 
   const allAnswered = questions.every((_, i) => answers[i]);
@@ -45,34 +48,58 @@ export default function MedicalQuestions() {
         {questions.map((question, index) => (
           <View key={index} style={styles.questionBox}>
             <Text style={styles.question}>{question}</Text>
-            <View style={styles.options}>
-              {['Yes', 'No'].map(option => (
+            <View style={styles.optionsWrapper}>
+              {['Yes', 'No'].map((option) => (
                 <TouchableOpacity
                   key={option}
                   style={[
                     styles.option,
                     answers[index] === option && styles.selectedOption,
                   ]}
-                  onPress={() => handleSelect(index, option)}>
-                  <Text
-                    style={[
-                      styles.optionText,
-                      answers[index] === option && styles.selectedOptionText,
-                    ]}>
-                    {option}
-                  </Text>
+                  onPress={() => handleSelect(index, option)}
+                >
+                  <View style={styles.optionContent}>
+                    <Ionicons
+                      name={
+                        answers[index] === option
+                          ? 'checkmark-circle'
+                          : 'ellipse-outline'
+                      }
+                      size={20}
+                      color={answers[index] === option ? '#4B0082' : '#999'}
+                      style={{ marginRight: 10 }}
+                    />
+                    <Text
+                      style={[
+                        styles.optionText,
+                        answers[index] === option && styles.selectedOptionText,
+                      ]}
+                    >
+                      {option}
+                    </Text>
+                  </View>
                 </TouchableOpacity>
               ))}
             </View>
           </View>
         ))}
 
-        <TouchableOpacity
+        {/* <TouchableOpacity
           style={[styles.nextButton, !allAnswered && styles.disabledBtn]}
           onPress={() => navigation.navigate('patient-consent')}
-          disabled={!allAnswered}>
+          disabled={!allAnswered}
+        >
           <Text style={styles.nextText}>Next</Text>
-        </TouchableOpacity>
+        </TouchableOpacity> */}
+
+
+        <NextButton
+          onPress={() => navigation.navigate('patient-consent')}
+        />
+        <BackButton
+          onPress={() => navigation.goBack()}
+          label='Back'
+        />
       </ScrollView>
     </>
   );
@@ -83,7 +110,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#f8f5ff',
     flexGrow: 1,
     padding: 20,
-    paddingBottom: 40,
     paddingBottom: 80,
   },
   progressContainer: {
@@ -124,21 +150,24 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     fontWeight: '600',
   },
-  options: {
+  optionsWrapper: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    paddingVertical: 5,
-    width: '45%',
+    justifyContent: 'space-around',
   },
   option: {
     borderWidth: 1,
     borderColor: '#999',
     borderRadius: 8,
-    paddingVertical: 14,
-    paddingHorizontal: 18,
-    marginHorizontal: 10,
+    paddingVertical: 10,
+    paddingHorizontal: 14,
     backgroundColor: '#fff',
-    width: '100%',
+    flex: 1,
+    marginHorizontal: 5,
+  },
+  optionContent: {
+    flexDirection: 'row',
+    alignItems: 'start',
+    justifyContent: 'start',
   },
   selectedOption: {
     backgroundColor: '#eae1ff',
