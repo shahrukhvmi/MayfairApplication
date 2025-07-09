@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, {useState, useEffect, useMemo} from 'react';
 import {
   Modal,
   View,
@@ -7,17 +7,18 @@ import {
   StyleSheet,
   ActivityIndicator,
 } from 'react-native';
-import { useForm } from 'react-hook-form';
-import { useMutation } from '@tanstack/react-query';
+import {useForm} from 'react-hook-form';
+import {useMutation} from '@tanstack/react-query';
 import Toast from 'react-native-toast-message';
 
 import ForgotForm from './ForgotForm';
 import ResetForm from './ResetForm';
 import LoginForm from './LoginForm';
 
-import { forgotPasswordLink } from '../../api/forgotPasswordLinkApi';
-import { forgotPassword } from '../../api/ChangePasswordApi';
-import { passwordlink } from '../../config/constants';
+import {forgotPasswordLink} from '../../api/forgotPasswordLinkApi';
+import {forgotPassword} from '../../api/ChangePasswordApi';
+import {passwordlink} from '../../config/constants';
+import Entypo from 'react-native-vector-icons/Entypo';
 
 export default function LoginModal({
   show = false,
@@ -34,7 +35,7 @@ export default function LoginModal({
     reset,
     getValues,
     watch,
-    formState: { errors },
+    formState: {errors},
   } = useForm();
 
   const [mode, setMode] = useState(modes);
@@ -44,31 +45,38 @@ export default function LoginModal({
   const forgotMutation = useMutation(forgotPassword, {
     onMutate: () => {},
     onSuccess: () => {
-      Toast.show({ type: 'success', text1: 'Password updated successfully' });
+      Toast.show({type: 'success', text1: 'Password updated successfully'});
       setMode('login');
       setShowLoginMsg(true);
     },
-    onError: (error) => {
+    onError: error => {
       const errors = error?.response?.data?.errors;
       if (errors) {
-        Object.values(errors).flat().forEach((msg) => Toast.show({ type: 'error', text1: msg }));
+        Object.values(errors)
+          .flat()
+          .forEach(msg => Toast.show({type: 'error', text1: msg}));
       } else {
-        Toast.show({ type: 'error', text1: 'Something went wrong' });
+        Toast.show({type: 'error', text1: 'Something went wrong'});
       }
     },
   });
 
   const forgotLinkMutation = useMutation(forgotPasswordLink, {
     onSuccess: () => {
-      Toast.show({ type: 'success', text1: 'Reset link sent. Check your email.' });
+      Toast.show({
+        type: 'success',
+        text1: 'Reset link sent. Check your email.',
+      });
       reset();
     },
-    onError: (error) => {
+    onError: error => {
       const errors = error?.response?.data?.errors;
       if (errors) {
-        Object.values(errors).flat().forEach((msg) => Toast.show({ type: 'error', text1: msg }));
+        Object.values(errors)
+          .flat()
+          .forEach(msg => Toast.show({type: 'error', text1: msg}));
       } else {
-        Toast.show({ type: 'error', text1: 'Something went wrong' });
+        Toast.show({type: 'error', text1: 'Something went wrong'});
       }
     },
   });
@@ -86,12 +94,17 @@ export default function LoginModal({
   }, [mode, isLoading, forgotLinkMutation.isLoading, forgotMutation.isLoading]);
 
   return (
-    <Modal visible={show} transparent animationType="fade" onRequestClose={onClose}>
+    <Modal
+      visible={show}
+      transparent
+      animationType="fade"
+      onRequestClose={onClose}>
       <View style={styles.overlay}>
         <View style={styles.modalBox}>
           {(mode === 'login' || mode === 'forgot') && (
             <TouchableOpacity onPress={onClose} style={styles.closeBtn}>
-              <Text style={{ fontSize: 18 }}>X</Text>
+              {/* <Text style={{ fontSize: 18 }}>X</Text> */}
+              <Entypo name="cross" size={24} />
             </TouchableOpacity>
           )}
 
@@ -104,7 +117,9 @@ export default function LoginModal({
           </Text>
 
           {showLoginMsg && mode === 'login' && (
-            <Text style={styles.successMsg}>Password changed successfully. Please login.</Text>
+            <Text style={styles.successMsg}>
+              Password changed successfully. Please login.
+            </Text>
           )}
 
           {mode === 'reset' && (
@@ -114,7 +129,7 @@ export default function LoginModal({
               errors={errors}
               getValues={getValues}
               isLoading={forgotMutation.isLoading}
-              onSubmit={(data) =>
+              onSubmit={data =>
                 forgotMutation.mutate({
                   email: emailFromURL,
                   password: data.password,
@@ -137,7 +152,7 @@ export default function LoginModal({
               isSuccess={forgotLinkMutation.isSuccess}
               watch={watch}
               passwordlink={passwordlink}
-              onSubmit={(data) => {
+              onSubmit={data => {
                 setSubmittedEmail(data.email);
                 forgotLinkMutation.mutate({
                   email: data.email,
