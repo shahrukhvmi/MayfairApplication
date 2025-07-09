@@ -11,6 +11,7 @@ import {
 } from 'react-native';
 import Header from '../Layout/header';
 import TextFields from '../Components/TextFields';
+import OrderSummary from '../Components/OrderSummary';
 
 export default function CheckoutSteps() {
   const scrollRef = useRef();
@@ -25,6 +26,7 @@ export default function CheckoutSteps() {
   const navigation = useNavigation();
   const [showNextSteps, setShowNextSteps] = useState(false); // ADD THIS
   const [showPassword, setShowPassword] = useState(false);
+
   const handleSubmit = () => {
     if (!password || !confirmPassword) {
       alert('Please fill in both password fields.');
@@ -88,9 +90,9 @@ export default function CheckoutSteps() {
                 return;
               }
               setShowNextSteps(true);
-              setTimeout(() => {
-                scrollRef.current?.scrollToEnd({animated: true});
-              }, 200); // Smooth scroll to next part
+              // setTimeout(() => {
+              //   scrollRef.current?.scrollToEnd({animated: true});
+              // }, 200);
             }}>
             <Text style={styles.nextText}>Set Password</Text>
           </TouchableOpacity>
@@ -135,10 +137,46 @@ export default function CheckoutSteps() {
 
             {/* Step 4: Consent */}
             <View style={styles.card}>
-              <Text style={styles.subHeading}>Product Concent</Text>
+              <Text style={styles.subHeading}>Treatment Consent</Text>
+              <Text style={styles.paragraphExplain}>
+                Please review the important information below regarding your
+                treatment:
+              </Text>
               <Text style={styles.paragraph}>
-                • Treatment guidelines...{'\n'}• I confirm that I’ve read and
-                agree...
+                • If you are ordering a higher dose of Mounjaro, you have
+                started on the low doses and have titrated up to the higher
+                dose.
+              </Text>
+              <Text style={styles.paragraph}>
+                • Mounjaro is once-weekly injections should be taken ONCE a week
+                on the same day each week.
+              </Text>
+              <Text style={styles.paragraph}>
+                • Mounjaro should be stored in the fridge when not in use (2°C
+                to 8°C). It may be stored unrefrigerated for up to 30 days at a
+                temperature not above 30 °C and then the pen must be discarded.
+              </Text>
+              <Text style={styles.paragraph}>
+                • If you are a woman of childbearing age, you will take any
+                necessary precautions to ensure that you do not get pregnant
+                while using this medication or for two months after stopping the
+                treatment as the effects of this medicine on an unborn child are
+                not known.
+              </Text>
+              <Text style={styles.paragraph}>
+                • If you are a woman with obesity or overweight and are using
+                oral contraceptives, you should consider also using a barrier
+                method of contraception (e.g., a condom) or switching to a
+                non-oral contraceptive method for 4 weeks after starting
+                Mounjaro and for 4 weeks after each increase in dose.
+              </Text>
+              <Text style={styles.paragraph}>
+                • I confirm that I have read and understood the Patient
+                Information Leaflet.
+              </Text>
+              <Text style={styles.paragraph}>
+                • I confirm that I have read, understood and accept Mayfair
+                Weight Loss Clinic’s Terms and Conditions.
               </Text>
               <TouchableOpacity
                 style={styles.checkboxRow}
@@ -154,17 +192,13 @@ export default function CheckoutSteps() {
 
             {/* Step 5: Summary */}
             <View style={styles.card}>
-              <Text style={styles.subHeading}>Order Summary</Text>
-              <Text>Mounjaro 10mg - £229.00</Text>
-              <Text>Mounjaro 7.5mg - £229.00</Text>
-              <Text>Mounjaro 15mg - £245.00</Text>
-              <Text style={styles.total}>Total: £703.00</Text>
+              <OrderSummary />
             </View>
 
             <TouchableOpacity
               onPress={handleSubmit}
               style={styles.submitButton}>
-              <Text style={styles.submitText}>Submit Order</Text>
+              <Text style={styles.submitText}>Procceed to Payment</Text>
             </TouchableOpacity>
           </>
         )}
@@ -224,10 +258,14 @@ const styles = StyleSheet.create({
     shadowOffset: {width: 0, height: 2},
     elevation: 2,
   },
+  paragraphExplain: {
+    marginBottom: 10,
+  },
   paragraph: {
     fontSize: 14,
     color: '#444',
     lineHeight: 22,
+    marginBottom: 10,
   },
   checkboxRow: {
     flexDirection: 'row',
