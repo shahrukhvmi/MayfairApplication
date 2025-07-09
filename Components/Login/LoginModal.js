@@ -10,7 +10,6 @@ import {
 import { useForm } from 'react-hook-form';
 import { useMutation } from '@tanstack/react-query';
 import Toast from 'react-native-toast-message';
-import Entypo from 'react-native-vector-icons/Entypo';
 
 import ForgotForm from './ForgotForm';
 import ResetForm from './ResetForm';
@@ -22,8 +21,8 @@ import { passwordlink } from '../../config/constants';
 
 export default function LoginModal({
   show = false,
-  onClose = () => { },
-  onLogin = () => { },
+  onClose = () => {},
+  onLogin = () => {},
   isLoading = false,
   modes = 'login',
   token = null,
@@ -43,7 +42,7 @@ export default function LoginModal({
   const [showLoginMsg, setShowLoginMsg] = useState(false);
 
   const forgotMutation = useMutation(forgotPassword, {
-    onMutate: () => { },
+    onMutate: () => {},
     onSuccess: () => {
       Toast.show({ type: 'success', text1: 'Password updated successfully' });
       setMode('login');
@@ -92,16 +91,7 @@ export default function LoginModal({
         <View style={styles.modalBox}>
           {(mode === 'login' || mode === 'forgot') && (
             <TouchableOpacity onPress={onClose} style={styles.closeBtn}>
-              <Text style={{ fontSize: 18 }}>
-                <Entypo name="cross" size={24} />
-
-
-
-
-
-
-
-              </Text>
+              <Text style={{ fontSize: 18 }}>X</Text>
             </TouchableOpacity>
           )}
 
@@ -109,8 +99,8 @@ export default function LoginModal({
             {mode === 'login'
               ? 'Login'
               : mode === 'forgot'
-                ? 'Forgot Password?'
-                : 'Reset Password'}
+              ? 'Forgot Password?'
+              : 'Reset Password'}
           </Text>
 
           {showLoginMsg && mode === 'login' && (
