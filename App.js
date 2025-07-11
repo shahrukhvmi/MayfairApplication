@@ -24,6 +24,8 @@ import EmailConfirmationScreen from './Screens/EmailConfirmationScreen';
 import StepsInformation from './Screens/StepsInformation';
 import OrderDetail from './Screens/OrderDetail';
 import Toast from 'react-native-toast-message';
+import LoginScreen from './Screens/LoginScreen';
+import RegisterScreen from './Screens/RegisterScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -55,6 +57,18 @@ const App = () => {
             component={SplashScreen}
             options={{ headerShown: false }}
           />
+
+          <Stack.Screen
+            name="Login"
+            component={LoginScreen}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name="Register"
+            component={RegisterScreen}
+            options={{ headerShown: false }}
+          />
+          
           <Stack.Screen
             name="Initial"
             component={InitialScreen}

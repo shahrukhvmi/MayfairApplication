@@ -38,7 +38,7 @@ const Header = () => {
         clearFirstName();
         clearLastName();
         clearEmail();
-        navigation.reset({ index: 0, routes: [{ name: "Initial" }] }); // or navigate to login screen
+        navigation.reset({ index: 0, routes: [{ name: "Login" }] });
     };
 
     const loginMutation = useMutation({

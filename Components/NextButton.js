@@ -1,29 +1,40 @@
-// components/NextButton.js
 import React from 'react';
-import { ActivityIndicator, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import {
+  ActivityIndicator,
+  Text,
+  TouchableOpacity,
+  StyleSheet,
+  View,
+} from 'react-native';
 
-const NextButton = ({ 
-  label = 'Next', 
-  loading = false, 
-  disabled = false, 
-  onPress, 
-  style 
+const NextButton = ({
+  label = 'Next',
+  loading = false,
+  disabled = false,
+  onPress,
+  style,
 }) => {
+  const handlePress = () => {
+    if (!disabled && !loading && onPress) {
+      onPress();
+    }
+  };
+
   return (
     <TouchableOpacity
-      onPress={onPress}
+      onPress={handlePress}
       disabled={disabled || loading}
       style={[
         styles.button,
         disabled || loading ? styles.disabled : styles.enabled,
-        style, // for custom overrides
+        style,
       ]}
     >
       {loading ? (
-        <>
-          <ActivityIndicator color="#fff" style={{ marginRight: 8 }} />
+        <View style={styles.loadingContent}>
+          <ActivityIndicator color="#fff" style={styles.spinner} />
           <Text style={styles.label}>Loading...</Text>
-        </>
+        </View>
       ) : (
         <Text style={styles.label}>{label}</Text>
       )}
@@ -38,18 +49,26 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 14,
     borderRadius: 30,
-    width: '100%',
+    width: '80%',
+    alignSelf: 'center',
   },
   enabled: {
     backgroundColor: '#4B0082',
   },
   disabled: {
-    backgroundColor: '#ccc',
+    backgroundColor: '#aaa',
   },
   label: {
     color: '#fff',
     fontWeight: 'bold',
     fontSize: 16,
+  },
+  loadingContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  spinner: {
+    marginRight: 8,
   },
 });
 

@@ -1,8 +1,12 @@
-// store/useAuthUserDetailStore.js
-
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+
+const zustandStorage = {
+  getItem: (name) => AsyncStorage.getItem(name),
+  setItem: (name, value) => AsyncStorage.setItem(name, value),
+  removeItem: (name) => AsyncStorage.removeItem(name),
+};
 
 const useAuthUserDetailStore = create(
   persist(
@@ -12,19 +16,8 @@ const useAuthUserDetailStore = create(
       clearAuthUserDetail: () => set({ authUserDetail: null }),
     }),
     {
-      name: 'auth-user-storage', // Key for AsyncStorage
-      storage: {
-        getItem: async (key) => {
-          const value = await AsyncStorage.getItem(key);
-          return value;
-        },
-        setItem: async (key, value) => {
-          await AsyncStorage.setItem(key, value);
-        },
-        removeItem: async (key) => {
-          await AsyncStorage.removeItem(key);
-        },
-      },
+      name: 'auth-user-storage',
+      storage: zustandStorage,
     }
   )
 );

@@ -16,7 +16,7 @@ export default function SplashScreen() {
         style={styles.button}
         onPress={() => {
           console.log('Get Started pressed');
-          navigation.navigate('Initial');
+          navigation.navigate('Login');
         }}
       >
         <Text style={styles.buttonText}>Get Started</Text>
