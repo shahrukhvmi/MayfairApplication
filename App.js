@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { OneSignal, LogLevel } from 'react-native-onesignal';
-import { NavigationContainer } from '@react-navigation/native';
+import { Link, NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import SplashScreen from './Screens/SplashScreen';
 import InitialScreen from './Screens/InitialScreen';
@@ -26,6 +26,9 @@ import OrderDetail from './Screens/OrderDetail';
 import Toast from 'react-native-toast-message';
 import LoginScreen from './Screens/LoginScreen';
 import RegisterScreen from './Screens/RegisterScreen';
+import ForgotForm from './Components/Login/ForgotForm';
+import ForgotPassword from './Screens/ForgotPassword';
+import ResetPassword from './Screens/ResetPassword';
 
 const Stack = createNativeStackNavigator();
 
@@ -46,11 +49,29 @@ const App = () => {
     });
   }, []);
 
+
+  /*____________Deep Linking _______ */
+
+  const linking = {
+    prefixes: ['mayfairapp://'],
+    config: {
+      screens: {
+        ResetPassword: {
+          path: 'reset-password',
+          parse: {
+            token: (token) => `${token}`,   // Just returns string, optional
+          },
+        },
+      },
+    },
+  };
+
+
   return (
     <>
 
 
-      <NavigationContainer>
+      <NavigationContainer linking={linking}>
         <Stack.Navigator initialRouteName="Splash">
           <Stack.Screen
             name="Splash"
@@ -68,7 +89,18 @@ const App = () => {
             component={RegisterScreen}
             options={{ headerShown: false }}
           />
-          
+          <Stack.Screen
+            name="ForgotPassword"
+            component={ForgotPassword}
+            options={{ headerShown: false }}
+          />
+
+          <Stack.Screen
+            name="ResetPassword"
+            component={ResetPassword}
+            options={{ headerShown: false }}
+          />
+
           <Stack.Screen
             name="Initial"
             component={InitialScreen}

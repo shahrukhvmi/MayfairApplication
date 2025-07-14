@@ -199,11 +199,18 @@ const LoginScreen = () => {
 
                             {/* Signup */}
                             <View style={styles.endView}>
-                                <Text style={styles.endTxt}>Create an account?</Text>
-                                <TouchableOpacity onPress={() => navigation.navigate('Register')}>
-                                    <Text style={styles.loginTxt}>SignUp</Text>
+                                <TouchableOpacity onPress={() => navigation.navigate('ForgotPassword')}>
+                                    <Text style={styles.forgotTxt}>Forgot Password?</Text>
                                 </TouchableOpacity>
                             </View>
+
+                            <View style={styles.endView}>
+                                <Text style={styles.endTxt}>Create an account?</Text>
+                                <TouchableOpacity onPress={() => navigation.navigate('Register')}>
+                                    <Text style={styles.loginTxt}>Sign up</Text>
+                                </TouchableOpacity>
+                            </View>
+
                         </View>
                     </View>
                 </ScrollView>
@@ -253,6 +260,13 @@ const styles = StyleSheet.create({
         marginBottom: 10,
         justifyContent: 'space-between',
     },
+    forgotTxt: {
+        fontSize: 14,
+        fontWeight: '600',
+        color: '#4B0082',
+        textAlign: 'center',
+    },
+
     passwordInput: {
         height: 40,
         width: '85%',
@@ -285,7 +299,7 @@ const styles = StyleSheet.create({
     },
     endView: {
         flexDirection: 'row',
-        marginTop: 30,
+        marginTop: 20,
         justifyContent: 'center',
         alignItems: 'center',
     },

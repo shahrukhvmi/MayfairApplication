@@ -30,15 +30,7 @@ import Toast from 'react-native-toast-message';
 
 const RegisterScreen = () => {
     const navigation = useNavigation();
-    const { control, handleSubmit, watch, formState: { errors } } = useForm({
-        defaultValues: {
-            email: '',
-            confirmationEmail: '',
-            password: '',
-            confirmPassword: '',
-        },
-    });
-
+    const { control, handleSubmit, watch, formState: { errors } } = useForm();
     const [showPassword, setShowPassword] = useState(false);
     const [loading, setLoading] = useState(false);
     const [already, setAlready] = useState(false);
@@ -46,56 +38,63 @@ const RegisterScreen = () => {
     const { setIsPasswordReset } = usePasswordReset();
     const { setToken } = useAuthStore();
     const { setUserData } = useUserDataStore();
+    const registerMutation = useMutation(
+        RegisterApi,
+        {
+            onSuccess: (data) => {
+                console.log(data, "testing");
+                logApiSuccess(data);
+                const user = data?.data?.data;
 
+                if (user?.token) {
+                    setAuthUserDetail(user);
+                    setUserData(user);
+                    setToken(user?.token);
+                    setIsPasswordReset(true);
 
-    const registerMutation = useMutation(RegisterApi, {
-        onSuccess: (data) => {
+                    Fetcher.axiosSetup.defaults.headers.common.Authorization = `Bearer ${user?.token}`;
 
-            console.log("📥 Response:", data);
-            logApiSuccess(data);
-            const user = data?.data?.data;
+                    navigation.reset({
+                        index: 0,
+                        routes: [{ name: 'dashboard' }],
+                    });
+                }
 
-            if (user?.token) {
-                setAuthUserDetail(user);
-                setUserData(user);
-                setToken(user?.token);
-                setIsPasswordReset(true);
+                setLoading(false);
+            },
+            onError: (error) => {
+                logApiError(error);
+                const emailError = error?.response?.data?.errors?.email;
 
-                Fetcher.axiosSetup.defaults.headers.common.Authorization = `Bearer ${user.token}`;
-                navigation.navigate('Login');
-            }
+                if (emailError === "This email is already registered.") {
+                    setAlready(true);
+                }
 
-            setLoading(false);
-        },
-        onError: (error) => {
-            setLoading(false);
-            logApiError(error);
-            console.log("❌ Error:", error?.response?.data);
-            const apiErrors = error?.response?.data?.errors;
-
-            if (apiErrors && typeof apiErrors === 'object') {
-                const messages = Object.values(apiErrors).flat();
-                messages.forEach(msg =>
+                if (emailError) {
                     Toast.show({
                         type: 'error',
-                        text1: 'Registration Error',
-                        text2: msg,
-                    })
-                );
-            } else {
-                Toast.show({
-                    type: 'error',
-                    text1: 'Registration Failed',
-                    text2: error?.message || 'Something went wrong.',
-                });
+                        text1: 'Email Error',
+                        text2: emailError,
+                    });
+                } else {
+                    Toast.show({
+                        type: 'error',
+                        text1: 'Registration Failed',
+                        text2: 'Something went wrong. Please try again later.',
+                    });
+                }
+
+                setLoading(false);
             }
         }
-    });
-    ;
+    );
+
 
     const onSubmit = (data) => {
+
+        console.log(data, "sdjdskjdkj")
         // setLoading(true);
-        console.log("test")
+
         const formData = {
             email: data.email,
             email_confirmation: data.confirmationEmail,
@@ -103,10 +102,8 @@ const RegisterScreen = () => {
             confirm_password: data.confirmPassword,
             company_id: 1,
         };
-        console.log("📤 Submitting:", formData);
-
+        setLoading(false);
         registerMutation.mutate(formData);
-
     };
 
     // Helper function to prevent pasting
@@ -139,7 +136,10 @@ const RegisterScreen = () => {
                                 name="email"
                                 rules={{
                                     required: 'Email is required',
-                                    validate: value => (value !== watch('confirmationEmail') ? 'Emails do not match' : true), // better matching
+                                    pattern: {
+                                        value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+                                        message: 'Invalid email format',
+                                    },
                                 }}
                                 render={({ field: { onChange, value } }) => (
                                     <TextInput
@@ -154,13 +154,18 @@ const RegisterScreen = () => {
                                     />
                                 )}
                             />
+                            {errors.email && (
+                                <Text style={styles.errorText}>{errors.email.message}</Text>
+                            )}
 
+                            {/* Confirm Email */}
                             <Controller
                                 control={control}
                                 name="confirmationEmail"
                                 rules={{
                                     required: 'Confirm Email is required',
-                                    validate: value => (value === watch('email') ? true : 'Emails do not match'), // better matching
+                                    validate: value =>
+                                        value === watch('email') || 'Emails do not match',
                                 }}
                                 render={({ field: { onChange, value } }) => (
                                     <TextInput
@@ -175,6 +180,10 @@ const RegisterScreen = () => {
                                     />
                                 )}
                             />
+                            {errors.confirmationEmail && (
+                                <Text style={styles.errorText}>{errors.confirmationEmail.message}</Text>
+                            )}
+
 
 
                             {/* Password */}
@@ -268,8 +277,6 @@ const RegisterScreen = () => {
         </KeyboardAvoidingView>
     );
 };
-
-export default RegisterScreen;
 
 const styles = StyleSheet.create({
     container: {
@@ -375,4 +382,4 @@ const styles = StyleSheet.create({
 });
 
 
-
+export default RegisterScreen;
