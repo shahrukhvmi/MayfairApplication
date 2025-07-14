@@ -38,7 +38,7 @@ const Header = () => {
         clearFirstName();
         clearLastName();
         clearEmail();
-        navigation.reset({ index: 0, routes: [{ name: "Login" }] });
+        navigation.navigate("Login");
     };
 
     const loginMutation = useMutation({
@@ -108,7 +108,7 @@ const Header = () => {
                 }
             />
 
-           
+
         </>
     );
 };

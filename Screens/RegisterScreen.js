@@ -26,10 +26,19 @@ import usePasswordReset from '../store/usePasswordReset';
 import useAuthStore from '../store/authStore';
 import useUserDataStore from '../store/userDataStore';
 import { logApiError, logApiSuccess } from '../utils/logApiDebug';
+import Toast from 'react-native-toast-message';
 
 const RegisterScreen = () => {
     const navigation = useNavigation();
-    const { control, handleSubmit, watch, formState: { errors } } = useForm();
+    const { control, handleSubmit, watch, formState: { errors } } = useForm({
+        defaultValues: {
+            email: '',
+            confirmationEmail: '',
+            password: '',
+            confirmPassword: '',
+        },
+    });
+
     const [showPassword, setShowPassword] = useState(false);
     const [loading, setLoading] = useState(false);
     const [already, setAlready] = useState(false);
@@ -37,8 +46,12 @@ const RegisterScreen = () => {
     const { setIsPasswordReset } = usePasswordReset();
     const { setToken } = useAuthStore();
     const { setUserData } = useUserDataStore();
+
+
     const registerMutation = useMutation(RegisterApi, {
         onSuccess: (data) => {
+
+            console.log("📥 Response:", data);
             logApiSuccess(data);
             const user = data?.data?.data;
 
@@ -48,38 +61,41 @@ const RegisterScreen = () => {
                 setToken(user?.token);
                 setIsPasswordReset(true);
 
-                // Set Authorization header for further requests
-                Fetcher.axiosSetup.defaults.headers.common.Authorization = `Bearer ${user?.token}`;
-
-                // Navigate to next step
-
-                navigation.reset({
-                    index: 0,
-                    routes: [{ name: 'Login' }],
-                });
+                Fetcher.axiosSetup.defaults.headers.common.Authorization = `Bearer ${user.token}`;
+                navigation.navigate('Login');
             }
-            setLoading(false); // Hide loader after success
+
+            setLoading(false);
         },
         onError: (error) => {
+            setLoading(false);
             logApiError(error);
-            const emailError = error?.response?.data?.errors?.email;
-            if (emailError === "This email is already registered.") {
-                setAlready(true);
-            }
-            if (emailError) {
-                toast.error(emailError); // Show email error using toast
+            console.log("❌ Error:", error?.response?.data);
+            const apiErrors = error?.response?.data?.errors;
+
+            if (apiErrors && typeof apiErrors === 'object') {
+                const messages = Object.values(apiErrors).flat();
+                messages.forEach(msg =>
+                    Toast.show({
+                        type: 'error',
+                        text1: 'Registration Error',
+                        text2: msg,
+                    })
+                );
             } else {
-                toast.error('Something went wrong. Please try again later.'); // Show generic error if no specific email error
+                Toast.show({
+                    type: 'error',
+                    text1: 'Registration Failed',
+                    text2: error?.message || 'Something went wrong.',
+                });
             }
-            setLoading(false); // Hide loader on error
-        },
+        }
     });
+    ;
 
     const onSubmit = (data) => {
-
-        console.log(data, "sdjdskjdkj")
-        setLoading(true);
-
+        // setLoading(true);
+        console.log("test")
         const formData = {
             email: data.email,
             email_confirmation: data.confirmationEmail,
@@ -87,8 +103,10 @@ const RegisterScreen = () => {
             confirm_password: data.confirmPassword,
             company_id: 1,
         };
+        console.log("📤 Submitting:", formData);
 
         registerMutation.mutate(formData);
+
     };
 
     // Helper function to prevent pasting
@@ -251,6 +269,8 @@ const RegisterScreen = () => {
     );
 };
 
+export default RegisterScreen;
+
 const styles = StyleSheet.create({
     container: {
         backgroundColor: '#4B0082',
@@ -279,7 +299,7 @@ const styles = StyleSheet.create({
         width: '80%',
         borderBottomWidth: 1,
         marginBottom: 10,
-        textAlign: 'center',
+        textAlign: 'start',
         fontSize: 16,
     },
     passwordContainer: {
@@ -293,7 +313,7 @@ const styles = StyleSheet.create({
     passwordInput: {
         height: 40,
         width: '85%',
-        textAlign: 'center',
+        textAlign: 'start',
         fontSize: 16,
     },
     btn: {
@@ -355,4 +375,4 @@ const styles = StyleSheet.create({
 });
 
 
-export default RegisterScreen;
+

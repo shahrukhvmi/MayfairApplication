@@ -25,6 +25,7 @@ import useAuthStore from '../store/authStore';
 import useAuthUserDetailStore from '../store/useAuthUserDetailStore';
 import useSignupStore from '../store/signupStore';
 import Fetcher from '../library/Fetcher';
+import Toast from 'react-native-toast-message';
 
 const LoginScreen = () => {
     const navigation = useNavigation();
@@ -42,45 +43,56 @@ const LoginScreen = () => {
             const user = data?.data?.data;
 
             if (!user?.token) {
-                Alert.alert("Error", "Invalid response: Missing token");
+                Toast.show({
+                    type: 'error',
+                    text1: 'Login Error',
+                    text2: 'Invalid response: Missing token',
+                });
                 setLoading(false);
                 return;
             }
 
-            // 🔐 Store user + token
             setAuthUserDetail(user);
             setToken(user.token);
-
-            // 🛡 Set default auth header for future requests
             Fetcher.axiosSetup.defaults.headers.common.Authorization = `Bearer ${user.token}`;
-
-            // 👤 Save other info
             setFirstName(user?.fname);
             setLastName(user?.lname);
             setEmail(user?.email);
 
-            // 🔁 Navigate to dashboard
             navigation.reset({
                 index: 0,
                 routes: [{ name: 'dashboard' }],
             });
 
-            // 🔐 Reset password flow
             setIsPasswordReset(false);
             setShowResetPassword(user?.show_password_reset);
             setLoading(false);
         },
         onError: (error) => {
+            setLoading(false); // ✅ already here
             logApiError(error);
-            console.log('Login Error:', error);  // Log full error for debugging
+            console.log('Login Error:', error?.response?.data?.errors?.user);
+            Toast.show(error?.response?.data?.errors?.user)
+
             const apiErrors = error?.response?.data?.errors;
             if (apiErrors && typeof apiErrors === 'object') {
                 const messages = Object.values(apiErrors).flat();
-                messages.forEach(msg => Alert.alert('Login Error', msg));
+                messages.forEach(msg =>
+                    Toast.show({
+                        type: 'error',
+                        text1: 'Login Error',
+                        text2: msg,
+                    })
+                );
             } else {
-                Alert.alert('Login Failed', 'Something went wrong. Please try again.');
+                Toast.show({
+                    type: 'error',
+                    text1: 'Login Failed',
+                    text2: 'Something went wrong. Please try again.',
+                });
             }
-            setLoading(false);
+
+
         }
     });
 
@@ -230,7 +242,7 @@ const styles = StyleSheet.create({
         width: '80%',
         borderBottomWidth: 1,
         marginBottom: 10,
-        textAlign: 'center',
+        textAlign: 'start',
         fontSize: 16,
     },
     passwordContainer: {
@@ -244,7 +256,7 @@ const styles = StyleSheet.create({
     passwordInput: {
         height: 40,
         width: '85%',
-        textAlign: 'center',
+        textAlign: 'start',
         fontSize: 16,
     },
     btn: {
