@@ -34,7 +34,7 @@ const Stack = createNativeStackNavigator();
 
 const App = () => {
   const linking = {
-    prefixes: ['https://mayfair-revamp.netlify.app/app'],
+    prefixes: ['https://mayfair-revamp.netlify.app'],
     config: {
       screens: {
         ResetPassword: {
