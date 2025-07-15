@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, {useState} from 'react';
 import {
   View,
   Text,
@@ -8,9 +8,9 @@ import {
   Easing,
 } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import { useNavigation } from '@react-navigation/native';
+import {useNavigation} from '@react-navigation/native';
 
-const Dropdown = ({ token, userFirstName, handleLogout, openLoginModal }) => {
+const Dropdown = ({token, userFirstName, handleLogout, openLoginModal}) => {
   const navigation = useNavigation();
   const [anchorVisible, setAnchorVisible] = useState(false);
   const [fadeAnim] = useState(new Animated.Value(0));
@@ -25,10 +25,14 @@ const Dropdown = ({ token, userFirstName, handleLogout, openLoginModal }) => {
     }).start();
   };
 
+  const handleNavigationDashboard = () => {
+    navigation.navigate('dashboard');
+  };
+
   return (
     <>
       {token ? (
-        <View style={{ position: 'relative' }}>
+        <View style={{position: 'relative'}}>
           <TouchableOpacity onPress={toggleDropdown} style={styles.userRow}>
             <Ionicons name="person-circle-outline" size={28} color="#4B0082" />
             <Text style={styles.userName}>{userFirstName || 'Profile'}</Text>
@@ -36,19 +40,18 @@ const Dropdown = ({ token, userFirstName, handleLogout, openLoginModal }) => {
               name={anchorVisible ? 'chevron-up' : 'chevron-down'}
               size={20}
               color="#4B0082"
-              style={{ marginLeft: 4 }}
+              style={{marginLeft: 4}}
             />
           </TouchableOpacity>
 
           {anchorVisible && (
-            <Animated.View style={[styles.dropdown, { opacity: fadeAnim }]}>
+            <Animated.View style={[styles.dropdown, {opacity: fadeAnim}]}>
               <TouchableOpacity
                 style={styles.menuItem}
                 onPress={() => {
                   setAnchorVisible(false);
                   navigation.navigate('dashboard');
-                }}
-              >
+                }}>
                 <Text style={styles.menuText}>Dashboard</Text>
               </TouchableOpacity>
 
@@ -57,15 +60,14 @@ const Dropdown = ({ token, userFirstName, handleLogout, openLoginModal }) => {
                 onPress={() => {
                   setAnchorVisible(false);
                   handleLogout();
-                }}
-              >
+                }}>
                 <Text style={styles.menuText}>Logout</Text>
               </TouchableOpacity>
             </Animated.View>
           )}
         </View>
       ) : (
-        <TouchableOpacity onPress={openLoginModal}>
+        <TouchableOpacity onPress={handleNavigationDashboard}>
           <Text style={styles.loginText}>Login</Text>
         </TouchableOpacity>
       )}
@@ -99,7 +101,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'white',
     borderRadius: 12,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
+    shadowOffset: {width: 0, height: 4},
     shadowOpacity: 0.1,
     shadowRadius: 10,
     elevation: 5,
