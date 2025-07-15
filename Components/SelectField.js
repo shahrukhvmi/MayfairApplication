@@ -1,7 +1,7 @@
 // components/SelectField.js
 import React from 'react';
-import {View, Text, StyleSheet, Platform} from 'react-native';
-import {Picker} from '@react-native-picker/picker'; // Make sure this is installed
+import { View, Text, StyleSheet, Platform } from 'react-native';
+import { Picker } from '@react-native-picker/picker'; // Make sure this is installed
 
 const SelectField = ({
   label,
@@ -57,9 +57,11 @@ const styles = StyleSheet.create({
   },
   pickerWrapper: {
     borderWidth: 1,
-    borderColor: '#ccc',
     borderRadius: 6,
-    // overflow: 'hidden',
+    width: '100%',
+    borderColor: '#222',
+    backgroundColor: '#fff',
+    color: '#000',
   },
   picker: {
     height: Platform.OS === 'ios' ? 60 : 60,

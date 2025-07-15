@@ -19,6 +19,8 @@ import Icon from 'react-native-vector-icons/FontAwesome';
 import NextButton from "../Components/NextButton";
 import BackButton from "../Components/BackButton";
 import Toast from "react-native-toast-message";
+import SelectFields from "../Components/SelectFields";
+import { SafeAreaView } from "react-native-safe-area-context";
 export default function GpDetail() {
     const [searchLoading, setSearchLoading] = useState(false);
     const [addressOptions, setAddressOptions] = useState([]);
@@ -165,202 +167,242 @@ export default function GpDetail() {
 
     return (
         <>
-            <Header />
-            <ScrollView contentContainerStyle={{ padding: 16 }}>
-                <Text style={styles.heading}>GP Details</Text>
-                <Text style={styles.subheading}>Are you registered with a GP in the UK?</Text>
-                <View style={styles.radioGroup}>
-                    {["yes", "no"].map((option) => (
-                        <TouchableOpacity
-                            key={option}
-                            style={[
-                                styles.radioButton,
-                                gpDetails === option && styles.selectedRadio,
-                            ]}
-                            onPress={() => setValue("gpDetails", option)}
-                        >
-                            <Text style={styles.radioText}>
-                                {option === "yes" ? "Yes" : "No"}
-                            </Text>
-                        </TouchableOpacity>
-                    ))}
-                </View>
+            <SafeAreaView style={styles.container}>
+                <Header />
+                <ScrollView
+                    contentContainerStyle={styles.formWrapper}
+                    showsVerticalScrollIndicator={false}
+                >
+                    <Text style={styles.heading}>GP Details</Text>
+                    <Text style={styles.subheading}>Are you registered with a GP in the UK?</Text>
+                    <View style={styles.checkboxGroup}>
+                        {["yes", "no"].map((option) => {
+                            const isSelected = gpDetails === option;
 
-                {gpDetails === "no" && (
-                    <View style={styles.infoBox}>
-                        <Text>
-                            You should inform your doctor of any medication you take. Contact us
-                            if you want us to email a letter for your doctor.
-                        </Text>
-                    </View>
-                )}
-
-                {gpDetails === "yes" && (
-                    <>
-                        <Text style={styles.subheading}>
-                            Do you consent for us to inform your GP about the treatment?
-                        </Text>
-                        <View style={styles.radioGroup2}>
-                            {[
-                                { value: "yes", label: "Yes – Please inform my GP" },
-                                { value: "no", label: "No – I will inform my GP prior to starting treatment" },
-                            ].map((opt) => (
+                            return (
                                 <TouchableOpacity
-                                    key={opt.value}
+                                    key={option}
                                     style={[
-                                        styles.radioButton,
-                                        gepTreatMent === opt.value && styles.selectedRadio,
+                                        styles.checkboxOption,
+                                        isSelected && styles.checkboxSelected,
                                     ]}
-                                    onPress={() => {
-                                        setValue("gepTreatMent", opt.value);
-                                        if (opt.value === "no") {
-                                            clearAddressOnlyFields();
-                                        }
-                                    }}
-
+                                    onPress={() => setValue("gpDetails", option)}
                                 >
-                                    <Text style={styles.radioText}>{opt.label}</Text>
-                                </TouchableOpacity>
-                            ))}
-                        </View>
-                    </>
-                )}
-
-                {gpDetails === "yes" && gepTreatMent === "yes" && (
-                    <>
-                        <Text style={styles.optionalText}>
-                            Email <Text style={styles.optionalNote}>(optional)</Text>
-                        </Text>
-                        <TextFields
-                            // label={"Email"}
-                            placeholder="Email"
-                            value={watch("email")}
-
-                            onChangeText={(text) => setValue("email", text)}
-                        />
-
-                        <View style={{ marginBottom: 16 }}>
-                            <View style={{ flexDirection: "row", gap: 4 }}>
-                                <TextFields
-                                    style={[styles.input, { flex: 1 }]}
-                                    label="Post code"
-                                    placeholder="Post code"
-                                    value={postalCode}
-                                    onChangeText={(text) => {
-                                        setValue("postalCode", text);
-                                        setAddressOptions([]);
-                                        setSelectedIndex("");
-                                    }}
-                                />
-                                <TouchableOpacity
-                                    style={styles.searchButton}
-                                    onPress={handleAddressFetch}
-                                    disabled={searchLoading}
-                                >
-                                    <Text style={styles.searchButtonText}>
-                                        {searchLoading ? (
-                                            <Text style={styles.searchButtonText}>Searching</Text>
-                                        ) : (
-                                            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                                                <Icon name="search" size={16} color="#fff" style={{ marginRight: 6 }} />
-                                                <Text style={styles.searchButtonText}>Search</Text>
-                                            </View>
+                                    <View style={[
+                                        styles.checkboxIconWrapper,
+                                        isSelected && styles.checkboxIconSelected,
+                                    ]}>
+                                        {isSelected && (
+                                            <Icon name="check" size={14} color="#fff" />
                                         )}
+                                    </View>
+                                    <Text style={styles.checkboxLabel}>
+                                        {option === "yes" ? "Yes" : "No"}
                                     </Text>
                                 </TouchableOpacity>
+                            );
+                        })}
+                    </View>
+
+
+                    {gpDetails === "no" && (
+                        <View style={styles.infoBox}>
+                            <Text>
+                                You should inform your doctor of any medication you take. Contact us
+                                if you want us to email a letter for your doctor.
+                            </Text>
+                        </View>
+                    )}
+
+                    {gpDetails === "yes" && (
+                        <>
+                            <Text style={styles.subheading}>
+                                Do you consent for us to inform your GP about the treatment?
+                            </Text>
+                            <View style={styles.checkboxGroupColumn}>
+                                {[
+                                    { value: "yes", label: "Yes – Please inform my GP" },
+                                    { value: "no", label: `No – I will inform my GP prior to starting \ntreatment` },
+                                ].map((opt) => {
+                                    const isSelected = gepTreatMent === opt.value;
+
+                                    return (
+                                        <TouchableOpacity
+                                            key={opt.value}
+                                            style={[
+                                                styles.checkboxOptionRow,
+                                                isSelected && styles.checkboxSelected,
+                                            ]}
+                                            onPress={() => {
+                                                setValue("gepTreatMent", opt.value);
+                                                if (opt.value === "no") clearAddressOnlyFields();
+                                            }}
+                                        >
+                                            <View style={[
+                                                styles.checkboxIconWrapper,
+                                                isSelected && styles.checkboxIconSelected,
+                                            ]}>
+                                                {isSelected && <Icon name="check" size={14} color="#fff" />}
+                                            </View>
+                                            <Text style={styles.checkboxLabel}>{opt.label}</Text>
+                                        </TouchableOpacity>
+                                    );
+                                })}
                             </View>
 
-                            {addressOptions?.length > 0 && (
-                                <SelectField
+                        </>
+                    )}
 
-                                    label="Select Your Address"
-                                    value={selectedIndex}
-                                    onChange={(idx) => {
-                                        const selected = addressOptions[idx];
-                                        setSelectedIndex(idx);
-                                        setValue("gpName", selected.OrganisationName || "", { shouldValidate: true });
-                                        setValue("addressLine1", selected.Address1 || "", { shouldValidate: true });
-                                        setValue("addressLine2", selected.Address2 || "", { shouldValidate: true });
-                                        setValue("city", selected.City || "", { shouldValidate: true });
+                    {gpDetails === "yes" && gepTreatMent === "yes" && (
+                        <>
+                            <Text style={styles.optionalText}>
+                                Email <Text style={styles.optionalNote}>(optional)</Text>
+                            </Text>
+                            <TextFields
+                                // label={"Email"}
+                                placeholder="Email"
+                                value={watch("email")}
 
-                                    }}
-                                    options={addressOptions.map((addr, idx) => ({
-                                        value: idx,
-                                        label: `${addr.OrganisationName}, ${addr.Address1}, ${addr.City}`,
-                                    }))}
-                                    required
-                                    error={errors?.addressLine1?.message}
-                                />
-                            )}
-                        </View>
+                                onChangeText={(text) => setValue("email", text)}
+                            />
+
+                            <View style={{ marginBottom: 16 }}>
+                                <View style={{ flexDirection: "row", gap: 4 }}>
+                                    <TextFields
+                                        style={[styles.input, { flex: 1 }]}
+                                        label="Post code"
+                                        placeholder="Post code"
+                                        value={postalCode}
+                                        onChangeText={(text) => {
+                                            setValue("postalCode", text);
+                                            setAddressOptions([]);
+                                            setSelectedIndex("");
+                                        }}
+                                    />
+                                    <TouchableOpacity
+                                        style={styles.searchButton}
+                                        onPress={handleAddressFetch}
+                                        disabled={searchLoading}
+                                    >
+                                        <Text style={styles.searchButtonText}>
+                                            {searchLoading ? (
+                                                <Text style={styles.searchButtonText}>Searching</Text>
+                                            ) : (
+                                                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                                                    <Icon name="search" size={16} color="#fff" style={{ marginRight: 6 }} />
+                                                    <Text style={styles.searchButtonText}>Search</Text>
+                                                </View>
+                                            )}
+                                        </Text>
+                                    </TouchableOpacity>
+                                </View>
+
+                                {addressOptions?.length > 0 && (
+                                    <SelectFields
+
+                                        label="Select Your Address"
+                                        value={selectedIndex}
+                                        onChange={(idx) => {
+                                            const selected = addressOptions[idx];
+                                            setSelectedIndex(idx);
+                                            setValue("gpName", selected.OrganisationName || "", { shouldValidate: true });
+                                            setValue("addressLine1", selected.Address1 || "", { shouldValidate: true });
+                                            setValue("addressLine2", selected.Address2 || "", { shouldValidate: true });
+                                            setValue("city", selected.City || "", { shouldValidate: true });
+
+                                        }}
+                                        options={addressOptions.map((addr, idx) => ({
+                                            value: idx,
+                                            label: `${addr.OrganisationName}, ${addr.Address1}, ${addr.City}`,
+                                        }))}
+                                        required
+                                        error={errors?.addressLine1?.message}
+                                    />
+                                )}
+                            </View>
 
 
-                    </>
-                )}
+                        </>
+                    )}
 
-                {gpDetails === "yes" && gepTreatMent === "yes" && (
+                    {gpDetails === "yes" && gepTreatMent === "yes" && (
 
-                    <>
-                        <TextFields
-                            required
-                            placeholder="GP Name"
-                            label="GP Name"
-                            value={watch("gpName")}
-                            onChangeText={(text) => setValue("gpName", text)}
-                        />
-                        <TextFields
-                            required
-                            label="Address"
-                            placeholder="Address"
-                            value={watch("addressLine1")}
-                            onChangeText={(text) => setValue("addressLine1", text)}
-                        />
-                        <TextFields
-                            label="Address 2"
-                            placeholder="Address 2"
-                            valueTextField={watch("addressLine2")}
-                            onChangeText={(text) => setValue("addressLine2", text)}
-                        />
-                        <TextFields
-                            required
-                            label="Town / City"
-                            placeholder="Town / City"
-                            value={watch("city")}
-                            onChangeText={(text) => setValue("city", text)}
-                        />
-                    </>
-                )}
+                        <>
+                            <TextFields
+                                required
+                                placeholder="GP Name"
+                                label="GP Name"
+                                value={watch("gpName")}
+                                onChangeText={(text) => setValue("gpName", text)}
+                            />
+                            <TextFields
+                                required
+                                label="Address"
+                                placeholder="Address"
+                                value={watch("addressLine1")}
+                                onChangeText={(text) => setValue("addressLine1", text)}
+                            />
+                            <TextFields
+                                label="Address 2"
+                                placeholder="Address 2"
+                                valueTextField={watch("addressLine2")}
+                                onChangeText={(text) => setValue("addressLine2", text)}
+                            />
+                            <TextFields
+                                required
+                                label="Town / City"
+                                placeholder="Town / City"
+                                value={watch("city")}
+                                onChangeText={(text) => setValue("city", text)}
+                            />
+                        </>
+                    )}
 
 
 
-                <NextButton
-                    style={{ width: "100%" }}
-                    label="Next"
-                    onPress={handleSubmit(onSubmit)}
-                    disabled={!isValid}
-                />
+                    <NextButton
+                        style={{ width: "100%" }}
+                        label="Next"
+                        onPress={handleSubmit(onSubmit)}
+                        disabled={!isValid}
+                    />
 
-                <BackButton
-                    label="Back"
-                    onPress={() => navigation.navigate('signup')}
+                    <BackButton
+                        label="Back"
+                        onPress={() => navigation.navigate('signup')}
 
-                />
-            </ScrollView>
+                    />
+                </ScrollView>
+            </SafeAreaView>
         </>
     );
 }
 
 const styles = StyleSheet.create({
+    container: {
+        flex: 1,
+        backgroundColor: "#FAF8FF", // soft lavender background
+    },
+
+    formWrapper: {
+        padding: 16,
+        paddingBottom: 100,
+    },
+
     heading: {
         fontSize: 24,
         fontWeight: "bold",
         marginBottom: 12,
+        color: "#000000ff", // bold purple heading
     },
+
     subheading: {
         fontSize: 16,
         fontWeight: "600",
         marginBottom: 8,
+        color: "#4B3F72",
     },
+
     radioGroup: {
         flexDirection: "row",
         gap: 10,
@@ -372,68 +414,169 @@ const styles = StyleSheet.create({
         gap: 10,
         marginBottom: 16,
     },
+
     radioButton: {
         flex: 1,
-        flexDirection: 'row',
-        padding: 12,
+        flexDirection: "row",
+        padding: 14,
         borderWidth: 1,
-        borderColor: "#ccc",
+        borderColor: "#DDD",
         borderRadius: 8,
         backgroundColor: "#fff",
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.08,
+        shadowRadius: 2,
+        elevation: 1,
     },
+
     selectedRadio: {
-        backgroundColor: "#F2EEFF",
-        borderColor: "#47317c",
+        backgroundColor: "#C9B2ED", // deep purple
+        borderColor: "#5B2A86",
     },
+
     radioText: {
         fontSize: 14,
         color: "#333",
+        fontWeight: "600",
     },
+
+    selectedRadioText: {
+        color: "#fff",
+    },
+
     infoBox: {
-        backgroundColor: "#FFF3CD",
+        backgroundColor: "#FFF6E5", // light warm yellow
         borderLeftWidth: 4,
-        borderLeftColor: "#ffeeba",
+        borderLeftColor: "#FFBF47", // NHS standard yellow
         padding: 12,
         borderRadius: 6,
         marginVertical: 16,
     },
+
     optionalText: {
         fontSize: 14,
         marginTop: 10,
         marginBottom: 4,
+        color: "#4B3F72",
     },
+
     optionalNote: {
         fontStyle: "italic",
-        color: "#666",
+        color: "#888",
     },
+
     searchButton: {
-        backgroundColor: "#47317c",
+        backgroundColor: "#5B2A86", // unified button color
         paddingVertical: 10,
         paddingHorizontal: 16,
-        borderRadius: 4,
+        borderRadius: 6,
         flexDirection: "row",
         alignItems: "center",
         justifyContent: "center",
         height: 48,
         marginTop: 28,
     },
+
     searchButtonText: {
         color: "#fff",
         fontWeight: "600",
         fontSize: 14,
     },
 
-
     nextButton: {
-        backgroundColor: "#47317c",
+        backgroundColor: "#3A0CA3",
         padding: 14,
         borderRadius: 30,
         alignItems: "center",
         marginTop: 20,
     },
+
     nextButtonText: {
         color: "#fff",
         fontWeight: "bold",
         fontSize: 16,
     },
+
+    footerNav: {
+        flexDirection: "row",
+        justifyContent: "space-between",
+        alignItems: "center",
+        paddingVertical: 16,
+        paddingHorizontal: 20,
+        borderTopWidth: 1,
+        borderTopColor: "#E0DFF5",
+        backgroundColor: "#fff",
+        position: "absolute",
+        bottom: 0,
+        width: "100%",
+        gap: 12,
+    },
+    checkboxGroup: {
+        flexDirection: "row",
+        justifyContent: "space-between",
+        marginBottom: 16,
+    },
+
+    checkboxOption: {
+        flexDirection: "row",
+        alignItems: "center",
+        flex: 1,
+        paddingVertical: 12,
+        paddingHorizontal: 14,
+        borderWidth: 1,
+        borderColor: "#ccc",
+        borderRadius: 8,
+        marginRight: 10,
+        backgroundColor: "#fff",
+    },
+
+    checkboxSelected: {
+        backgroundColor: "#EFE6FD", // light purple background
+        borderColor: "#5B2A86",
+    },
+
+    checkboxIconWrapper: {
+        width: 20,
+        height: 20,
+        borderWidth: 1.5,
+        borderColor: "#5B2A86",
+        borderRadius: 4,
+        marginRight: 10,
+        justifyContent: "center",
+        alignItems: "center",
+        backgroundColor: "#fff",
+    },
+
+    checkboxIconSelected: {
+        backgroundColor: "#5B2A86",
+        borderColor: "#5B2A86",
+    },
+
+    checkboxLabel: {
+        fontSize: 14,
+        fontWeight: "600",
+        color: "#333",
+    },
+
+    checkboxGroupColumn: {
+        flexDirection: "column",
+        gap: 12,
+        marginBottom: 16,
+    },
+
+    checkboxOptionRow: {
+        flexDirection: "row",
+        // flexWrap:'wrap',
+
+        alignItems: "center",
+        padding: 12,
+        borderWidth: 1,
+        borderColor: "#ccc",
+        borderRadius: 8,
+        backgroundColor: "#fff",
+    },
+
+
 });
+
