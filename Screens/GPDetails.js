@@ -200,7 +200,7 @@ export default function GpDetail() {
                         <Text style={styles.subheading}>
                             Do you consent for us to inform your GP about the treatment?
                         </Text>
-                        <View style={styles.radioGroup}>
+                        <View style={styles.radioGroup2}>
                             {[
                                 { value: "yes", label: "Yes – Please inform my GP" },
                                 { value: "no", label: "No – I will inform my GP prior to starting treatment" },
@@ -362,13 +362,19 @@ const styles = StyleSheet.create({
         marginBottom: 8,
     },
     radioGroup: {
+        flexDirection: "row",
+        gap: 10,
+        marginBottom: 16,
+    },
+
+    radioGroup2: {
         flexDirection: "column",
         gap: 10,
         marginBottom: 16,
     },
     radioButton: {
         flex: 1,
-        flexDirection:'row',
+        flexDirection: 'row',
         padding: 12,
         borderWidth: 1,
         borderColor: "#ccc",
