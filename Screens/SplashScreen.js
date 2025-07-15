@@ -1,8 +1,20 @@
 import { useNavigation } from '@react-navigation/native';
 import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import useAuthStore from '../store/authStore';
 
 export default function SplashScreen() {
   const navigation = useNavigation();
+  const { token } = useAuthStore();
+  console.log(token, "token")
+
+  const handlePress = () => {
+    if (token) {
+      navigation.navigate('dashboard')
+    } else {
+
+      navigation.navigate('Login');
+    }
+  }
 
   return (
     <View style={styles.container}>
@@ -14,14 +26,11 @@ export default function SplashScreen() {
 
       <TouchableOpacity
         style={styles.button}
-        onPress={() => {
-          console.log('Get Started pressed');
-          navigation.navigate('Login');
-        }}
+        onPress={() => handlePress()}
       >
         <Text style={styles.buttonText}>Get Started</Text>
       </TouchableOpacity>
-    </View>
+    </View >
   );
 }
 

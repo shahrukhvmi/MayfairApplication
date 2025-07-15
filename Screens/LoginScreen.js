@@ -19,13 +19,14 @@ import { useNavigation } from '@react-navigation/native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { useMutation } from '@tanstack/react-query';
 import { Login } from '../api/loginApi';
-import usePasswordReset from '../store/usePasswordReset';
+
 import { logApiError, logApiSuccess } from '../utils/logApiDebug';
 import useAuthStore from '../store/authStore';
 import useAuthUserDetailStore from '../store/useAuthUserDetailStore';
 import useSignupStore from '../store/signupStore';
 import Fetcher from '../library/Fetcher';
 import Toast from 'react-native-toast-message';
+import usePasswordReset from '../store/usePasswordReset';
 
 const LoginScreen = () => {
     const navigation = useNavigation();
@@ -39,7 +40,7 @@ const LoginScreen = () => {
     const { setLastName, setFirstName, setEmail } = useSignupStore();
     const loginMutation = useMutation(Login, {
         onSuccess: (data) => {
-            logApiSuccess(data);
+            logApiSuccess(data,"zdksdjjkjsdk");
             const user = data?.data?.data;
 
             if (!user?.token) {
@@ -66,13 +67,15 @@ const LoginScreen = () => {
 
             setIsPasswordReset(false);
             setShowResetPassword(user?.show_password_reset);
+            // setShowResetPassword(false);
             setLoading(false);
         },
         onError: (error) => {
             setLoading(false); // ✅ already here
             logApiError(error);
-            console.log('Login Error:', error?.response?.data?.errors?.user);
+         
             Toast.show(error?.response?.data?.errors?.user)
+            Toast.show(error?.response?.data?.errors?.login)
 
             const apiErrors = error?.response?.data?.errors;
             if (apiErrors && typeof apiErrors === 'object') {
