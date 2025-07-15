@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, {useEffect, useState} from 'react';
 import {
   View,
   Text,
@@ -6,8 +6,8 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
-import { Controller, useForm } from 'react-hook-form';
-import { useNavigation } from '@react-navigation/native';
+import {Controller, useForm} from 'react-hook-form';
+import {useNavigation} from '@react-navigation/native';
 import useSignupStore from '../store/signupStore';
 import useAuthStore from '../store/authStore';
 import PageLoader from '../Components/PageLoader';
@@ -20,8 +20,8 @@ const SignUpScreen = () => {
   const navigation = useNavigation();
   const [showLoader, setShowLoader] = useState(false);
 
-  const { token } = useAuthStore();
-  const { firstName, lastName, setFirstName, setLastName } = useSignupStore();
+  const {token} = useAuthStore();
+  const {firstName, lastName, setFirstName, setLastName} = useSignupStore();
 
   const {
     control,
@@ -30,7 +30,7 @@ const SignUpScreen = () => {
     setValue,
     trigger,
     watch,
-    formState: { errors, isValid },
+    formState: {errors, isValid},
   } = useForm({
     mode: 'onChange',
     defaultValues: {
@@ -73,12 +73,12 @@ const SignUpScreen = () => {
             treatment.
           </Text>
 
-          <View style={[styles.form, showLoader && { opacity: 0.5 }]}>
+          <View style={[styles.form, showLoader && {opacity: 0.5}]}>
             <Controller
               control={control}
               name="firstName"
-              rules={{ required: true }}
-              render={({ field: { onChange, value } }) => (
+              rules={{required: true}}
+              render={({field: {onChange, value}}) => (
                 <TextFields
                   label="First Name"
                   placeholder="First Name"
@@ -92,8 +92,8 @@ const SignUpScreen = () => {
             <Controller
               control={control}
               name="lastName"
-              rules={{ required: true }}
-              render={({ field: { onChange, value } }) => (
+              rules={{required: true}}
+              render={({field: {onChange, value}}) => (
                 <TextFields
                   label="Last Name"
                   placeholder="Last Name"
@@ -103,22 +103,18 @@ const SignUpScreen = () => {
                 />
               )}
             />
-
-
           </View>
-
 
           <NextButton
             label="Next"
-            // onPress={handleSubmit(onSubmit)}
-            // disabled={!isValid}
-            onPress={() => { navigation.navigate('email-confirmation') }}
+            onPress={handleSubmit(onSubmit)}
+            disabled={!isValid}
+            // onPress={() => { navigation.navigate('email-confirmation') }}
           />
 
           <BackButton
             label="Back"
             onPress={() => navigation.navigate('Acknowledgment')}
-
           />
 
           {showLoader && (
