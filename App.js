@@ -11,7 +11,6 @@ import ResidentialAddressScreen from './Screens/ResidentialAddressScreen';
 import PreferredPhoneNumber from './Screens/PreferredPhoneNumber';
 import Ethnicity from './Screens/Ethnicity';
 import CalculateWeight from './Screens/CalculateWeight';
-import CalculateHeight from './Screens/CalculateHeight';
 import BMI from './Screens/BMI';
 import GPDetails from './Screens/GPDetails';
 import ConfirmationSummary from './Screens/ConfirmationSummary';
