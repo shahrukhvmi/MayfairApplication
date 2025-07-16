@@ -1,7 +1,7 @@
-import React, { useEffect, useState } from 'react';
-import { View, StyleSheet, Dimensions } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
-import { useMutation } from '@tanstack/react-query';
+import React, {useEffect, useState} from 'react';
+import {View, StyleSheet, Dimensions} from 'react-native';
+import {useNavigation} from '@react-navigation/native';
+import {useMutation} from '@tanstack/react-query';
 import Toast from 'react-native-toast-message';
 
 // 🧱 Components
@@ -24,36 +24,49 @@ import useUserDataStore from '../store/useUserDataStore';
 import useSignupStore from '../store/signupStore';
 
 // 📦 API
-import { getMedicalQuestions } from '../api/getQuestions';
+import {getMedicalQuestions} from '../api/getQuestions';
 import useLastBmi from '../store/useLastBmiStore';
 import Header from '../Layout/header';
 import PageLoader from '../Components/PageLoader';
-import userConsultationApi from '../api/userConsultationApi';
+import {userConsultationApi} from '../api/userConsultationApi';
 
 const StepsInformation = () => {
   const [showLoader, setShowLoader] = useState(false);
   const navigation = useNavigation();
 
-  const { setBmi, clearBmi } = useBmiStore();
-  const { setCheckout, clearCheckout } = useCheckoutStore();
-  const { setConfirmationInfo, clearConfirmationInfo } = useConfirmationInfoStore();
-  const { setGpDetails, clearGpDetails } = useGpDetailsStore();
-  const { setMedicalInfo, clearMedicalInfo } = useMedicalInfoStore();
-  const { setPatientInfo, clearPatientInfo } = usePatientInfoStore();
-  const { setMedicalQuestions, clearMedicalQuestions } = useMedicalQuestionsStore();
-  const { setConfirmationQuestions, clearConfirmationQuestions } = useConfirmationQuestionsStore();
-  const { setAuthUserDetail, clearAuthUserDetail } = useAuthUserDetailStore();
-  const { billing, setBilling, shipping, setShipping, clearBilling, clearShipping } = useShippingOrBillingStore();
-  const { clearToken } = useAuthStore();
-  const { setIsPasswordReset } = usePasswordReset();
-  const { productId, clearProductId } = useProductId();
-  const { setLastBmi, clearLastBmi } = useLastBmi();
-  const { clearUserData } = useUserDataStore();
-  const { clearFirstName, clearLastName, clearEmail, clearConfirmationEmail } = useSignupStore();
+  const {setBmi, clearBmi} = useBmiStore();
+  const {setCheckout, clearCheckout} = useCheckoutStore();
+  const {setConfirmationInfo, clearConfirmationInfo} =
+    useConfirmationInfoStore();
+  const {setGpDetails, clearGpDetails} = useGpDetailsStore();
+  const {setMedicalInfo, clearMedicalInfo} = useMedicalInfoStore();
+  const {setPatientInfo, clearPatientInfo} = usePatientInfoStore();
+  const {setMedicalQuestions, clearMedicalQuestions} =
+    useMedicalQuestionsStore();
+  const {setConfirmationQuestions, clearConfirmationQuestions} =
+    useConfirmationQuestionsStore();
+  const {setAuthUserDetail, clearAuthUserDetail} = useAuthUserDetailStore();
+  const {
+    billing,
+    setBilling,
+    shipping,
+    setShipping,
+    clearBilling,
+    clearShipping,
+  } = useShippingOrBillingStore();
+  const {clearToken} = useAuthStore();
+  const {setIsPasswordReset} = usePasswordReset();
+  const {productId, clearProductId} = useProductId();
+  const {setLastBmi, clearLastBmi} = useLastBmi();
+  const {clearUserData} = useUserDataStore();
+  const {clearFirstName, clearLastName, clearEmail, clearConfirmationEmail} =
+    useSignupStore();
 
   const consultationMutation = useMutation(userConsultationApi, {
-    onSuccess: (data) => {
+    onSuccess: data => {
       const result = data?.data?.data;
+
+      console.log(result, 'Consultation Data');
 
       if (result == null) {
         clearBmi();
@@ -79,10 +92,10 @@ const StepsInformation = () => {
         navigation.navigate('personal-details');
       }
     },
-    onError: (error) => {
+    onError: error => {
       const msg = error?.response?.data?.message;
       if (msg === 'Unauthenticated.') {
-        Toast.show({ type: 'error', text1: 'Session Expired' });
+        Toast.show({type: 'error', text1: 'Session Expired'});
         clearBmi();
         clearCheckout();
         clearConfirmationInfo();
@@ -109,7 +122,7 @@ const StepsInformation = () => {
   });
 
   const medicalQuestionsMutation = useMutation(getMedicalQuestions, {
-    onSuccess: (data) => {
+    onSuccess: data => {
       setMedicalQuestions(data?.data?.data?.medical_question);
       setConfirmationQuestions(data?.data?.data?.confirmation_question);
     },
@@ -130,7 +143,7 @@ const StepsInformation = () => {
       medicalQuestionsMutation.mutate();
     }
 
-     setShowLoader(false);
+    setShowLoader(false);
   }, [productId]);
 
   return (
@@ -147,7 +160,7 @@ const StepsInformation = () => {
 
 export default StepsInformation;
 
-const { width, height } = Dimensions.get('window');
+const {width, height} = Dimensions.get('window');
 
 const styles = StyleSheet.create({
   container: {

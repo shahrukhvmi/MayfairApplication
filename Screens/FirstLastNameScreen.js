@@ -56,7 +56,7 @@ const SignUpScreen = () => {
     await new Promise(res => setTimeout(res, 500));
 
     setShowLoader(false); // ✅ reset loader before navigating
-    navigation.navigate('email-confirmation');
+    navigation.navigate('steps-information');
   };
 
   return (

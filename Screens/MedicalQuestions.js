@@ -1,105 +1,183 @@
-import { useNavigation } from '@react-navigation/native';
-import { useState } from 'react';
+import React, {useEffect, useState} from 'react';
 import {
   ScrollView,
-  StyleSheet,
   Text,
-  TouchableOpacity,
+  TextInput,
   View,
+  StyleSheet,
+  TouchableOpacity,
+  ActivityIndicator,
 } from 'react-native';
-import Ionicons from 'react-native-vector-icons/Ionicons'; // ✅ Added this
+import {useForm, Controller} from 'react-hook-form';
+import {useNavigation} from '@react-navigation/native';
+import Ionicons from 'react-native-vector-icons/Ionicons';
+
 import Header from '../Layout/header';
 import NextButton from '../Components/NextButton';
 import BackButton from '../Components/BackButton';
+import PageLoader from '../Components/PageLoader';
 
-const questions = [
-  'Do you have any allergies or intolerances?',
-  'Have you been prescribed and are currently taking weight loss medication (including weight loss injections) for weight loss previously?',
-  'Are you currently taking any medication (including injections) such as vitamins, antibiotics, contraceptives, fertility agents, or for the treatment of diabetes?',
-  'Do you have or previously had any of the following conditions: Type 2 Diabetes, cancer, etc.',
-  'Are you using insulin or a sulphonylurea (e.g. gliclazide or chlorpropamide) for either type 1 or type 2 diabetes?',
-  'Are you currently taking any other prescribed or bought medication, supplements, or vitamins?',
-  'Can you think of any other relevant health or medical information that you feel we should know about?',
-  'Have you or anyone in your home, or known to you, ever suffered from an eating disorder?',
-];
+import useMedicalQuestionsStore from '../store/medicalQuestionStore';
+import useMedicalInfoStore from '../store/medicalInfoStore';
 
 export default function MedicalQuestions() {
   const navigation = useNavigation();
-  const [answers, setAnswers] = useState({});
+  const [showLoader, setShowLoader] = useState(false);
+  const {medicalQuestions} = useMedicalQuestionsStore();
+  const {medicalInfo, setMedicalInfo} = useMedicalInfoStore();
+  const [questions, setQuestions] = useState([]);
 
-  const handleSelect = (questionIndex, answer) => {
-    setAnswers({ ...answers, [questionIndex]: answer });
+  const {control, handleSubmit, setValue, watch} = useForm({mode: 'onChange'});
+
+  useEffect(() => {
+    if (medicalInfo && medicalInfo.length) {
+      setQuestions(medicalInfo);
+    } else if (medicalQuestions && medicalQuestions.length) {
+      const initialized = medicalQuestions.map(q => ({
+        ...q,
+        subfield_response: '',
+      }));
+      setQuestions(initialized);
+    }
+  }, [medicalQuestions, medicalInfo]);
+
+  useEffect(() => {
+    questions.forEach(q => {
+      if (q.answer) setValue(`responses[${q.id}].answer`, q.answer);
+      if (q.subfield_response) {
+        setValue(`responses[${q.id}].subfield_response`, q.subfield_response);
+      }
+    });
+  }, [questions]);
+
+  const handleAnswerChange = (id, value) => {
+    const updated = questions.map(q =>
+      q.id === id
+        ? {
+            ...q,
+            answer: value,
+            subfield_response: value === 'no' ? '' : q.subfield_response,
+          }
+        : q,
+    );
+    setQuestions(updated);
+    setValue(`responses[${id}].answer`, value);
+    if (value === 'no') {
+      setValue(`responses[${id}].subfield_response`, '');
+    }
   };
 
-  const allAnswered = questions.every((_, i) => answers[i]);
+  const handleSubFieldChange = (id, value) => {
+    const updated = questions.map(q =>
+      q.id === id ? {...q, subfield_response: value} : q,
+    );
+    setQuestions(updated);
+    setValue(`responses[${id}].subfield_response`, value);
+  };
+
+  const isNextEnabled = questions.every(q => {
+    const answer = watch(`responses[${q.id}].answer`);
+    const subfield = watch(`responses[${q.id}].subfield_response`);
+    if (answer === 'no') return true;
+    if (answer === 'yes' && q.has_sub_field)
+      return subfield && subfield.trim() !== '';
+    if (answer === 'yes' && !q.has_sub_field && q.validation_error_msg)
+      return false;
+    return false;
+  });
+
+  const onSubmit = async () => {
+    setMedicalInfo(questions);
+    navigation.navigate('patient-consent');
+  };
 
   return (
     <>
       <Header />
       <ScrollView contentContainerStyle={styles.container}>
-        {/* Progress */}
-        <View style={styles.progressContainer}>
-          <View style={styles.progressBar} />
-        </View>
-        <Text style={styles.progressText}>80% Completed</Text>
+        {questions.map(q => {
+          const selectedAnswer = watch(`responses[${q.id}].answer`);
+          const subfieldValue = watch(`responses[${q.id}].subfield_response`);
+          const showValidationError =
+            selectedAnswer === 'yes' &&
+            !q.has_sub_field &&
+            q.validation_error_msg;
 
-        <Text style={styles.heading}>Medical Questions</Text>
+          return (
+            <View
+              key={q.id}
+              style={[
+                styles.card,
+                showValidationError ? styles.cardError : styles.cardNormal,
+              ]}>
+              <Text style={styles.questionText}>
+                {q.question.replace(/<[^>]*>/g, '')}
+              </Text>
 
-        {questions.map((question, index) => (
-          <View key={index} style={styles.questionBox}>
-            <Text style={styles.question}>{question}</Text>
-            <View style={styles.optionsWrapper}>
-              {['Yes', 'No'].map((option) => (
-                <TouchableOpacity
-                  key={option}
-                  style={[
-                    styles.option,
-                    answers[index] === option && styles.selectedOption,
-                  ]}
-                  onPress={() => handleSelect(index, option)}
-                >
-                  <View style={styles.optionContent}>
-                    <Ionicons
-                      name={
-                        answers[index] === option
-                          ? 'checkmark-circle'
-                          : 'ellipse-outline'
-                      }
-                      size={20}
-                      color={answers[index] === option ? '#4B0082' : '#999'}
-                      style={{ marginRight: 10 }}
-                    />
-                    <Text
+              <View style={styles.optionsRow}>
+                {q.options.map(option => {
+                  const isSelected = selectedAnswer === option;
+                  return (
+                    <TouchableOpacity
+                      key={option}
                       style={[
-                        styles.optionText,
-                        answers[index] === option && styles.selectedOptionText,
+                        styles.option,
+                        isSelected && styles.selectedOption,
                       ]}
-                    >
-                      {option}
-                    </Text>
-                  </View>
-                </TouchableOpacity>
-              ))}
+                      onPress={() => handleAnswerChange(q.id, option)}>
+                      <View
+                        style={[
+                          styles.radioCircle,
+                          isSelected && styles.radioChecked,
+                        ]}>
+                        {isSelected && (
+                          <Ionicons name="checkmark" size={14} color="#fff" />
+                        )}
+                      </View>
+                      <Text
+                        style={[
+                          styles.optionText,
+                          isSelected && styles.selectedOptionText,
+                        ]}>
+                        {option.charAt(0).toUpperCase() + option.slice(1)}
+                      </Text>
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
+
+              {showValidationError && (
+                <Text style={styles.errorText}>{q.validation_error_msg}</Text>
+              )}
+
+              {q.has_sub_field && selectedAnswer === 'yes' && (
+                <TextInput
+                  placeholder={q.sub_field_prompt}
+                  value={subfieldValue}
+                  onChangeText={text => handleSubFieldChange(q.id, text)}
+                  style={styles.textArea}
+                  multiline
+                  numberOfLines={4}
+                />
+              )}
             </View>
-          </View>
-        ))}
-
-        {/* <TouchableOpacity
-          style={[styles.nextButton, !allAnswered && styles.disabledBtn]}
-          onPress={() => navigation.navigate('patient-consent')}
-          disabled={!allAnswered}
-        >
-          <Text style={styles.nextText}>Next</Text>
-        </TouchableOpacity> */}
-
+          );
+        })}
 
         <NextButton
-          onPress={() => navigation.navigate('patient-consent')}
+          disabled={!isNextEnabled}
+          onPress={handleSubmit(onSubmit)}
         />
         <BackButton
-          onPress={() => navigation.goBack()}
-          label='Back'
+          label="Back"
+          onPress={() => navigation.navigate('bmi-detail')}
         />
+
+        {showLoader && (
+          <View style={styles.loaderOverlay}>
+            <PageLoader />
+          </View>
+        )}
       </ScrollView>
     </>
   );
@@ -107,93 +185,96 @@ export default function MedicalQuestions() {
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: '#f8f5ff',
-    flexGrow: 1,
     padding: 20,
+    backgroundColor: '#f8f5ff',
     paddingBottom: 80,
   },
-  progressContainer: {
-    height: 4,
-    backgroundColor: '#eee',
-    borderRadius: 2,
-    overflow: 'hidden',
-    marginBottom: 6,
-  },
-  progressBar: {
-    width: '80%',
-    height: 4,
-    backgroundColor: '#4B0082',
-  },
-  progressText: {
-    textAlign: 'center',
-    fontSize: 12,
-    color: '#666',
+  card: {
+    padding: 16,
+    borderRadius: 12,
     marginBottom: 20,
-  },
-  heading: {
-    fontSize: 22,
-    fontWeight: 'bold',
-    fontFamily: 'serif',
-    marginBottom: 20,
-  },
-  questionBox: {
     backgroundColor: '#fff',
     borderWidth: 1,
-    borderColor: '#ccc',
-    borderRadius: 8,
-    padding: 14,
-    marginBottom: 20,
-    width: '100%',
   },
-  question: {
+  cardNormal: {
+    borderColor: '#ddd',
+  },
+  cardError: {
+    borderColor: '#f87171',
+  },
+  questionText: {
     fontSize: 14,
+    color: '#1C1C29',
     marginBottom: 10,
-    fontWeight: '600',
+    fontWeight: '400',
+    lineHeight: 20,
   },
-  optionsWrapper: {
+  optionsRow: {
     flexDirection: 'row',
-    justifyContent: 'space-around',
+    gap: 12,
+    marginBottom: 10,
   },
   option: {
+    flexDirection: 'row',
+    alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#999',
-    borderRadius: 8,
+    borderColor: '#ccc',
     paddingVertical: 10,
     paddingHorizontal: 14,
+    borderRadius: 8,
     backgroundColor: '#fff',
-    flex: 1,
-    marginHorizontal: 5,
-  },
-  optionContent: {
-    flexDirection: 'row',
-    alignItems: 'start',
-    justifyContent: 'start',
+    width: '48%',
   },
   selectedOption: {
-    backgroundColor: '#eae1ff',
-    borderColor: '#4B0082',
+    backgroundColor: '#F2EEFF',
+    borderColor: '#6D28D9',
+  },
+  radioCircle: {
+    width: 18,
+    height: 18,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: '#999',
+    marginRight: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  radioChecked: {
+    backgroundColor: '#6D28D9',
+    borderColor: '#6D28D9',
   },
   optionText: {
     fontSize: 14,
     color: '#333',
   },
   selectedOptionText: {
-    fontWeight: 'bold',
-    color: '#4B0082',
+    color: '#6D28D9',
+    fontWeight: '600',
   },
-  nextButton: {
-    backgroundColor: '#4B0082',
-    borderRadius: 30,
-    paddingVertical: 14,
-    alignItems: 'center',
+  textArea: {
+    borderWidth: 1,
+    borderColor: '#ccc',
+    borderRadius: 8,
+    padding: 12,
+    fontSize: 14,
     marginTop: 10,
+    color: '#000',
+    textAlignVertical: 'top',
   },
-  disabledBtn: {
-    backgroundColor: '#ccc',
+  errorText: {
+    color: '#dc2626',
+    fontSize: 12,
+    marginTop: 6,
   },
-  nextText: {
-    color: '#fff',
-    fontWeight: 'bold',
-    fontSize: 16,
+  loaderOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(255,255,255,0.6)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderRadius: 8,
   },
 });

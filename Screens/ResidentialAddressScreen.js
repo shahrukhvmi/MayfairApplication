@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {useNavigation} from '@react-navigation/native';
 import {
   ScrollView,
@@ -7,7 +7,6 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import {useForm, Controller} from 'react-hook-form';
 
@@ -16,11 +15,56 @@ import TextField from '../Components/TextFields';
 import NextButton from '../Components/NextButton';
 import BackButton from '../Components/BackButton';
 
+import usePatientInfoStore from '../store/patientInfoStore';
+import SelectFields from '../Components/SelectFields';
+
+// --- GETADDRESS.IO HELPER ---
+const GETADDRESS_KEY = '_UFb05P76EyMidU1VHIQ_A42976';
+
+const fetchAddresses = async postcode => {
+  const res = await fetch(
+    `https://api.getaddress.io/find/${encodeURIComponent(
+      postcode,
+    )}?api-key=${GETADDRESS_KEY}`,
+  );
+
+  if (!res.ok) throw new Error('Postcode lookup failed');
+
+  const data = await res.json();
+
+  return (data.addresses || []).map(addrStr => {
+    const parts = addrStr
+      .split(',')
+      .map(p => p.trim())
+      .filter(Boolean);
+
+    return {
+      formatted_address: parts,
+      line_1: parts[0] || '',
+      line_2: parts[1] || '',
+      town_or_city: parts[parts.length - 2] || '',
+      country: parts[parts.length - 1] || '',
+    };
+  });
+};
+
 export default function ResidentialAddressScreen() {
   const navigation = useNavigation();
-  const [showManual, setShowManual] = useState(true);
+  const {patientInfo, setPatientInfo} = usePatientInfoStore();
 
-  const {control, handleSubmit} = useForm({
+  const [showManual, setShowManual] = useState(false);
+  const [addressOptions, setAddressOptions] = useState([]);
+  const [selectedIndex, setSelectedIndex] = useState(null);
+  const [searching, setSearching] = useState(false);
+
+  const {
+    control,
+    handleSubmit,
+    setValue,
+    watch,
+    formState: {errors},
+  } = useForm({
+    mode: 'onChange',
     defaultValues: {
       postcode: '',
       address1: '',
@@ -30,34 +74,92 @@ export default function ResidentialAddressScreen() {
     },
   });
 
+  const address1 = watch('address1');
+  const city = watch('city');
+  const country = watch('country');
+  const postcode = watch('postcode');
+
+  const isNextEnabled =
+    !!address1?.trim() && !!city?.trim() && !!country?.trim();
+
+  useEffect(() => {
+    if (patientInfo?.address) {
+      setValue('postcode', patientInfo.address.postalcode || '');
+      setValue('address1', patientInfo.address.addressone || '');
+      setValue('address2', patientInfo.address.addresstwo || '');
+      setValue('city', patientInfo.address.city || '');
+      setValue('country', patientInfo.address.country || '');
+
+      if (
+        patientInfo.address.addressone ||
+        patientInfo.address.addresstwo ||
+        patientInfo.address.city ||
+        patientInfo.address.country
+      ) {
+        setShowManual(true);
+      }
+    }
+  }, [patientInfo]);
+
   const onSubmit = data => {
-    console.log('Form Data:', data);
+    const fullAddress = {
+      postalcode: data.postcode,
+      addressone: data.address1,
+      addresstwo: data.address2,
+      city: data.city,
+      state: '',
+      country: data.country,
+    };
+
+    setPatientInfo({...patientInfo, address: fullAddress});
     navigation.navigate('preferred-phone-number');
+  };
+
+  const handleSearch = async () => {
+    if (!postcode) {
+      alert('Please enter a valid postcode');
+      return;
+    }
+
+    try {
+      setSearching(true);
+      const addresses = await fetchAddresses(postcode);
+
+      if (addresses.length === 0) {
+        alert('No addresses found for this postcode');
+        setSearching(false);
+        return;
+      }
+
+      setAddressOptions(addresses);
+      setShowManual(true);
+      setSearching(false);
+    } catch (err) {
+      alert('Failed to fetch addresses');
+      console.error(err);
+      setSearching(false);
+    }
   };
 
   return (
     <>
       <Header />
-
       <ScrollView contentContainerStyle={styles.container}>
-        {/* Progress Bar */}
         <View style={styles.progressBarBackground}>
           <View style={styles.progressBarFill} />
         </View>
         <Text style={styles.progressText}>40% Completed</Text>
 
-        {/* Title */}
         <Text style={styles.heading}>Patient Residential Address</Text>
         <Text style={styles.subtext}>
           Required for age verification purpose
         </Text>
 
-        {/* Postcode Search with button inside input */}
+        {/* Postcode with button */}
         <View style={styles.relativeContainer}>
           <Controller
             control={control}
             name="postcode"
-            style={styles.textFieldWithButton}
             render={({field: {onChange, value}}) => (
               <TextField
                 placeholder="Enter your postal code"
@@ -66,12 +168,54 @@ export default function ResidentialAddressScreen() {
               />
             )}
           />
-          <TouchableOpacity style={styles.insideSearchButton}>
+          <TouchableOpacity
+            style={styles.insideSearchButton}
+            onPress={handleSearch}
+            disabled={searching}>
             <Ionicons name="search" size={18} color="#fff" />
           </TouchableOpacity>
         </View>
 
-        {/* Toggle Manual Fields */}
+        {/* Address dropdown */}
+        {addressOptions.length > 0 && (
+          <Controller
+            control={control}
+            name="selectedAddress"
+            rules={{required: 'Please select your address'}}
+            render={({field: {onChange, value}}) => (
+              <SelectFields
+                label="Select Your Address"
+                value={value}
+                onChange={idx => {
+                  setSelectedIndex(idx);
+                  const selected = addressOptions[idx];
+                  onChange(idx);
+
+                  setValue('address1', selected.line_1 || '', {
+                    shouldValidate: true,
+                  });
+                  setValue('address2', selected.line_2 || '', {
+                    shouldValidate: true,
+                  });
+                  setValue('city', selected.town_or_city || '', {
+                    shouldValidate: true,
+                  });
+                  setValue('country', selected.country || '', {
+                    shouldValidate: true,
+                  });
+                }}
+                options={addressOptions.map((addr, idx) => ({
+                  value: idx,
+                  label: addr.formatted_address.join(', '),
+                }))}
+                required
+                error={errors?.selectedAddress?.message}
+              />
+            )}
+          />
+        )}
+
+        {/* Manual Toggle */}
         <TouchableOpacity onPress={() => setShowManual(!showManual)}>
           <Text style={styles.toggleText}>
             {showManual
@@ -80,7 +224,7 @@ export default function ResidentialAddressScreen() {
           </Text>
         </TouchableOpacity>
 
-        {/* Manual Fields */}
+        {/* Manual Address Fields */}
         {showManual && (
           <>
             <Controller
@@ -130,8 +274,11 @@ export default function ResidentialAddressScreen() {
           </>
         )}
 
-        {/* Next & Back Buttons */}
-        <NextButton label="Next" onPress={handleSubmit(onSubmit)} />
+        <NextButton
+          label="Next"
+          disabled={!isNextEnabled}
+          onPress={handleSubmit(onSubmit)}
+        />
         <BackButton label="Back" onPress={() => navigation.goBack()} />
       </ScrollView>
     </>
@@ -174,69 +321,21 @@ const styles = StyleSheet.create({
     color: '#555',
     marginBottom: 20,
   },
-  searchContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 20,
-  },
-
-  inputWrapper: {
-    flex: 1,
-    borderWidth: 1,
-    borderColor: '#ccc',
-    borderTopLeftRadius: 8,
-    borderBottomLeftRadius: 8,
-    backgroundColor: '#fff',
-  },
-
-  searchBtn: {
-    flexDirection: 'row',
-    backgroundColor: '#4B0082',
-    paddingHorizontal: 14,
-    paddingVertical: 5,
-    borderTopRightRadius: 8,
-    borderBottomRightRadius: 8,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-
-  searchBtn: {
-    flexDirection: 'row',
-    backgroundColor: '#4B0082',
-    paddingHorizontal: 12,
-    paddingVertical: 3,
-    borderTopRightRadius: 8,
-    borderBottomRightRadius: 8,
-    height: '100%',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  searchBtnText: {
-    color: '#fff',
-    fontWeight: 'bold',
-    fontSize: 14,
-  },
   toggleText: {
     color: '#4B0082',
     fontSize: 13,
-    marginTop: 10,
+    marginTop: 0,
     marginBottom: 20,
     textAlign: 'right',
   },
   relativeContainer: {
     position: 'relative',
-    marginBottom: 20,
+    marginBottom: 0,
   },
-
-  textFieldWithButton: {
-    paddingRight: 40,
-  },
-
   insideSearchButton: {
     position: 'absolute',
     right: 0,
     top: 0,
-    tran1form: [{translateY: -12}],
     backgroundColor: '#4B0082',
     borderRadius: 4,
     paddingHorizontal: 12,
