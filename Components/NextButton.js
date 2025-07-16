@@ -13,6 +13,7 @@ const NextButton = ({
   disabled = false,
   onPress,
   style,
+  type = 'submit',
 }) => {
   const handlePress = () => {
     if (!disabled && !loading && onPress) {
@@ -24,12 +25,12 @@ const NextButton = ({
     <TouchableOpacity
       onPress={handlePress}
       disabled={disabled || loading}
+      type={type}
       style={[
         styles.button,
         disabled || loading ? styles.disabled : styles.enabled,
         style,
-      ]}
-    >
+      ]}>
       {loading ? (
         <View style={styles.loadingContent}>
           <ActivityIndicator color="#fff" style={styles.spinner} />
