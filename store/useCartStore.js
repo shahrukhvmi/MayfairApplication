@@ -1,7 +1,7 @@
 // store/useCartStore.js
 
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
+import { createJSONStorage, persist } from 'zustand/middleware';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import getCartType from '../config/helperFunction';
 

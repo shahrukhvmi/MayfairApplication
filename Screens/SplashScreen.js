@@ -9,12 +9,12 @@ export default function SplashScreen() {
 
   const handlePress = () => {
     if (token) {
-      // navigation.navigate('dashboard')
-      navigation.navigate('dose-selection')
+      navigation.navigate('dashboard')
+      // navigation.navigate('dose-selection')
     } else {
 
-      // navigation.navigate('Login');
-      navigation.navigate('dose-selection');
+      navigation.navigate('Login');
+      // navigation.navigate('dose-selection');
     }
   }
 
