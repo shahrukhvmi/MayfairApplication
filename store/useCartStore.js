@@ -95,12 +95,12 @@ const useCartStore = create(
           existingItem.qty === 1
             ? currentItems.filter((item) => item.id !== id)
             : currentItems.map((item) => {
-                if (item.id === id) {
-                  item.qty--;
-                  item.totalPrice -= item.price;
-                }
-                return item;
-              });
+              if (item.id === id) {
+                item.qty--;
+                item.totalPrice -= item.price;
+              }
+              return item;
+            });
 
         set({
           items: {
@@ -179,18 +179,7 @@ const useCartStore = create(
     }),
     {
       name: 'cart-storage',
-      storage: {
-        getItem: async (key) => {
-          const value = await AsyncStorage.getItem(key);
-          return value;
-        },
-        setItem: async (key, value) => {
-          await AsyncStorage.setItem(key, value);
-        },
-        removeItem: async (key) => {
-          await AsyncStorage.removeItem(key);
-        },
-      },
+      storage: createJSONStorage(() => AsyncStorage),
     }
   )
 );

@@ -10,7 +10,7 @@ import {
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import {useNavigation} from '@react-navigation/native';
 
-const Dropdown = ({token, userFirstName, handleLogout, openLoginModal}) => {
+const Dropdown = ({token, userFirstName, handleLogout}) => {
   const navigation = useNavigation();
   const [anchorVisible, setAnchorVisible] = useState(false);
   const [fadeAnim] = useState(new Animated.Value(0));

@@ -20,13 +20,11 @@ import CheckoutScreen from './Screens/CheckoutScreen';
 import PatientConsent from './Screens/PatientConsent';
 import MedicalQuestions from './Screens/MedicalQuestions';
 import Dashboard from './Screens/Dashboard';
-import EmailConfirmationScreen from './Screens/EmailConfirmationScreen';
 import StepsInformation from './Screens/StepsInformation';
 import OrderDetail from './Screens/OrderDetail';
 import Toast from 'react-native-toast-message';
 import LoginScreen from './Screens/LoginScreen';
 import RegisterScreen from './Screens/RegisterScreen';
-import ForgotForm from './Components/Login/ForgotForm';
 import ForgotPassword from './Screens/ForgotPassword';
 import ResetPassword from './Screens/ResetPassword';
 
@@ -127,11 +125,7 @@ const App = () => {
             component={FirstLastNameScreen}
             options={{headerShown: false}}
           />
-          <Stack.Screen
-            name="email-confirmation"
-            component={EmailConfirmationScreen}
-            options={{headerShown: false}}
-          />
+      
 
           <Stack.Screen
             name="steps-information"

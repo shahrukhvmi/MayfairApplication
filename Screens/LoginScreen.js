@@ -30,7 +30,7 @@ import usePasswordReset from '../store/usePasswordReset';
 
 const LoginScreen = () => {
     const navigation = useNavigation();
-    const { control, handleSubmit, formState: { errors } } = useForm();
+    const { control, handleSubmit, watch, formState: { errors } } = useForm();
     const [showPassword, setShowPassword] = useState(false);
     const [loading, setLoading] = useState(false);
     const { setIsPasswordReset, setShowResetPassword } = usePasswordReset();
@@ -39,9 +39,18 @@ const LoginScreen = () => {
         useAuthStore();
     const { setLastName, setFirstName, setEmail } = useSignupStore();
     const loginMutation = useMutation(Login, {
+        onMutate: () => {
+            setLoading(true); // start loading
+        },
         onSuccess: (data) => {
-            logApiSuccess(data,"zdksdjjkjsdk");
+
+            logApiSuccess(data, "zdksdjjkjsdk");
             const user = data?.data?.data;
+            Toast.show({
+                type: 'success',
+                text1: 'Login',
+                text2: 'Login Successful',
+            });
 
             if (!user?.token) {
                 Toast.show({
@@ -70,14 +79,32 @@ const LoginScreen = () => {
             // setShowResetPassword(false);
             setLoading(false);
         },
-        onError: (error) => {
-            setLoading(false); // ✅ already here
-            logApiError(error);
-         
-            Toast.show(error?.response?.data?.errors?.user)
-            Toast.show(error?.response?.data?.errors?.login)
 
+
+
+        onError: (error) => {
+            logApiError(error);
             const apiErrors = error?.response?.data?.errors;
+            const userError = error?.response?.data?.errors?.user;
+            const loginError = error?.response?.data?.errors?.login;
+
+            if (userError) {
+                Toast.show({
+                    type: 'error',
+                    text1: 'Login Error',
+                    text2: Array.isArray(userError) ? userError[0] : userError,
+                });
+            }
+
+            if (loginError) {
+                Toast.show({
+                    type: 'error',
+                    text1: 'Login Error',
+                    text2: Array.isArray(loginError) ? loginError[0] : loginError,
+                });
+            }
+
+
             if (apiErrors && typeof apiErrors === 'object') {
                 const messages = Object.values(apiErrors).flat();
                 messages.forEach(msg =>
@@ -94,16 +121,17 @@ const LoginScreen = () => {
                     text2: 'Something went wrong. Please try again.',
                 });
             }
-
-
+        },
+        onSettled: () => {
+            setLoading(false); // always runs, after success or error
         }
     });
 
 
 
+
     const onSubmit = (data) => {
         console.log("🔒 Submitting:", data);
-        setLoading(true);
         const formData = {
             email: data.email,
             password: data.password,
@@ -112,6 +140,10 @@ const LoginScreen = () => {
         setEmail(data?.email);
         loginMutation.mutate(formData);
     };
+
+    const email = watch('email');
+    const password = watch('password');
+    const isDisabled = !email || !password || loginMutation.isLoading;
 
     return (
         <KeyboardAvoidingView
@@ -139,6 +171,7 @@ const LoginScreen = () => {
                                 render={({ field: { onChange, value } }) => (
                                     <TextInput
                                         style={styles.nameInput}
+                                        editable={!loginMutation.isLoading}
                                         placeholder="Email"
                                         value={value}
                                         onChangeText={onChange}
@@ -160,6 +193,7 @@ const LoginScreen = () => {
                                     rules={{ required: 'Password is required' }}
                                     render={({ field: { onChange, value } }) => (
                                         <TextInput
+                                            editable={!loginMutation.isLoading}
                                             style={styles.passwordInput}
                                             placeholder="Password"
                                             value={value}
@@ -184,13 +218,14 @@ const LoginScreen = () => {
                             {/* Login Button (inline version of NextButton) */}
                             <TouchableOpacity
                                 onPress={handleSubmit(onSubmit)}
-                                disabled={loading}
+                                disabled={isDisabled}
                                 style={[
                                     styles.btn,
-                                    loading ? styles.btnDisabled : styles.btnEnabled,
+                                    isDisabled ? styles.btnDisabled : styles.btnEnabled,
                                 ]}
                             >
-                                {loading ? (
+
+                                {loginMutation.isLoading ? (
                                     <View style={styles.loadingContent}>
                                         <ActivityIndicator color="#fff" />
                                         <Text style={styles.btnText}> Logging in...</Text>
@@ -198,6 +233,7 @@ const LoginScreen = () => {
                                 ) : (
                                     <Text style={styles.btnText}>Login</Text>
                                 )}
+
                             </TouchableOpacity>
 
                             {/* Signup */}

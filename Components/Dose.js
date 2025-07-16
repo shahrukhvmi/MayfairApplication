@@ -1,70 +1,99 @@
+// Dose.js
 import React, { useState } from 'react';
 import {
   View,
   Text,
   TouchableOpacity,
-  ActivityIndicator,
   StyleSheet,
+  ActivityIndicator,
   Modal,
 } from 'react-native';
 import Toast from 'react-native-toast-message';
 import moment from 'moment';
 import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
+
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import useCartStore from '../store/useCartStore';
+import { getNotified } from '../api/GetNotified';
 
-const Dose = ({
-  doseData,
-  onAdd,
-  onIncrement,
-  onDecrement,
-  isSelected,
-  qty,
-  allow,
-  totalSelectedQty,
-  onUnselect,
-}) => {
+const Dose = ({ doseData, onAdd, onIncrement, onDecrement, isSelected, qty, allow = 100, totalSelectedQty }) => {
   const [showModal, setShowModal] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const { removeItemCompletely } = useCartStore();
 
-  const allowed = parseInt(allow || 100, 10);
+  const allowed = parseInt(allow);
   const doseStatus = doseData?.stock?.status;
   const isOutOfStock = doseStatus === 0 || doseData?.stock?.quantity === 0;
-  const isAllowExceeded = totalSelectedQty() >= allowed;
+  const isAllowExceeded = totalSelectedQty >= allowed;
 
-  const handleAdd = () => !isSelected && onAdd();
+  const handleAdd = () => {
+    if (!isSelected && !isOutOfStock && !isAllowExceeded) {
+      onAdd();
+    }
+  };
 
   const handleIncrement = () => {
-    const totalQty = totalSelectedQty() + 1;
+    const totalQty = totalSelectedQty + 1;
 
-    if (totalQty > allowed)
-      return Toast.show({ type: 'error', text1: `You can only select up to ${allowed} units in total.` });
+    if (totalQty > allowed) {
+      Toast.show({ type: 'error', text1: 'Limit Exceeded', text2: `You can only select up to ${allowed} units.` });
+      return;
+    }
 
-    if (doseData.qty >= doseData.stock.quantity)
-      return Toast.show({ type: 'error', text1: `Only ${doseData.stock.quantity} units are available.` });
+    if (doseData.qty >= doseData.stock.quantity) {
+      Toast.show({ type: 'error', text1: 'Out of Stock', text2: `Only ${doseData.stock.quantity} units available.` });
+      return;
+    }
 
-    if (qty >= allowed)
-      return Toast.show({ type: 'error', text1: `You cannot select more than ${allowed} units for this option.` });
+    if (qty >= allowed) {
+      Toast.show({ type: 'error', text1: 'Limit Exceeded', text2: `Max ${allowed} units allowed.` });
+      return;
+    }
 
     onIncrement(doseData?.id);
   };
 
   const handleDecrement = () => {
-    qty > 1 ? onDecrement() : setShowModal(true);
+    if (qty > 1) {
+      onDecrement();
+    } else {
+      setShowModal(true);
+    }
   };
 
   const handleDelete = () => {
     setShowModal(false);
     removeItemCompletely(doseData?.id, 'doses');
-    if (onUnselect) onUnselect(doseData?.id);
   };
 
+  const handleNotifiedClick = async () => {
+    setIsLoading(true);
+    try {
+      const response = await getNotified({
+        eid: doseData.pivot?.eid,
+        pid: doseData.pivot?.pid,
+      });
+
+      if (response?.data?.status === true) {
+        Toast.show({ type: 'success', text1: 'Notified', text2: response?.data?.message });
+      } else {
+        Toast.show({ type: 'error', text1: 'Error', text2: response?.errors });
+      }
+    } catch (err) {
+      Toast.show({
+        type: 'error',
+        text1: 'Failed',
+        text2: err?.response?.data?.errors?.Notification || 'Something went wrong.',
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
   return (
     <>
       <View style={styles.wrapper}>
         {doseStatus === 0 && (
-          <TouchableOpacity style={styles.notifyBtn}>
+          <TouchableOpacity style={styles.notifyBtn} onPress={handleNotifiedClick}>
             {isLoading ? (
               <>
                 <ActivityIndicator size={12} />
@@ -142,8 +171,8 @@ const Dose = ({
                   </TouchableOpacity>
                 </View>
 
-                <TouchableOpacity onPress={() => setShowModal(true)} style={styles.deleteBtn}>
-                  <MaterialIcons name="delete" size={18} color="#fff" />
+                <TouchableOpacity onPress={() => setShowModal(true)} >
+                  <MaterialIcons name="delete" size={18} color="#fff" style={styles.deleteBtn} />
                 </TouchableOpacity>
               </View>
             )}
@@ -325,9 +354,10 @@ const styles = StyleSheet.create({
     marginTop: 6,
   },
   deleteBtn: {
-    backgroundColor: '#ef4444',
-    padding: 8,
-    borderRadius: 999,
+    color: '#ef4444',
+    fontSize:22,
+    // padding: 8,
+    // borderRadius: 999,
   },
   modalOverlay: {
     flex: 1,

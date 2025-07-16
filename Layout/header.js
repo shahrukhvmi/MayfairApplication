@@ -1,37 +1,26 @@
 // Header.jsx
 import React, { useState } from "react";
 import {
-    Alert,
     Image,
     StyleSheet,
     Text,
     TouchableOpacity,
     View,
 } from "react-native";
-import Ionicons from 'react-native-vector-icons/Ionicons';
 
 import { useNavigation } from "@react-navigation/native";
-import { useMutation } from "@tanstack/react-query";
-import Toast from "react-native-toast-message";
-import LoginModal from "../Components/Login/LoginModal";
 import useLoginModalStore from "../store/useLoginModalStore";
-import { Login } from "../api/loginApi";
 import useSignupStore from "../store/signupStore";
-import Fetcher from "../library/Fetcher";
 import useAuthStore from "../store/authStore"; // ✅ get token
 import Dropdown from "../Components/Dropdown";
 
 const Header = () => {
     const navigation = useNavigation();
-    const [showLoader, setShowLoader] = useState(false);
-    const { showLoginModal, closeLoginModal, openLoginModal } =
-        useLoginModalStore();
 
-    const { setFirstName, setLastName, setEmail, firstName } = useSignupStore();
-    const { token, clearToken, setToken } = useAuthStore();
+
+    const { token, clearToken } = useAuthStore();
     const { firstName: userFirstName, clearFirstName, clearLastName, clearEmail } = useSignupStore();
 
-    const [anchorVisible, setAnchorVisible] = useState(false); // dropdown state
 
     const handleLogout = () => {
         clearToken();
@@ -41,40 +30,6 @@ const Header = () => {
         navigation.navigate("Login");
     };
 
-    const loginMutation = useMutation({
-        mutationFn: Login,
-        onMutate: () => setShowLoader(true),
-        onSuccess: (resp) => {
-            const user = resp?.data?.data;
-            if (!user?.token) throw new Error("No token in response");
-
-            setToken(user.token);
-            Fetcher.axiosSetup.defaults.headers.common.Authorization =
-                `Bearer ${user.token}`;
-            setShowLoader(false);
-            closeLoginModal();
-
-            setFirstName(user.fname);
-            setLastName(user.lname);
-            setEmail(user.email);
-
-            navigation.reset({
-                index: 0,
-                routes: [{ name: "dashboard" }],
-            });
-        },
-        onError: (error) => {
-            setShowLoader(false);
-            const errs = error?.response?.data?.errors;
-            if (errs && typeof errs === "object") {
-                Object.values(errs).flat().forEach((msg) =>
-                    Toast.show({ type: "error", text1: msg })
-                );
-            } else {
-                Toast.show({ type: "error", text1: "Login failed" });
-            }
-        },
-    });
 
     return (
         <>
@@ -92,21 +47,13 @@ const Header = () => {
                     token={token}
                     userFirstName={userFirstName}
                     handleLogout={handleLogout}
-                    openLoginModal={openLoginModal}
+                    // openLoginModal={openLoginModal}
                 />
 
             </View>
 
             {/* Login Modal */}
-            <LoginModal
-                modes="login"
-                show={showLoginModal}
-                onClose={closeLoginModal}
-                isLoading={showLoader}
-                onLogin={(formData) =>
-                    loginMutation.mutate({ ...formData, company_id: 1 })
-                }
-            />
+      
 
 
         </>

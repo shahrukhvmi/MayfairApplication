@@ -51,7 +51,7 @@ const ForgotPasswordScreen = () => {
 
     const onSubmit = (data) => {
         setLoading(true);
-console.log(passwordlink,"passwordlink")
+        console.log(passwordlink, "passwordlink")
         forgotLinkMutation.mutate(
             {
                 email: data.email,
@@ -68,7 +68,15 @@ console.log(passwordlink,"passwordlink")
                     });
                 },
                 onError: (error) => {
+                    setLoading(false);
                     const errors = error?.response?.data?.errors;
+                    const emailError = error?.response?.data?.errors?.email;
+                    console.log(emailError, "emailError")
+                    Toast.show({
+                        type: 'error',
+                        text1: 'Error',
+                        text2: emailError,
+                    })
                     console.log(error, "sdasdasdsds")
                     if (errors) {
                         Object.values(errors).flat().forEach(msg =>
@@ -122,6 +130,8 @@ console.log(passwordlink,"passwordlink")
         );
     };
 
+    const email = watch('email');
+    const isDisabled = !email || loading;
     return (
         <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
             <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
@@ -160,8 +170,8 @@ console.log(passwordlink,"passwordlink")
                                     {/* Submit Button */}
                                     <TouchableOpacity
                                         onPress={handleSubmit(onSubmit)}
-                                        disabled={loading}
-                                        style={[styles.btn, loading ? styles.btnDisabled : styles.btnEnabled]}
+                                        disabled={isDisabled}
+                                        style={[styles.btn, isDisabled ? styles.btnDisabled : styles.btnEnabled]}
                                     >
                                         {loading ? (
                                             <View style={styles.loadingContent}>
@@ -172,6 +182,7 @@ console.log(passwordlink,"passwordlink")
                                             <Text style={styles.btnText}>Send Reset Link</Text>
                                         )}
                                     </TouchableOpacity>
+
                                 </>
                             ) : (
                                 <>

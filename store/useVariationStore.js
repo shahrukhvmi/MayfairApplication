@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
+import { persist, createJSONStorage } from 'zustand/middleware';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const useVariationStore = create(
@@ -11,11 +11,7 @@ const useVariationStore = create(
     }),
     {
       name: 'variation-storage',
-      storage: {
-        getItem: async (key) => await AsyncStorage.getItem(key),
-        setItem: async (key, value) => await AsyncStorage.setItem(key, value),
-        removeItem: async (key) => await AsyncStorage.removeItem(key),
-      },
+      storage: createJSONStorage(() => AsyncStorage), // ✅ correct way
     }
   )
 );

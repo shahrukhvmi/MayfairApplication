@@ -8,29 +8,21 @@ import {
 } from 'react-native';
 import Feather from 'react-native-vector-icons/Feather';
 import Entypo from 'react-native-vector-icons/Entypo';
-import {useNavigation} from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
+import useCartStore from '../store/useCartStore';
 
 const OrderSummary = () => {
   // Example data (replace with your actual data/props)
   const navigation = useNavigation();
 
-  const doses = [
-    {product: 'Mounjaro (Tirzepatide)', name: 'Dose 1', qty: 1, price: 20.0},
-    {product: 'Mounjaro (Tirzepatide)', name: 'Dose 2', qty: 2, price: 40.0},
-    {product: 'Mounjaro (Tirzepatide)', name: 'Dose 3', qty: 1, price: 50.0},
-  ];
 
-  const addons = [
-    {name: 'Addon 1', qty: 1, price: 10.0},
-    {name: 'Addon 2', qty: 2, price: 15.0},
-  ];
+  /* _____________Zustannd_________________*/
 
-  const totalAmount = doses.reduce(
-    (total, dose) => total + dose.price * dose.qty,
-    0,
-  );
+  const { items, totalAmount, setCheckOut, setOrderId } = useCartStore();
+
+
   const finalTotal = totalAmount + 10; // Example of additional shipping or VAT
-  const shipping = {country_name: 'UK', country_price: 5.0};
+  const shipping = { country_name: 'UK', country_price: 5.0 };
 
   const handleEdit = () => {
     navigation.navigate('dose-selection');
@@ -45,10 +37,12 @@ const OrderSummary = () => {
   };
 
   // Combine doses and addons into one array with a type
-  const items = [
-    ...doses.map(item => ({...item, type: 'dose'})),
-    ...addons.map(item => ({...item, type: 'addon'})),
-  ];
+  // const items = [
+  //   ...doses.map(item => ({ ...item, type: 'dose' })),
+  //   ...addons.map(item => ({ ...item, type: 'addon' })),
+  // ];
+
+  console.log(items, "itemsitems")
 
   const renderItem = (item, idx) => {
     if (item.type === 'dose') {
@@ -94,7 +88,7 @@ const OrderSummary = () => {
           <Feather name="edit" size={24} color="#47317c" />
         </TouchableOpacity>
       </View>
-      {items.map(renderItem)}
+      {items.doses?.map(renderItem)}
       <View style={styles.summaryContainer}>
         <View style={styles.summaryRow}>
           <Text style={styles.summaryLabel}>Subtotal</Text>
