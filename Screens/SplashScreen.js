@@ -14,7 +14,7 @@ export default function SplashScreen() {
     } else {
 
       navigation.navigate('Login');
-      // navigation.navigate('dose-selection');
+      // navigation.navigate('dose-selection');coecclwcod
     }
   }
 

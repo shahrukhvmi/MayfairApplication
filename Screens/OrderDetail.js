@@ -14,6 +14,7 @@ import getOrderByIdApi from '../api/getOrderByIdApi';
 import Header from '../Layout/header';
 import { useNavigation } from '@react-navigation/native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
+import AnimatedLogoLoader from '../Components/AnimatedLogoLoader';
 /* ––––––––– utility helpers ––––––––– */
 const formatHeight = (d) => {
   if (!d) return 'N/A';
@@ -64,7 +65,7 @@ export default function OrderDetail() {
     return (
       <>
         <Header />
-        <View style={styles.centered}><ActivityIndicator size="large" /></View>
+        <View style={styles.centered}><AnimatedLogoLoader size="large" /></View>
       </>
     );
   }

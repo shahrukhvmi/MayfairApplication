@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
   View, Text, ScrollView,
   Image, StyleSheet, ActivityIndicator
@@ -17,61 +17,23 @@ import Addon from '../Components/addon';
 import NextButton from '../Components/NextButton';
 import { abandonCart } from '../api/abandonCartApi';
 import useProductId from '../store/useProductIdStore';
-import useShipmentCountries from '../store/useShipmentCountriesStore';
-import useBillingCountries from '../store/useBillingCountriesStore';
-import usePatientInfoStore from '../store/patientInfoStore';
-import useAuthUserDetailStore from '../store/useAuthUserDetailStore';
-import useBmiStore from '../store/bmiStore';
-import useMedicalInfoStore from '../store/medicalInfoStore';
-import useConfirmationInfoStore from '../store/confirmationInfoStore';
-import useGpDetailsStore from '../store/gpDetailStore';
-import useCheckoutStore from '../store/checkoutStore';
-import useMedicalQuestionsStore from '../store/medicalQuestionStore';
-import useConfirmationQuestionsStore from '../store/confirmationQuestionStore';
-import useShippingOrBillingStore from '../store/shipingOrbilling';
-import useAuthStore from '../store/authStore';
-import usePasswordReset from '../store/usePasswordReset';
-import useLastBmi from '../store/useLastBmiStore';
-import useUserDataStore from '../store/useUserDataStore';
-import useSignupStore from '../store/signupStore';
-import getVariationsApi from '../api/getVariationsApi';
-import { logApiSuccess } from '../utils/logApiDebug';
+
 
 export default function DoseSelection({ navigation }) {
   const { handleSubmit } = useForm();
 
 
   /* _________________Zustand state here ______________*/
-
-  const { setShipmentCountries } = useShipmentCountries();
-  const { setBillingCountries } = useBillingCountries();
-  const { clearCart } = useCartStore();
-  const { clearPatientInfo } = usePatientInfoStore();
-  const { clearAuthUserDetail } = useAuthUserDetailStore();
-  const { clearBmi } = useBmiStore();
-  const { clearMedicalInfo } = useMedicalInfoStore();
-  const { clearConfirmationInfo } = useConfirmationInfoStore();
-  const { clearGpDetails } = useGpDetailsStore();
-  const { clearCheckout } = useCheckoutStore();
-  const { clearMedicalQuestions } = useMedicalQuestionsStore();
-  const { clearConfirmationQuestions } = useConfirmationQuestionsStore();
-  const { clearShipping, clearBilling } = useShippingOrBillingStore();
-  const { clearToken } = useAuthStore();
-  const { setIsPasswordReset } = usePasswordReset();
-  const { productId, clearProductId } = useProductId();
-  const { clearLastBmi } = useLastBmi();
-  const { clearUserData } = useUserDataStore();
-  const { clearFirstName, clearLastName, clearEmail, clearConfirmationEmail } = useSignupStore();
-  const { variation, setVariation } = useVariationStore();
+  const { variation } = useVariationStore();
   const { addToCart, increaseQuantity, decreaseQuantity, items, totalAmount } = useCartStore();
   const { reorder } = useReorder();
+  const { productId } = useProductId();
 
 
   /* _________________Local State here ______________*/
   const [shownDoseIds, setShownDoseIds] = useState([]);
   const [showDoseModal, setShowDoseModal] = useState(false);
   const [selectedDose, setSelectedDose] = useState(null);
-  const [showLoader, setShowLoader] = useState(false);
 
 
 
@@ -156,70 +118,9 @@ export default function DoseSelection({ navigation }) {
     });
   };
 
-  /*______________________ Feth Variation Api  _______________ */
 
-  const variationMutation = useMutation(getVariationsApi, {
-    onSuccess: (data) => {
-      console.log(data, "getVariationsApi");
-      if (data) {
-        clearCart();
-        // toast.success("User registered successfully!");
-        const product = data?.data?.data;
-        setVariation(product); // ✅ object with .variations, .addons, etc.
 
-        logApiSuccess(product)
-        setShipmentCountries(data?.data?.data?.shippment_countries);
-        setBillingCountries(data?.data?.data?.billing_countries);
-        // Redirect
-      }
-    },
-    onError: (error) => {
-      if (error) {
-        if (error?.response?.data?.message == "Unauthenticated.") {
-          Toast.show({
-            type: 'error',
-            text1: 'Session',
-            text2: 'Expired'
-          })
-          clearBmi();
-          clearCheckout();
-          clearConfirmationInfo();
-          clearGpDetails();
-          clearMedicalInfo();
-          clearPatientInfo();
-          clearBilling();
-          clearShipping();
-          clearAuthUserDetail();
-          clearMedicalQuestions();
-          clearConfirmationQuestions();
-          clearToken();
-          setIsPasswordReset(true);
-          clearProductId();
-          clearLastBmi();
-          clearUserData();
-          clearFirstName();
-          clearLastName();
-          clearEmail();
-          clearConfirmationEmail();
-          navigation.navigate("Login");
-        } else {
-          setShowLoader(false);
-          Toast.show({
-            type: 'error',
-            text1: error?.response?.data?.errors?.Product
-          })
-        }
-      }
-    },
-  });
 
-  useEffect(() => {
-    setShowLoader(true);
-    if (productId != null) {
-      // console.log("Api Run");
-      variationMutation.mutate({ id: productId, data: {} });
-    }
-  }, [productId]);
 
   /*______________________  loader   _______________ */
 
@@ -231,7 +132,10 @@ export default function DoseSelection({ navigation }) {
     <View style={styles.screen}>
       <Header />
       <ScrollView contentContainerStyle={styles.container}>
-        <Image source={{ uri: variation.img }} style={styles.image} />
+        <View style={styles.header}>
+
+          <Image source={{ uri: variation.img }} style={styles.image} />
+        </View>
         <Text style={styles.title}>{variation.name}</Text>
         <Text style={styles.price}>From £{variation.price}</Text>
 
@@ -308,8 +212,21 @@ export default function DoseSelection({ navigation }) {
                   />
                 );
               })}
+
+
           </View>
         )}
+
+
+        <View style={styles.footerRight}>
+          <NextButton
+            style={{ width: '100%' }}
+            label={abandonMutation.isLoading ? 'Processing...' : 'Proceed to Checkout'}
+            onPress={handleSubmit(onSubmit)}
+            disabled={totalSelectedQty() === 0 || abandonMutation.isLoading}
+          />
+          <BackButton label="Back" onPress={() => navigation.navigate('confirmation-summary')} />
+        </View>
       </ScrollView>
 
       <View style={styles.footer}>
@@ -323,15 +240,7 @@ export default function DoseSelection({ navigation }) {
           </View>
         </View>
 
-        <View style={styles.footerRight}>
-          <BackButton label="Back" onPress={() => navigation.goBack()} />
-          <NextButton
-            style={styles.nextBtn}
-            label={abandonMutation.isLoading ? 'Processing...' : 'Proceed to Checkout'}
-            onPress={handleSubmit(onSubmit)}
-            disabled={totalSelectedQty() === 0 || abandonMutation.isLoading}
-          />
-        </View>
+
       </View>
 
 
@@ -353,6 +262,11 @@ export default function DoseSelection({ navigation }) {
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: '#F2EEFF' },
   container: { padding: 18 },
+  header: {
+    width: '100%',
+    backgroundColor: 'white',
+    borderRadius: 8,
+  },
   image: {
     width: '100%',
     height: 200,
@@ -360,8 +274,8 @@ const styles = StyleSheet.create({
   },
   title: { fontSize: 22, fontWeight: 'bold', marginVertical: 10 },
   price: { fontSize: 18, marginBottom: 16 },
-  section: { backgroundColor: '#fff', marginVertical: 12, padding: 16, borderRadius: 8 },
-  sectionTitle: { fontSize: 20, fontWeight: '600', marginBottom: 12 },
+  section: { backgroundColor: '#fff', marginVertical: 12, padding: 8, borderRadius: 8, paddingBottom: 30, },
+  sectionTitle: { fontSize: 18, fontWeight: '600', padding: 10, },
 
 
 
@@ -410,11 +324,11 @@ const styles = StyleSheet.create({
   },
 
   footerRight: {
-    flexDirection: 'row',
+    flexDirection: 'column',
     justifyContent: 'space-between',
-    alignItems: 'center',
-    gap: 10,
-    padding: 4,
+    alignItems: 'start',
+    gap: 4,
+    margin: 6,
   },
   nextBtn: {
     flexGrow: 1, // 💥 let the button expand as needed

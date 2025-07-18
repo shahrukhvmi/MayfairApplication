@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { OneSignal, LogLevel } from 'react-native-onesignal';
-import { Link, NavigationContainer } from '@react-navigation/native';
+import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import SplashScreen from './Screens/SplashScreen';
 import InitialScreen from './Screens/InitialScreen';
@@ -27,10 +27,14 @@ import RegisterScreen from './Screens/RegisterScreen';
 import ForgotPassword from './Screens/ForgotPassword';
 import ResetPassword from './Screens/ResetPassword';
 import CalculateBmi from './Screens/CalculateBmi';
+import GatheringData from './Screens/GatheringData';
 
 const Stack = createNativeStackNavigator();
 
 const App = () => {
+
+  /* _________________Deep Linking here ______________*/
+
   const linking = {
     prefixes: ['https://mayfair-revamp.netlify.app'],
     config: {
@@ -45,6 +49,9 @@ const App = () => {
       },
     },
   };
+
+  /* _________________One Signal Notification here ______________*/
+
 
   useEffect(() => {
     OneSignal.Debug.setLogLevel(LogLevel.Verbose);
@@ -62,24 +69,11 @@ const App = () => {
     });
   }, []);
 
-  /*____________Deep Linking _______ */
-
-  // const linking = {
-  //   prefixes: ['mayfairapp://'],
-  //   config: {
-  //     screens: {
-  //       ResetPassword: {
-  //         path: 'reset-password',
-  //         parse: {
-  //           token: (token) => `${token}`,   // Just returns string, optional
-  //         },
-  //       },
-  //     },
-  //   },
-  // };
 
   return (
     <>
+      {/* _________________All Routes here ______________*/}
+
       <NavigationContainer linking={linking}>
         <Stack.Navigator initialRouteName="Splash">
           <Stack.Screen
@@ -127,11 +121,6 @@ const App = () => {
           />
 
 
-          <Stack.Screen
-            name="steps-information"
-            component={StepsInformation}
-            options={{ headerShown: false }}
-          />
           <Stack.Screen
             name="personal-details"
             component={PersonalDetailScreen}
@@ -194,7 +183,16 @@ const App = () => {
             component={ConfirmationSummary}
             options={{ headerShown: false }}
           />
-
+          <Stack.Screen
+            name="gathering-data"
+            component={GatheringData}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name="steps-information"
+            component={StepsInformation}
+            options={{ headerShown: false }}
+          />
           <Stack.Screen
             name="dose-selection"
             component={DoseSelection}
@@ -221,7 +219,9 @@ const App = () => {
         </Stack.Navigator>
       </NavigationContainer>
 
-      <Toast />
+      {/* _________________Toast here ______________ */}
+
+      <Toast  />
     </>
   );
 };

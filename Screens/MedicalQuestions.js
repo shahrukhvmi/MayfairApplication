@@ -19,6 +19,7 @@ import PageLoader from '../Components/PageLoader';
 
 import useMedicalQuestionsStore from '../store/medicalQuestionStore';
 import useMedicalInfoStore from '../store/medicalInfoStore';
+import AnimatedLogoLoader from '../Components/AnimatedLogoLoader';
 
 export default function MedicalQuestions() {
   const navigation = useNavigation();
@@ -175,7 +176,7 @@ export default function MedicalQuestions() {
 
         {showLoader && (
           <View style={styles.loaderOverlay}>
-            <PageLoader />
+            <AnimatedLogoLoader />
           </View>
         )}
       </ScrollView>

@@ -117,11 +117,7 @@ const SignUpScreen = () => {
             onPress={() => navigation.navigate('Acknowledgment')}
           />
 
-          {showLoader && (
-            <View style={styles.loaderOverlay}>
-              <PageLoader />
-            </View>
-          )}
+      
         </View>
       </KeyboardAvoidingView>
     </>

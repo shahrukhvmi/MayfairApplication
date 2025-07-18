@@ -1,7 +1,7 @@
-import React, {useEffect, useState} from 'react';
-import {View, StyleSheet, Dimensions} from 'react-native';
-import {useNavigation} from '@react-navigation/native';
-import {useMutation} from '@tanstack/react-query';
+import React, { useEffect, useState } from 'react';
+import { View, StyleSheet, Dimensions, ActivityIndicator } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+import { useMutation } from '@tanstack/react-query';
 import Toast from 'react-native-toast-message';
 
 // 🧱 Components
@@ -24,28 +24,27 @@ import useUserDataStore from '../store/useUserDataStore';
 import useSignupStore from '../store/signupStore';
 
 // 📦 API
-import {getMedicalQuestions} from '../api/getQuestions';
+import { getMedicalQuestions } from '../api/getQuestions';
 import useLastBmi from '../store/useLastBmiStore';
-import Header from '../Layout/header';
-import PageLoader from '../Components/PageLoader';
-import {userConsultationApi} from '../api/userConsultationApi';
+import { userConsultationApi } from '../api/userConsultationApi';
+import AnimatedLogoLoader from '../Components/AnimatedLogoLoader';
 
 const StepsInformation = () => {
   const [showLoader, setShowLoader] = useState(false);
   const navigation = useNavigation();
 
-  const {setBmi, clearBmi} = useBmiStore();
-  const {setCheckout, clearCheckout} = useCheckoutStore();
-  const {setConfirmationInfo, clearConfirmationInfo} =
+  const { setBmi, clearBmi } = useBmiStore();
+  const { setCheckout, clearCheckout } = useCheckoutStore();
+  const { setConfirmationInfo, clearConfirmationInfo } =
     useConfirmationInfoStore();
-  const {setGpDetails, clearGpDetails} = useGpDetailsStore();
-  const {setMedicalInfo, clearMedicalInfo} = useMedicalInfoStore();
-  const {setPatientInfo, clearPatientInfo} = usePatientInfoStore();
-  const {setMedicalQuestions, clearMedicalQuestions} =
+  const { setGpDetails, clearGpDetails } = useGpDetailsStore();
+  const { setMedicalInfo, clearMedicalInfo } = useMedicalInfoStore();
+  const { setPatientInfo, clearPatientInfo } = usePatientInfoStore();
+  const { setMedicalQuestions, clearMedicalQuestions } =
     useMedicalQuestionsStore();
-  const {setConfirmationQuestions, clearConfirmationQuestions} =
+  const { setConfirmationQuestions, clearConfirmationQuestions } =
     useConfirmationQuestionsStore();
-  const {setAuthUserDetail, clearAuthUserDetail} = useAuthUserDetailStore();
+  const { setAuthUserDetail, clearAuthUserDetail } = useAuthUserDetailStore();
   const {
     billing,
     setBilling,
@@ -54,12 +53,12 @@ const StepsInformation = () => {
     clearBilling,
     clearShipping,
   } = useShippingOrBillingStore();
-  const {clearToken} = useAuthStore();
-  const {setIsPasswordReset} = usePasswordReset();
-  const {productId, clearProductId} = useProductId();
-  const {setLastBmi, clearLastBmi} = useLastBmi();
-  const {clearUserData} = useUserDataStore();
-  const {clearFirstName, clearLastName, clearEmail, clearConfirmationEmail} =
+  const { clearToken } = useAuthStore();
+  const { setIsPasswordReset } = usePasswordReset();
+  const { productId, clearProductId } = useProductId();
+  const { setLastBmi, clearLastBmi } = useLastBmi();
+  const { clearUserData } = useUserDataStore();
+  const { clearFirstName, clearLastName, clearEmail, clearConfirmationEmail } =
     useSignupStore();
 
   const consultationMutation = useMutation(userConsultationApi, {
@@ -95,7 +94,7 @@ const StepsInformation = () => {
     onError: error => {
       const msg = error?.response?.data?.message;
       if (msg === 'Unauthenticated.') {
-        Toast.show({type: 'error', text1: 'Session Expired'});
+        Toast.show({ type: 'error', text1: 'Session Expired' });
         clearBmi();
         clearCheckout();
         clearConfirmationInfo();
@@ -132,46 +131,70 @@ const StepsInformation = () => {
   });
 
   useEffect(() => {
+
     const formData = {
       clinic_id: 1,
       product_id: productId,
     };
     setShowLoader(true);
-
     if (productId != null) {
+
       consultationMutation.mutate(formData);
       medicalQuestionsMutation.mutate();
     }
-
-    setShowLoader(false);
   }, [productId]);
-
+  console.log(showLoader, "showLoader")
   return (
+
+
+    // <View style={styles.container}>
+    //   {showLoader && (
+    //     <View style={styles.loaderOverlay}>
+    //       <ActivityIndicator size="large" color="#4B0082" animating />
+    //     </View>
+    //   )}
+    // </View>
+
+
     <View style={styles.container}>
-      <Header />
       {showLoader && (
         <View style={styles.loaderOverlay}>
-          <PageLoader />
+          <AnimatedLogoLoader />
         </View>
       )}
     </View>
+
+
   );
 };
 
 export default StepsInformation;
 
-const {width, height} = Dimensions.get('window');
+const { width, height } = Dimensions.get('window');
 
 const styles = StyleSheet.create({
+
+  loaderOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0,0,0,0.3)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 999,
+  },
+
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
   },
   loaderOverlay: {
     ...StyleSheet.absoluteFillObject,
-    zIndex: 20,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.6)',
+    backgroundColor: "rgba(255,255,255,0.7)",
+    justifyContent: "center",
+    alignItems: "center",
+    zIndex: 10,
   },
 });

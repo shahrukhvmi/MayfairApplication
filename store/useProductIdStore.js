@@ -7,7 +7,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 const useProductId = create(
   persist(
     (set) => ({
-      productId: 4,
+      productId: null,
       setProductId: (productId) => set({ productId }),
       clearProductId: () => set({ productId: null }),
     }),

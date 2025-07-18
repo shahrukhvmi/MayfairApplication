@@ -72,11 +72,11 @@ export default function ConfirmationSummary() {
 
 
                 <NextButton
-                    onPress={() => navigation.navigate('dose-selection')}
+                    onPress={() => navigation.navigate('gathering-data')}
                     label='Next'
 
                 />
-                <BackButton label='Review all answers' onPress={() => navigation.navigate('dose-selection')} />
+                <BackButton label='Review all answers' onPress={() => navigation.navigate('gathering-data')} />
                 <BackButton label='Back' onPress={() => navigation.goBack()} />
                 {/* Review + Back */}
 
