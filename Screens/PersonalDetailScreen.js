@@ -45,37 +45,8 @@ export default function PersonalDetails() {
 
   const gender = watch('gender');
   const pregnancy = watch('pregnancy');
-  const dob = watch('dob');
 
   const [showPicker, setShowPicker] = useState(false);
-
-  useEffect(() => {
-    if (patientInfo?.dob) {
-      const parsed = parse(patientInfo.dob, 'dd-MM-yyyy', new Date());
-      setValue('dob', parsed);
-    }
-
-    if (patientInfo?.gender) {
-      const fixedGender =
-        patientInfo.gender.charAt(0).toUpperCase() +
-        patientInfo.gender.slice(1).toLowerCase();
-      setValue('gender', fixedGender);
-    }
-
-    if (patientInfo?.pregnancy) {
-      setValue('pregnancy', patientInfo.pregnancy);
-    }
-
-    if (patientInfo?.dob) {
-      trigger(['dob', 'pregnancy']);
-    }
-  }, []);
-
-  useEffect(() => {
-    if (gender === 'Male') {
-      setValue('pregnancy', '');
-    }
-  }, [gender]);
 
   const validateAge = date => {
     if (!date) return 'Date of birth is required';
@@ -87,6 +58,33 @@ export default function PersonalDetails() {
       return 'Mounjaro is not recommended above 85';
     return true;
   };
+
+  useEffect(() => {
+    if (patientInfo?.dob) {
+      const parsedDate = parse(patientInfo.dob, 'dd-MM-yyyy', new Date());
+      const fixedGender = patientInfo?.gender
+        ? patientInfo.gender.charAt(0).toUpperCase() +
+          patientInfo.gender.slice(1).toLowerCase()
+        : '';
+
+      setValue('dob', parsedDate);
+      setValue('gender', fixedGender);
+    }
+
+    if (patientInfo?.pregnancy) {
+      setValue('pregnancy', patientInfo.pregnancy);
+    }
+
+    if (patientInfo?.dob) {
+      trigger(['dob', 'pregnancy']);
+    }
+  }, [patientInfo, patientInfo?.gender]);
+
+  useEffect(() => {
+    if (watch('gender') === 'Male') {
+      setValue('pregnancy', '');
+    }
+  }, [watch('gender')]);
 
   const formatDate = date => {
     return date.toLocaleDateString('en-GB');
@@ -190,7 +188,7 @@ export default function PersonalDetails() {
               </TouchableOpacity>
               {showPicker && (
                 <DateTimePicker
-                  value={value || new Date('1999-08-01')}
+                  value={value || new Date()}
                   mode="date"
                   display={Platform.OS === 'android' ? 'default' : 'spinner'}
                   onChange={(event, selectedDate) => {

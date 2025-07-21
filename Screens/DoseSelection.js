@@ -1,12 +1,16 @@
-import React, { useState } from 'react';
+import React, {useState} from 'react';
 import {
-  View, Text, ScrollView,
-  Image, StyleSheet, ActivityIndicator
+  View,
+  Text,
+  ScrollView,
+  Image,
+  StyleSheet,
+  ActivityIndicator,
 } from 'react-native';
 import Modal from 'react-native-modal';
-import { useForm } from 'react-hook-form';
+import {useForm} from 'react-hook-form';
 import Toast from 'react-native-toast-message';
-import { useMutation } from '@tanstack/react-query';
+import {useMutation} from '@tanstack/react-query';
 import useCartStore from '../store/useCartStore';
 import useVariationStore from '../store/useVariationStore';
 import useReorder from '../store/useReorderStore';
@@ -15,34 +19,28 @@ import Header from '../Layout/header';
 import Dose from '../Components/Dose';
 import Addon from '../Components/addon';
 import NextButton from '../Components/NextButton';
-import { abandonCart } from '../api/abandonCartApi';
+import {abandonCart} from '../api/abandonCartApi';
 import useProductId from '../store/useProductIdStore';
 
-
-export default function DoseSelection({ navigation }) {
-  const { handleSubmit } = useForm();
-
+export default function DoseSelection({navigation}) {
+  const {handleSubmit} = useForm();
 
   /* _________________Zustand state here ______________*/
-  const { variation } = useVariationStore();
-  const { addToCart, increaseQuantity, decreaseQuantity, items, totalAmount } = useCartStore();
-  const { reorder } = useReorder();
-  const { productId } = useProductId();
-
+  const {variation} = useVariationStore();
+  const {addToCart, increaseQuantity, decreaseQuantity, items, totalAmount} =
+    useCartStore();
+  const {reorder} = useReorder();
+  const {productId} = useProductId();
 
   /* _________________Local State here ______________*/
   const [shownDoseIds, setShownDoseIds] = useState([]);
   const [showDoseModal, setShowDoseModal] = useState(false);
   const [selectedDose, setSelectedDose] = useState(null);
 
-
-
-
   // ✅ Always define this near the top of your component
   const totalSelectedQty = () => items?.doses?.reduce((t, d) => t + d.qty, 0);
 
   const currentQty = totalSelectedQty();
-
 
   /*________ Abandon Cart API hit here ________*/
   const abandonMutation = useMutation(abandonCart, {
@@ -51,7 +49,7 @@ export default function DoseSelection({ navigation }) {
   });
   /*________ Abandon Cart API hit here ________*/
   const onSubmit = () => {
-    const payload = items.doses.map(d => ({ eid: d.id, pid: productId }));
+    const payload = items.doses.map(d => ({eid: d.id, pid: productId}));
     abandonMutation.mutate(payload);
   };
 
@@ -60,7 +58,9 @@ export default function DoseSelection({ navigation }) {
       return 'Product details are unavailable at the moment.';
     }
 
-    const sorted = [...vars].sort((a, b) => parseFloat(a.name) - parseFloat(b.name));
+    const sorted = [...vars].sort(
+      (a, b) => parseFloat(a.name) - parseFloat(b.name),
+    );
     const selIndex = sorted.findIndex(v => v?.name === selectedName);
     const lowestDose = sorted[0]?.name;
     const prev = selIndex > 0 ? sorted[selIndex - 1].name : sorted[0].name;
@@ -69,30 +69,34 @@ export default function DoseSelection({ navigation }) {
     return `If you are taking for the first time, you will need to start the treatment on the ${lowestDose} dose. If you start on the higher doses, the risk of side effects (e.g., nausea) will be very high. Please confirm that you are currently taking either the ${prev} or ${selectedName} dose from a different provider.`;
   };
 
-
   const handleAddDose = dose => {
     const allowed = variation.allowed;
-
-
 
     const totalQty = currentQty + 1;
 
     if (allowed && totalQty > allowed) {
-      return Toast.show({ type: 'error', text1: `Only ${allowed} units allowed.` });
+      return Toast.show({
+        type: 'error',
+        text1: `Only ${allowed} units allowed.`,
+      });
     }
 
     const existing = items.doses.find(d => d.id === dose.id)?.qty || 0;
     if (existing + 1 > dose.stock.quantity) {
-      return Toast.show({ type: 'error', text1: `Only ${dose.stock.quantity} available.` });
+      return Toast.show({
+        type: 'error',
+        text1: `Only ${dose.stock.quantity} available.`,
+      });
     }
 
-    const isFirstDose = parseFloat(dose.name) <= parseFloat(variation.variations[0].name);
+    const isFirstDose =
+      parseFloat(dose.name) <= parseFloat(variation.variations[0].name);
     let product_concent = null;
 
     if (!(isFirstDose || reorder)) {
       product_concent = generateProductConcent(variation.variations, dose.name);
       if (!shownDoseIds.includes(dose.id)) {
-        setSelectedDose({ ...dose, product_concent });
+        setSelectedDose({...dose, product_concent});
         setShowDoseModal(true);
         setShownDoseIds(prev => [...prev, dose.id]);
       }
@@ -100,32 +104,47 @@ export default function DoseSelection({ navigation }) {
     /*______________________ AddtoCart here Doses  _______________ */
 
     addToCart({
-      id: dose.id, type: 'dose', name: dose.name,
-      price: parseFloat(dose.price), allowed: parseInt(dose.allowed),
-      item_id: dose.id, product: variation.name,
-      product_concent, label: `${variation.name} ${dose.name}`, expiry: dose.expiry,
-      isSelected: true
+      id: dose.id,
+      type: 'dose',
+      name: dose.name,
+      price: parseFloat(dose.price),
+      allowed: parseInt(dose.allowed),
+      item_id: dose.id,
+      product: variation.name,
+      product_concent,
+      label: `${variation.name} ${dose.name}`,
+      expiry: dose.expiry,
+      isSelected: true,
     });
   };
   /*______________________ AddtoCart here Addons  _______________ */
 
   const handleAddAddon = addon => {
     addToCart({
-      id: addon.id, type: 'addon', name: addon.name,
-      price: parseFloat(addon.price), allowed: parseInt(addon.allowed),
-      item_id: addon.id, product: addon.title, product_concent: null,
-      label: addon.name, expiry: addon.expiry, isSelected: true
+      id: addon.id,
+      type: 'addon',
+      name: addon.name,
+      price: parseFloat(addon.price),
+      allowed: parseInt(addon.allowed),
+      item_id: addon.id,
+      product: addon.title,
+      product_concent: null,
+      label: addon.name,
+      expiry: addon.expiry,
+      isSelected: true,
     });
   };
-
-
-
-
 
   /*______________________  loader   _______________ */
 
   if (!variation?.variations) {
-    return <ActivityIndicator size="large" color="#4B0082" style={{ flex: 1, justifyContent: 'center', }} />;
+    return (
+      <ActivityIndicator
+        size="large"
+        color="#4B0082"
+        style={{flex: 1, justifyContent: 'center'}}
+      />
+    );
   }
 
   return (
@@ -133,8 +152,7 @@ export default function DoseSelection({ navigation }) {
       <Header />
       <ScrollView contentContainerStyle={styles.container}>
         <View style={styles.header}>
-
-          <Image source={{ uri: variation.img }} style={styles.image} />
+          <Image source={{uri: variation.img}} style={styles.image} />
         </View>
         <Text style={styles.title}>{variation.name}</Text>
         <Text style={styles.price}>From £{variation.price}</Text>
@@ -156,9 +174,7 @@ export default function DoseSelection({ navigation }) {
               return 0;
             })
             .map((dose, index) => {
-              const cartDose = items.doses.find(
-                (item) => item.id === dose.id
-              );
+              const cartDose = items.doses.find(item => item.id === dose.id);
               const cartQty = cartDose?.qty || 0;
               return (
                 <Dose
@@ -183,21 +199,15 @@ export default function DoseSelection({ navigation }) {
               .slice()
               .sort((a, b) => {
                 const aOutOfStock =
-                  a?.stock?.status === 0 ||
-                    a?.stock?.quantity === 0
-                    ? 1
-                    : 0;
+                  a?.stock?.status === 0 || a?.stock?.quantity === 0 ? 1 : 0;
                 const bOutOfStock =
-                  b?.stock?.status === 0 ||
-                    b?.stock?.quantity === 0
-                    ? 1
-                    : 0;
+                  b?.stock?.status === 0 || b?.stock?.quantity === 0 ? 1 : 0;
 
                 return aOutOfStock - bOutOfStock;
               })
-              .map((addon) => {
+              .map(addon => {
                 const cartAddon = items.addons.find(
-                  (item) => item.id === addon.id
+                  item => item.id === addon.id,
                 );
                 const cartQty = cartAddon?.qty || 0;
                 return (
@@ -212,26 +222,30 @@ export default function DoseSelection({ navigation }) {
                   />
                 );
               })}
-
-
           </View>
         )}
 
-
         <View style={styles.footerRight}>
           <NextButton
-            style={{ width: '100%' }}
-            label={abandonMutation.isLoading ? 'Processing...' : 'Proceed to Checkout'}
+            style={{width: '100%'}}
+            label={
+              abandonMutation.isLoading
+                ? 'Processing...'
+                : 'Proceed to Checkout'
+            }
             onPress={handleSubmit(onSubmit)}
             disabled={totalSelectedQty() === 0 || abandonMutation.isLoading}
           />
-          <BackButton label="Back" onPress={() => navigation.navigate('confirmation-summary')} />
+          <BackButton
+            label="Back"
+            onPress={() => navigation.navigate('confirmation-summary')}
+          />
         </View>
       </ScrollView>
 
       <View style={styles.footer}>
         <View style={styles.footerLeft}>
-          <Image source={{ uri: variation.img }} style={styles.footerImg} />
+          <Image source={{uri: variation.img}} style={styles.footerImg} />
           <View style={styles.footerTextWrapper}>
             <Text style={styles.footerName}>{variation.name}</Text>
             <Text style={styles.footerTotal}>
@@ -239,20 +253,19 @@ export default function DoseSelection({ navigation }) {
             </Text>
           </View>
         </View>
-
-
       </View>
-
 
       <Modal
         isVisible={showDoseModal}
         onBackdropPress={() => setShowDoseModal(false)}
-        style={styles.modal}
-      >
+        style={styles.modal}>
         <View style={styles.modalContent}>
           <Text style={styles.modalTitle}>Dosage Confirmation</Text>
           <Text style={styles.modalText}>{selectedDose?.product_concent}</Text>
-          <NextButton label="I Confirm" onPress={() => setShowDoseModal(false)} />
+          <NextButton
+            label="I Confirm"
+            onPress={() => setShowDoseModal(false)}
+          />
         </View>
       </Modal>
     </View>
@@ -260,8 +273,8 @@ export default function DoseSelection({ navigation }) {
 }
 
 const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: '#F2EEFF' },
-  container: { padding: 18 },
+  screen: {flex: 1, backgroundColor: '#F2EEFF'},
+  container: {padding: 18},
   header: {
     width: '100%',
     backgroundColor: 'white',
@@ -270,21 +283,33 @@ const styles = StyleSheet.create({
   image: {
     width: '100%',
     height: 200,
-    resizeMode: 'contain'
+    resizeMode: 'contain',
   },
-  title: { fontSize: 22, fontWeight: 'bold', marginVertical: 10 },
-  price: { fontSize: 18, marginBottom: 16 },
-  section: { backgroundColor: '#fff', marginVertical: 12, padding: 8, borderRadius: 8, paddingBottom: 30, },
-  sectionTitle: { fontSize: 18, fontWeight: '600', padding: 10, },
+  title: {fontSize: 22, fontWeight: 'bold', marginVertical: 10},
+  price: {fontSize: 18, marginBottom: 16},
+  section: {
+    backgroundColor: '#fff',
+    marginVertical: 12,
+    padding: 8,
+    borderRadius: 8,
+    paddingBottom: 30,
+  },
+  sectionTitle: {fontSize: 18, fontWeight: '600', padding: 10},
 
-
-
-
-  modal: { justifyContent: 'center', margin: 0 },
-  modalContent: { backgroundColor: '#fff', padding: 20, marginHorizontal: 20, borderRadius: 8 },
-  modalTitle: { fontSize: 18, fontWeight: 'bold', marginBottom: 10, textAlign: 'center' },
-  modalText: { fontSize: 16, marginBottom: 20, textAlign: 'center' },
-
+  modal: {justifyContent: 'center', margin: 0},
+  modalContent: {
+    backgroundColor: '#fff',
+    padding: 20,
+    marginHorizontal: 20,
+    borderRadius: 8,
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 10,
+    textAlign: 'center',
+  },
+  modalText: {fontSize: 16, marginBottom: 20, textAlign: 'center'},
 
   footer: {
     padding: 8,
@@ -334,5 +359,4 @@ const styles = StyleSheet.create({
     flexGrow: 1, // 💥 let the button expand as needed
     maxWidth: 200, // optional minimum width
   },
-
 });

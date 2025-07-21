@@ -25,10 +25,10 @@ import useAuthUserDetailStore from '../store/useAuthUserDetailStore';
 import useLastBmi from '../store/useLastBmiStore';
 import useCouponStore from '../store/couponStore';
 import useSignupStore from '../store/signupStore';
-import useReturning from '../store/useReorderStore';
+import userConsultationApi from '../api/consultationApi';
+import useReturning from '../store/useReturningPatient';
 
 // ✅ API
-import userConsultationApi from '../api/userConsultationApi';
 
 const ProductCard = ({
   id,
@@ -65,13 +65,13 @@ const ProductCard = ({
   const [loading, setLoading] = useState(false);
 
   /* ───────── mutation ───────── */
-  const consultationMutation = useMutation({
-    mutationFn: userConsultationApi,
-    onSuccess: res => {
-      const data = res?.data?.data;
+  //Get Consultation Data
+  const consultationMutation = useMutation(userConsultationApi, {
+    onSuccess: data => {
+      console.log(data, 'Dataaaaaaaaaa');
 
-      // if no existing consultation wipe all old state
-      if (!data) {
+      if (data?.data?.data == null) {
+        console.log('true');
         clearBmi();
         clearCheckout();
         clearConfirmationInfo();
@@ -81,50 +81,51 @@ const ProductCard = ({
         clearBilling();
         clearShipping();
         clearAuthUserDetail();
-      } else {
-        // hydrate stores
-        setBmi(data.bmi);
-        setCheckout(data.checkout);
-        setConfirmationInfo(data.confirmationInfo);
-        setGpDetails(data.gpdetails);
-        setMedicalInfo(data.medicalInfo);
-        setPatientInfo(data.patientInfo);
-        setShipping(data.shipping);
-        setBilling(data.billing);
-        setAuthUserDetail(data.auth_user);
-        setLastBmi(data.bmi);
-        setFirstName(data.patientInfo?.firstName);
-        setLastName(data.patientInfo?.lastName);
-        setIsReturningPatient(data.isReturning);
+      } else if (data?.data) {
+        setBmi(data?.data?.data?.bmi);
+        setCheckout(data?.data?.data?.checkout);
+        setConfirmationInfo(data?.data?.data?.confirmationInfo);
+        setGpDetails(data?.data?.data?.gpdetails);
+        setMedicalInfo(data?.data?.data?.medicalInfo);
+        setPatientInfo(data?.data?.data?.patientInfo);
+        setShipping(data?.data?.data?.shipping);
+        setBilling(data?.data?.data?.billing);
+        setAuthUserDetail(data?.data?.data?.auth_user);
+        setLastBmi(data?.data?.data?.bmi);
+        setFirstName(data?.data?.data?.patientInfo?.firstName);
+        setLastName(data?.data?.data?.patientInfo?.lastName);
+        setIsReturningPatient(data?.data?.data?.isReturning);
       }
 
-      // route
+      if (reorder) {
+        navigation.navigate('re-order');
+        setReorder(true);
+        clearCoupon();
+      } else {
+        setReorder(false);
+        navigation.navigate('Acknowledgment');
+      }
 
       setLoading(false);
+      return;
     },
-    onError: err => {
-      Toast.show({
-        type: 'error',
-        text1: err?.response?.data?.errors || 'Something went wrong',
-      });
-      setLoading(false);
+    onError: error => {
+      // setLoading(false);
+      console.log('error', error?.response?.data?.errors?.email);
+      if (error) {
+        setLoading(false);
+      }
     },
   });
 
-  /* ───────── handlers ───────── */
   const handlePress = () => {
-    if (loading) return;
     setProductId(id);
     setLoading(true);
-    consultationMutation.mutate({clinic_id: 1, product_id: id});
-    if (reorder) {
-      navigation.navigate('Acknowledgment');
-      setReorder(true);
-      clearCoupon();
-    } else {
-      setReorder(false);
-      navigation.navigate('Acknowledgment');
-    }
+    const formData = {
+      clinic_id: 1,
+      product_id: id,
+    };
+    consultationMutation.mutate(formData);
   };
 
   /* ───────── UI ───────── */

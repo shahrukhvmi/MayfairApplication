@@ -1,90 +1,168 @@
-import Ionicons from 'react-native-vector-icons/Ionicons';
-import {useNavigation} from '@react-navigation/native';
-import {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {
+  View,
+  Text,
   ScrollView,
   StyleSheet,
-  Text,
   TouchableOpacity,
-  View,
+  ActivityIndicator,
 } from 'react-native';
+import {useForm} from 'react-hook-form';
+import {useNavigation} from '@react-navigation/native';
+import useConfirmationQuestionsStore from '../store/confirmationQuestionStore';
+import useConfirmationInfoStore from '../store/confirmationInfoStore';
 import Header from '../Layout/header';
 import NextButton from '../Components/NextButton';
 import BackButton from '../Components/BackButton';
+import {MdCheckBox, MdCheckBoxOutlineBlank} from 'react-icons/md'; // ignore in RN
+import Ionicons from 'react-native-vector-icons/Ionicons';
 
 export default function PatientConsent() {
   const navigation = useNavigation();
-  const [accepted, setAccepted] = useState(false);
+  const [showLoader, setShowLoader] = useState(false);
+
+  const {confirmationQuestions} = useConfirmationQuestionsStore();
+  const {confirmationInfo, setConfirmationInfo} = useConfirmationInfoStore();
+  const [questions, setQuestions] = useState([]);
+
+  const {
+    register,
+    handleSubmit,
+    setValue,
+    watch,
+    formState: {errors, isValid},
+  } = useForm({
+    mode: 'onChange',
+  });
+
+  useEffect(() => {
+    if (confirmationInfo && confirmationInfo.length) {
+      console.log('✅ Loading from confirmationInfo (user answers)');
+      setQuestions(confirmationInfo);
+    } else if (confirmationQuestions && confirmationQuestions.length) {
+      console.log('🟡 Loading from confirmationQuestions (API fallback)');
+      const initialized = confirmationQuestions.map(q => ({
+        ...q,
+        answer: false,
+        has_check_list: true,
+        has_checklist: true,
+      }));
+      console.log(initialized, 'initialized');
+      setQuestions(initialized);
+    } else {
+      console.log('❌ No questions found');
+    }
+  }, [confirmationInfo, confirmationQuestions]);
+
+  useEffect(() => {
+    questions.forEach(q => {
+      setValue(`responses[${q.id}].answer`, q.answer ?? false);
+    });
+  }, [questions]);
+
+  const handleCheckboxChange = (id, value) => {
+    const updated = questions.map(q =>
+      q.id === id
+        ? {...q, answer: value, has_check_list: true, has_checklist: true}
+        : q,
+    );
+
+    setQuestions(updated);
+    setValue(`responses[${id}].answer`, value);
+  };
+
+  const isNextEnabled = questions.every(
+    q => watch(`responses[${q.id}].answer`) === true,
+  );
+
+  const onSubmit = async () => {
+    setConfirmationInfo(questions);
+    setShowLoader(true);
+    await new Promise(resolve => setTimeout(resolve, 500));
+    navigation.navigate('gp-detail');
+  };
 
   return (
     <>
       <Header />
       <ScrollView contentContainerStyle={styles.container}>
-        {/* Progress */}
         <View style={styles.progressContainer}>
           <View style={styles.progressBar} />
         </View>
-        <Text style={styles.progressText}>90% Completed</Text>
-
-        {/* Title */}
+        <Text style={styles.progressText}>85% Completed</Text>
         <Text style={styles.heading}>Patient Consent</Text>
 
-        {/* Consent Text */}
-        <View style={styles.consentBox}>
-          <Text style={styles.consentHeader}>
-            I confirm and understand that:
-          </Text>
+        <View>
+          {questions.map(q => {
+            const selectedAnswer = watch(`responses[${q.id}].answer`);
 
-          {[
-            'Treatments are sub-cutaneous injections and I feel comfortable administering the medication myself.',
-            'Treatments are prescription-only medication and you must inform your GP/doctor that you have been prescribed this and that you are taking it.',
-            'I confirm that I understand how to store the medication and dispose of the used items responsibly.',
-            'I understand that I need to lose weight by diet, exercise and lifestyle changes. I confirm that taking the weight loss injections must be used with healthy diet and exercise changes.',
-            'I confirm that I will seek medical attention and/or inform my GP if I develop any adverse side effects or symptoms including but not limited to the following: abdominal pain or nausea, a lump in the throat, difficulty swallowing, symptoms of low blood sugar such as sweating, shakiness, dizziness, weakness or fast heartbeat, or any allergic reactions.',
-            'I understand that Prescription Only Medication cannot be returned. I confirm I am aware that you cannot offer a refund if you have received or taken the medication. Mayfair Weight Loss Clinic’s pharmacy is not required to take returns for healthcare safety reasons.',
-            'I confirm that I am aware that prescribed medication may cause side effects including constipation, stomach discomfort, headache, lack of appetite, burning sensation or acid/heartburn pain.',
-            'Medication should be stored in the refrigerator, not frozen or stored in temperatures above 30°C – they must be discarded.',
-            'I confirm I have read, understood and accept Mayfair Weight Loss Clinic’s Terms and Conditions.',
-          ].map((item, index) => (
-            <View key={index} style={styles.bulletItem}>
-              <Text style={styles.bullet}>•</Text>
-              <Text style={styles.bulletText}>{item}</Text>
-            </View>
-          ))}
+            return (
+              <View key={q.id} style={styles.card}>
+                <Text style={styles.cardTitle}>
+                  I confirm and understand that:
+                </Text>
+
+                {q.checklist ? (
+                  <View style={styles.bulletList}>
+                    {q.checklist
+                      .replace(/<\/?[^>]+(>|$)/g, '') // remove HTML tags
+                      .split('\n') // split by newlines
+                      .filter(item => item.trim().length > 0)
+                      .map((item, idx) => (
+                        <View key={`${q.id}-${idx}`} style={styles.bulletItem}>
+                          <Text style={styles.bulletIcon}>{'\u2022'}</Text>
+                          <Text style={styles.bulletText}>{item.trim()}</Text>
+                        </View>
+                      ))}
+                  </View>
+                ) : null}
+
+                <TouchableOpacity
+                  onPress={() => handleCheckboxChange(q.id, !selectedAnswer)}
+                  style={styles.checkboxRow}>
+                  <View
+                    style={[
+                      styles.radioCircle,
+                      selectedAnswer && styles.radioChecked,
+                    ]}>
+                    {selectedAnswer && (
+                      <Ionicons name="checkmark" size={14} color="#fff" />
+                    )}
+                  </View>
+                  <Text style={styles.checkboxLabel}>
+                    {q.question
+                      .replace('I confirm and understand that:', '')
+                      .replace('below', 'above')
+                      .trim()}
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            );
+          })}
+
+          {!isNextEnabled && (
+            <Text style={styles.errorText}>
+              You must confirm before proceeding.
+            </Text>
+          )}
+
+          <NextButton
+            label="Next"
+            onPress={handleSubmit(onSubmit)}
+            disabled={!isNextEnabled}
+            style={{marginTop: 20}}
+          />
+          <BackButton
+            label="Back"
+            onPress={() => navigation.navigate('medical-questions')}
+          />
         </View>
 
-        {/* Consent Confirmation */}
-        <TouchableOpacity
-          style={styles.confirmRow}
-          onPress={() => setAccepted(prev => !prev)}>
-          <Ionicons
-            name={accepted ? 'radio-button-on' : 'radio-button-off'}
-            size={20}
-            color={accepted ? '#4B0082' : '#999'}
-          />
-          <Text style={styles.confirmText}>
-            Please confirm you have read and understood the above information
-            related to the treatment prescribed.
-          </Text>
-        </TouchableOpacity>
-
-        {/* <TouchableOpacity
-                    style={[styles.nextButton, !accepted && styles.disabledBtn]}
-                    disabled={!accepted}
-                    onPress={() => navigation.navigate('gp-detail')}
-                >
-                    <Text style={styles.nextText}>Next</Text>
-                </TouchableOpacity>
-
-                <TouchableOpacity onPress={() => navigation.goBack()}>
-                    <Text style={styles.backText}>Back</Text>
-                </TouchableOpacity> */}
-
-        <NextButton
-          onPress={() => navigation.navigate('gp-detail')}
-          label="Next"
-        />
-        <BackButton onPress={() => navigation.goBack()} label="Back" />
+        {showLoader && (
+          <View style={styles.loaderOverlay}>
+            <ActivityIndicator size="large" color="#4B0082" />
+          </View>
+        )}
       </ScrollView>
     </>
   );
@@ -105,7 +183,7 @@ const styles = StyleSheet.create({
     marginBottom: 6,
   },
   progressBar: {
-    width: '90%',
+    width: '85%',
     height: 4,
     backgroundColor: '#4B0082',
   },
@@ -118,67 +196,81 @@ const styles = StyleSheet.create({
   heading: {
     fontSize: 22,
     fontWeight: 'bold',
-    fontFamily: 'serif',
     marginBottom: 20,
   },
-  consentBox: {
-    backgroundColor: '#fff',
+  card: {
     borderWidth: 1,
     borderColor: '#ddd',
+    backgroundColor: '#fff',
     borderRadius: 10,
-    padding: 15,
-    marginBottom: 20,
+    padding: 16,
+    marginBottom: 10,
   },
-  consentHeader: {
-    fontWeight: 'bold',
+  cardTitle: {
     fontSize: 15,
-    marginBottom: 12,
+    fontWeight: 'bold',
+    marginBottom: 10,
+  },
+  checklistText: {
+    fontSize: 13,
+    color: '#333',
+    marginBottom: 10,
+  },
+  checkboxRow: {
+    display: 'flex',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+
+  checkboxLabel: {
+    flex: 1,
+    fontSize: 14,
+    color: '#333',
+  },
+  errorText: {
+    color: 'red',
+    fontSize: 13,
+  },
+  loaderOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(255,255,255,0.6)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  radioCircle: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: '#999',
+    marginRight: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  radioChecked: {
+    backgroundColor: '#6D28D9',
+    borderColor: '#6D28D9',
+  },
+  bulletList: {
+    marginBottom: 10,
+    paddingLeft: 4,
   },
   bulletItem: {
     flexDirection: 'row',
     alignItems: 'flex-start',
-    marginBottom: 8,
+    marginBottom: 12,
   },
-  bullet: {
-    fontSize: 20,
-    lineHeight: 22,
-    marginRight: 6,
+  bulletIcon: {
+    fontSize: 16,
     color: '#4B0082',
+    marginTop: 0,
+    marginRight: 8,
   },
   bulletText: {
     flex: 1,
     fontSize: 14,
     color: '#333',
-  },
-  confirmRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 25,
-    gap: 10,
-  },
-  confirmText: {
-    flex: 1,
-    color: '#333',
-    fontSize: 13,
-  },
-  nextButton: {
-    backgroundColor: '#4B0082',
-    borderRadius: 30,
-    paddingVertical: 14,
-    alignItems: 'center',
-  },
-  disabledBtn: {
-    backgroundColor: '#ccc',
-  },
-  nextText: {
-    color: '#fff',
-    fontWeight: 'bold',
-    fontSize: 16,
-  },
-  backText: {
-    textAlign: 'center',
-    marginTop: 18,
-    color: '#4B0082',
-    textDecorationLine: 'underline',
+    lineHeight: 20,
   },
 });

@@ -1,7 +1,7 @@
 // components/SelectField.js
 import React from 'react';
-import { View, Text, StyleSheet, Platform } from 'react-native';
-import { Picker } from '@react-native-picker/picker'; // Make sure this is installed
+import {View, Text, StyleSheet, Platform} from 'react-native';
+import {Picker} from '@react-native-picker/picker'; // Make sure this is installed
 import Icon from 'react-native-vector-icons/Ionicons'; // or any icon library
 
 const SelectFields = ({
@@ -26,14 +26,13 @@ const SelectFields = ({
           selectedValue={value}
           onValueChange={(itemValue, itemIndex) => onChange(itemValue)}
           style={styles.picker}
-          mode="dropdown"
-        >
+          mode="dropdown">
           <Picker.Item label="Select an option..." value="" enabled={false} />
-          {options.map((opt) => (
+          {options.map(opt => (
             <Picker.Item key={opt.value} label={opt.label} value={opt.value} />
           ))}
         </Picker>
-        <Icon name="chevron-down" size={18} color="#000" style={styles.arrowIcon} />
+        {/* <Icon name="chevron-down" size={18} color="#000" style={styles.arrowIcon} /> */}
       </View>
 
       {error && (
