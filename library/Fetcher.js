@@ -14,6 +14,7 @@ class Fetcher {
         Accept: 'application/json',
         'Content-Type': 'application/json',
         'Company-Id': 1,
+        isMobileLogin: true,
       },
     });
 
