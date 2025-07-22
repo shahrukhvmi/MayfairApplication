@@ -1,5 +1,5 @@
-import { useNavigation } from '@react-navigation/native';
-import { useRef, useState } from 'react';
+import {useNavigation} from '@react-navigation/native';
+import {useRef, useState} from 'react';
 import {
   View,
   Text,
@@ -13,12 +13,16 @@ import Header from '../Layout/header';
 import TextFields from '../Components/TextFields';
 import OrderSummary from '../Components/OrderSummary';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
+import ShippingAddress from '../Components/ShippingAddress';
+import BillingAddress from '../Components/BillingAddress';
 
 export default function CheckoutSteps() {
   const scrollRef = useRef();
   const [formData, setFormData] = useState({});
   const [isChecked, setIsChecked] = useState(false);
   const [shippingCheckbox, setShippingCheckbox] = useState(false);
+  const [isBillingCheck, setIsBillingCheck] = useState(false);
+
   const [loading, setLoading] = useState(false);
   const [thankYou, setThankYou] = useState(false);
   const [password, setPassword] = useState('');
@@ -60,47 +64,12 @@ export default function CheckoutSteps() {
       <ScrollView style={styles.container} ref={scrollRef}>
         <Text style={styles.heading}>Checkout</Text>
 
-
-
-
         <>
           {/* Step 2: Shipping */}
-          <View style={styles.card}>
-            <Text style={styles.subHeading}>Shipping Address</Text>
-            <TextFields label="First Name" placeholder="First Name" />
-            <TextFields label="Last Name" placeholder="Last Name" />
-            <TextFields label="Country" placeholder="Country" />
-            <TextFields label="Postcode" placeholder="Postcode" />
-            <TextFields label="Street Address" placeholder="Street Address" />
-            <TextFields label="City" placeholder="City" />
-            <TouchableOpacity
-              style={styles.checkboxRow}
-              onPress={() => setShippingCheckbox(!shippingCheckbox)}>
-              {shippingCheckbox ? (
-                <MaterialIcons name="check-box" size={24} color="#47317c" />
-              ) : (
-                <MaterialIcons
-                  name="check-box-outline-blank"
-                  size={24}
-                  color="#47317c"
-                />
-              )}
-
-              <Text style={{ marginLeft: 10, fontSize: 14 }}>
-                Make billing address same as shipping address
-              </Text>
-            </TouchableOpacity>
-          </View>
+          <ShippingAddress />
 
           {/* Step 3: Billing */}
-          <View style={styles.card}>
-            <Text style={styles.subHeading}>Blling Address</Text>
-            <TextFields label="Country" placeholder="Country" />
-            <TextFields label="Postcode" placeholder="Postcode" />
-            <TextFields label="Address" placeholder="Address" />
-            <TextFields label="City" placeholder="City" />
-            <TextFields label="State / County" placeholder="State / County" />
-          </View>
+          <BillingAddress setIsBillingCheck={setIsBillingCheck} />
 
           {/* Step 4: Consent */}
           <View style={styles.card}>
@@ -110,40 +79,39 @@ export default function CheckoutSteps() {
               treatment:
             </Text>
             <Text style={styles.paragraph}>
-              • If you are ordering a higher dose of Mounjaro, you have
-              started on the low doses and have titrated up to the higher
-              dose.
+              • If you are ordering a higher dose of Mounjaro, you have started
+              on the low doses and have titrated up to the higher dose.
             </Text>
             <Text style={styles.paragraph}>
               • Mounjaro is once-weekly injections should be taken ONCE a week
               on the same day each week.
             </Text>
             <Text style={styles.paragraph}>
-              • Mounjaro should be stored in the fridge when not in use (2°C
-              to 8°C). It may be stored unrefrigerated for up to 30 days at a
+              • Mounjaro should be stored in the fridge when not in use (2°C to
+              8°C). It may be stored unrefrigerated for up to 30 days at a
               temperature not above 30 °C and then the pen must be discarded.
             </Text>
             <Text style={styles.paragraph}>
               • If you are a woman of childbearing age, you will take any
-              necessary precautions to ensure that you do not get pregnant
-              while using this medication or for two months after stopping the
+              necessary precautions to ensure that you do not get pregnant while
+              using this medication or for two months after stopping the
               treatment as the effects of this medicine on an unborn child are
               not known.
             </Text>
             <Text style={styles.paragraph}>
-              • If you are a woman with obesity or overweight and are using
-              oral contraceptives, you should consider also using a barrier
-              method of contraception (e.g., a condom) or switching to a
-              non-oral contraceptive method for 4 weeks after starting
-              Mounjaro and for 4 weeks after each increase in dose.
+              • If you are a woman with obesity or overweight and are using oral
+              contraceptives, you should consider also using a barrier method of
+              contraception (e.g., a condom) or switching to a non-oral
+              contraceptive method for 4 weeks after starting Mounjaro and for 4
+              weeks after each increase in dose.
             </Text>
             <Text style={styles.paragraph}>
               • I confirm that I have read and understood the Patient
               Information Leaflet.
             </Text>
             <Text style={styles.paragraph}>
-              • I confirm that I have read, understood and accept Mayfair
-              Weight Loss Clinic’s Terms and Conditions.
+              • I confirm that I have read, understood and accept Mayfair Weight
+              Loss Clinic’s Terms and Conditions.
             </Text>
             <TouchableOpacity
               style={styles.checkboxRow}
@@ -157,7 +125,7 @@ export default function CheckoutSteps() {
                   color="#47317c"
                 />
               )}
-              <Text style={{ marginLeft: 10, fontSize: 14 }}>
+              <Text style={{marginLeft: 10, fontSize: 14}}>
                 I accept all terms and conditions
               </Text>
             </TouchableOpacity>
@@ -168,20 +136,17 @@ export default function CheckoutSteps() {
             <OrderSummary />
           </View>
 
-          <TouchableOpacity
-            onPress={handleSubmit}
-            style={styles.submitButton}>
+          <TouchableOpacity onPress={handleSubmit} style={styles.submitButton}>
             <Text style={styles.submitText}>Procceed to Payment</Text>
           </TouchableOpacity>
         </>
-
 
         {/* Loading Modal */}
         <Modal transparent visible={loading}>
           <View style={styles.modalOverlay}>
             <View style={styles.modalBox}>
               <ActivityIndicator size="large" color="#4B0082" />
-              <Text style={{ marginTop: 12 }}>Processing payment...</Text>
+              <Text style={{marginTop: 12}}>Processing payment...</Text>
             </View>
           </View>
         </Modal>
@@ -228,7 +193,7 @@ const styles = StyleSheet.create({
     shadowColor: '#000',
     shadowOpacity: 0.05,
     shadowRadius: 4,
-    shadowOffset: { width: 0, height: 2 },
+    shadowOffset: {width: 0, height: 2},
     elevation: 2,
   },
   paragraphExplain: {
