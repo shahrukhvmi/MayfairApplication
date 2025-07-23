@@ -44,7 +44,7 @@ const fetchAddresses = async postcode => {
   });
 };
 
-export default function Shipping() {
+export default function ShippingAddress({setIsShippingCheck}) {
   const {shipping, setShipping, setBilling, setBillingSameAsShipping} =
     useShippingOrBillingStore();
   const {shipmentCountries} = useShipmentCountries();
@@ -64,6 +64,7 @@ export default function Shipping() {
     handleSubmit,
     setValue,
     watch,
+    getValues,
     control,
     formState: {errors, isValid},
   } = useForm({
@@ -82,14 +83,25 @@ export default function Shipping() {
 
   // 2️⃣ Prefill form from Zustand `shipping`
   useEffect(() => {
-    if (shipping) {
-      setValue('postalcode', shipping.postalcode || '');
-      setValue('addressone', shipping.addressone || '');
-      setValue('addresstwo', shipping.addresstwo || '');
-      setValue('city', shipping.city || '');
-      setValue('shippingCountry', shipping.id?.toString() || '');
-      setValue('same_as_shipping', shipping.same_as_shipping || false);
-      setShippingIndex(shipping.id?.toString() || '');
+    if (!shipmentCountries?.length || !shipping) return;
+
+    setValue('postalcode', shipping.postalcode || '');
+    setValue('addressone', shipping.addressone || '');
+    setValue('addresstwo', shipping.addresstwo || '');
+    setValue('city', shipping.city || '');
+
+    const country = shipmentCountries.find(
+      c => c.name === shipping.country_name,
+    );
+
+    if (country) {
+      const idStr = country.id.toString();
+      const currentValue = getValues('shippingCountry'); // ✅ one-time read
+
+      if (currentValue !== idStr) {
+        setValue('shippingCountry', idStr);
+        setShippingIndex(idStr);
+      }
     }
   }, []);
 
@@ -137,8 +149,8 @@ export default function Shipping() {
         same_as_shipping: true,
       };
 
-      setShipping(shippingPayload); // ✅ <--- This was missing
-      setBilling(shippingPayload); // ✅ Keep this
+      setShipping(shippingPayload); // ✅
+      setBilling(shippingPayload); // ✅
     }
 
     setBillingSameAsShipping(sameAsShippingValue);
@@ -166,6 +178,34 @@ export default function Shipping() {
       setAddressSearchLoading(false);
     }
   };
+
+  useEffect(() => {
+    const checkFields = () => {
+      const values = getValues(); // ✅ read immediately
+      const requiredFields = [
+        values.shippingCountry,
+        values.postalcode,
+        values.addressone,
+        values.city,
+      ];
+
+      const allFilled = requiredFields.every(
+        field => field && field.toString().trim() !== '',
+      );
+
+      setIsShippingCheck?.(allFilled);
+    };
+
+    // 🔁 run once on mount
+    checkFields();
+
+    // 🔁 run on form updates
+    const subscription = watch(() => {
+      checkFields();
+    });
+
+    return () => subscription.unsubscribe();
+  }, [watch, getValues, setIsShippingCheck]);
 
   const toggleCheckbox = (fieldOnChange, value) => {
     fieldOnChange(!value);
@@ -329,7 +369,7 @@ export default function Shipping() {
 }
 
 const styles = StyleSheet.create({
-  container: {paddingBottom: 60},
+  container: {paddingBottom: 0},
   card: {
     backgroundColor: '#fff',
     padding: 20,

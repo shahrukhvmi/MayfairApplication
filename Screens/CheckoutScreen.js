@@ -13,50 +13,32 @@ import Header from '../Layout/header';
 import TextFields from '../Components/TextFields';
 import OrderSummary from '../Components/OrderSummary';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
-import ShippingAddress from '../Components/ShippingAddress';
 import BillingAddress from '../Components/BillingAddress';
+import ProductConsent from '../Components/ProductConsent';
+import useShippingOrBillingStore from '../store/shipingOrbilling';
+import ShippingAddress from '../Components/ShippingAddress';
+import NextButton from '../Components/NextButton';
 
 export default function CheckoutSteps() {
   const scrollRef = useRef();
   const [formData, setFormData] = useState({});
   const [isChecked, setIsChecked] = useState(false);
-  const [shippingCheckbox, setShippingCheckbox] = useState(false);
+  const [isShippingCheck, setIsShippingCheck] = useState(false);
   const [isBillingCheck, setIsBillingCheck] = useState(false);
+  const [isConcentCheck, setIsConcentCheck] = useState(false);
+  const {billingSameAsShipping} = useShippingOrBillingStore();
 
   const [loading, setLoading] = useState(false);
   const [thankYou, setThankYou] = useState(false);
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
 
   const navigation = useNavigation();
-  const [showNextSteps, setShowNextSteps] = useState(false); // ADD THIS
-  const [showPassword, setShowPassword] = useState(false);
 
-  const handleSubmit = () => {
-    if (!password || !confirmPassword) {
-      alert('Please fill in both password fields.');
-      return;
-    }
-    if (password !== confirmPassword) {
-      alert('Passwords do not match.');
-      return;
-    }
-    if (!isChecked) {
-      alert('Please confirm the consent.');
-      return;
-    }
+  console.log(isShippingCheck, 'isShippingCheck');
+  console.log(isBillingCheck, 'isBillingCheck');
 
-    setLoading(true);
-    setTimeout(() => {
-      setLoading(false);
-      setThankYou(true);
+  const isNextDisabled = isShippingCheck && isBillingCheck && isConcentCheck;
 
-      setTimeout(() => {
-        setThankYou(false);
-        navigation.navigate('Initial');
-      }, 1500);
-    }, 2000);
-  };
+  console.log(isNextDisabled, 'isNextDisabled');
 
   return (
     <>
@@ -66,79 +48,28 @@ export default function CheckoutSteps() {
 
         <>
           {/* Step 2: Shipping */}
-          <ShippingAddress />
+          <ShippingAddress setIsShippingCheck={setIsShippingCheck} />
 
           {/* Step 3: Billing */}
-          <BillingAddress setIsBillingCheck={setIsBillingCheck} />
+          {!billingSameAsShipping && (
+            <BillingAddress setIsBillingCheck={setIsBillingCheck} />
+          )}
 
           {/* Step 4: Consent */}
-          <View style={styles.card}>
-            <Text style={styles.subHeading}>Treatment Consent</Text>
-            <Text style={styles.paragraphExplain}>
-              Please review the important information below regarding your
-              treatment:
-            </Text>
-            <Text style={styles.paragraph}>
-              • If you are ordering a higher dose of Mounjaro, you have started
-              on the low doses and have titrated up to the higher dose.
-            </Text>
-            <Text style={styles.paragraph}>
-              • Mounjaro is once-weekly injections should be taken ONCE a week
-              on the same day each week.
-            </Text>
-            <Text style={styles.paragraph}>
-              • Mounjaro should be stored in the fridge when not in use (2°C to
-              8°C). It may be stored unrefrigerated for up to 30 days at a
-              temperature not above 30 °C and then the pen must be discarded.
-            </Text>
-            <Text style={styles.paragraph}>
-              • If you are a woman of childbearing age, you will take any
-              necessary precautions to ensure that you do not get pregnant while
-              using this medication or for two months after stopping the
-              treatment as the effects of this medicine on an unborn child are
-              not known.
-            </Text>
-            <Text style={styles.paragraph}>
-              • If you are a woman with obesity or overweight and are using oral
-              contraceptives, you should consider also using a barrier method of
-              contraception (e.g., a condom) or switching to a non-oral
-              contraceptive method for 4 weeks after starting Mounjaro and for 4
-              weeks after each increase in dose.
-            </Text>
-            <Text style={styles.paragraph}>
-              • I confirm that I have read and understood the Patient
-              Information Leaflet.
-            </Text>
-            <Text style={styles.paragraph}>
-              • I confirm that I have read, understood and accept Mayfair Weight
-              Loss Clinic’s Terms and Conditions.
-            </Text>
-            <TouchableOpacity
-              style={styles.checkboxRow}
-              onPress={() => setIsChecked(!isChecked)}>
-              {isChecked ? (
-                <MaterialIcons name="check-box" size={30} color="#47317c" />
-              ) : (
-                <MaterialIcons
-                  name="check-box-outline-blank"
-                  size={30}
-                  color="#47317c"
-                />
-              )}
-              <Text style={{marginLeft: 10, fontSize: 14}}>
-                I accept all terms and conditions
-              </Text>
-            </TouchableOpacity>
-          </View>
+          <ProductConsent
+            setIsConcentCheck={setIsConcentCheck}
+            isCompleted={setIsConcentCheck}
+          />
 
           {/* Step 5: Summary */}
-          <View style={styles.card}>
-            <OrderSummary />
-          </View>
+          <OrderSummary isNextDisabled={isNextDisabled} />
 
-          <TouchableOpacity onPress={handleSubmit} style={styles.submitButton}>
+          {/* <TouchableOpacity
+            onPress={handleSubmit}
+            style={styles.submitButton}
+            disabled={true}>
             <Text style={styles.submitText}>Procceed to Payment</Text>
-          </TouchableOpacity>
+          </TouchableOpacity> */}
         </>
 
         {/* Loading Modal */}
@@ -296,5 +227,8 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#4B0082',
     marginBottom: 8,
+  },
+  disabled: {
+    backgroundColor: '#aaa',
   },
 });

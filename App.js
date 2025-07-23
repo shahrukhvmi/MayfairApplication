@@ -1,7 +1,7 @@
-import React, { useEffect } from 'react';
-import { OneSignal, LogLevel } from 'react-native-onesignal';
-import { NavigationContainer } from '@react-navigation/native';
-import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import React, {useEffect} from 'react';
+import {OneSignal, LogLevel} from 'react-native-onesignal';
+import {NavigationContainer} from '@react-navigation/native';
+import {createNativeStackNavigator} from '@react-navigation/native-stack';
 import SplashScreen from './Screens/SplashScreen';
 import InitialScreen from './Screens/InitialScreen';
 import AcknowledgmentScreen from './Screens/AcknowledgmentScreen';
@@ -78,153 +78,153 @@ const App = () => {
           <Stack.Screen
             name="Splash"
             component={SplashScreen}
-            options={{ headerShown: false }}
+            options={{headerShown: false}}
           />
 
           <Stack.Screen
             name="Login"
             component={LoginScreen}
-            options={{ headerShown: false }}
+            options={{headerShown: false}}
           />
           <Stack.Screen
             name="Register"
             component={RegisterScreen}
-            options={{ headerShown: false }}
+            options={{headerShown: false}}
           />
           <Stack.Screen
             name="ForgotPassword"
             component={ForgotPassword}
-            options={{ headerShown: false }}
+            options={{headerShown: false}}
           />
 
           <Stack.Screen
             name="ResetPassword"
             component={ResetPassword}
-            options={{ headerShown: false }}
+            options={{headerShown: false}}
           />
 
           <Stack.Screen
             name="Initial"
             component={InitialScreen}
-            options={{ headerShown: false }}
+            options={{headerShown: false}}
           />
           <Stack.Screen
             name="Acknowledgment"
             component={AcknowledgmentScreen}
-            options={{ headerShown: false }}
+            options={{headerShown: false}}
           />
           <Stack.Screen
             name="signup"
             component={FirstLastNameScreen}
-            options={{ headerShown: false }}
+            options={{headerShown: false}}
           />
 
           <Stack.Screen
             name="personal-details"
             component={PersonalDetailScreen}
-            options={{ headerShown: false }}
+            options={{headerShown: false}}
           />
           <Stack.Screen
             name="residential-address"
             component={ResidentialAddressScreen}
-            options={{ headerShown: false }}
+            options={{headerShown: false}}
           />
 
           <Stack.Screen
             name="preferred-phone-number"
             component={PreferredPhoneNumber}
-            options={{ headerShown: false }}
+            options={{headerShown: false}}
           />
 
           <Stack.Screen
             name="ethnicity"
             component={Ethnicity}
-            options={{ headerShown: false }}
+            options={{headerShown: false}}
           />
           <Stack.Screen
             name="calculate-bmi"
             component={CalculateBmi}
-            options={{ headerShown: false }}
+            options={{headerShown: false}}
           />
           <Stack.Screen
             name="calculate-weight"
             component={CalculateWeight}
-            options={{ headerShown: false }}
+            options={{headerShown: false}}
           />
 
           <Stack.Screen
             name="bmi"
             component={BMI}
-            options={{ headerShown: false }}
+            options={{headerShown: false}}
           />
 
           <Stack.Screen
             name="medical-questions"
             component={MedicalQuestions}
-            options={{ headerShown: false }}
+            options={{headerShown: false}}
           />
 
           <Stack.Screen
             name="patient-consent"
             component={PatientConsent}
-            options={{ headerShown: false }}
+            options={{headerShown: false}}
           />
 
           <Stack.Screen
             name="gp-detail"
             component={GPDetails}
-            options={{ headerShown: false }}
+            options={{headerShown: false}}
           />
 
           <Stack.Screen
             name="confirmation-summary"
             component={ConfirmationSummary}
-            options={{ headerShown: false }}
+            options={{headerShown: false}}
           />
 
           <Stack.Screen
             name="review-answer"
             component={ReviewAnswers}
-            options={{ headerShown: false }}
+            options={{headerShown: false}}
           />
-          
+
           <Stack.Screen
             name="gathering-data"
             component={GatheringData}
-            options={{ headerShown: false }}
+            options={{headerShown: false}}
           />
           <Stack.Screen
             name="steps-information"
             component={StepsInformation}
-            options={{ headerShown: false }}
+            options={{headerShown: false}}
           />
           <Stack.Screen
             name="dose-selection"
             component={DoseSelection}
-            options={{ headerShown: false }}
+            options={{headerShown: false}}
           />
 
           <Stack.Screen
             name="checkout"
             component={CheckoutScreen}
-            options={{ headerShown: false }}
+            options={{headerShown: false}}
           />
 
           <Stack.Screen
             name="dashboard"
             component={Dashboard}
-            options={{ headerShown: false }}
+            options={{headerShown: false}}
           />
 
           <Stack.Screen
             name="order-detail"
             component={OrderDetail}
-            options={{ headerShown: false }}
+            options={{headerShown: false}}
           />
           <Stack.Screen
             name="re-order"
             component={ReOrder}
-            options={{ headerShown: false }}
+            options={{headerShown: false}}
           />
         </Stack.Navigator>
       </NavigationContainer>
