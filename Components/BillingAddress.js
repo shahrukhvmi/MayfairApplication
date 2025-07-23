@@ -202,7 +202,9 @@ export default function BillingAddress({sameAsShipping, setIsBillingCheck}) {
     setIsBillingCheck,
   ]);
 
-  if (sameAsShipping) return null;
+  if (sameAsShipping) {
+    return null; // ✅ Do not render anything if same as shipping
+  }
 
   return (
     <ScrollView
@@ -347,7 +349,7 @@ export default function BillingAddress({sameAsShipping, setIsBillingCheck}) {
 }
 
 const styles = StyleSheet.create({
-  container: {paddingBottom: 60},
+  container: {paddingBottom: 0},
   card: {
     backgroundColor: '#fff',
     padding: 20,

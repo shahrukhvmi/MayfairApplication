@@ -1,48 +1,106 @@
-import React from 'react';
+import React, {useState} from 'react';
 import {
   View,
   Text,
   TouchableOpacity,
   StyleSheet,
   TextInput,
+  Modal,
+  ActivityIndicator,
 } from 'react-native';
 import Feather from 'react-native-vector-icons/Feather';
 import Entypo from 'react-native-vector-icons/Entypo';
-import { useNavigation } from '@react-navigation/native';
+import {useNavigation} from '@react-navigation/native';
 import useCartStore from '../store/useCartStore';
+import useCouponStore from '../store/couponStore';
+import Toast from 'react-native-toast-message';
+import {CouponApi} from '../api/couponApi';
+import useShippingOrBillingStore from '../store/shipingOrbilling';
+import NextButton from './NextButton';
 
-const OrderSummary = () => {
-  // Example data (replace with your actual data/props)
+const OrderSummary = ({isNextDisabled}) => {
   const navigation = useNavigation();
 
+  const [loading, setLoading] = useState(false);
+  const [thankYou, setThankYou] = useState(false);
 
-  /* _____________Zustannd_________________*/
+  const {items, totalAmount, setCheckOut, setOrderId} = useCartStore();
+  const {Coupon, setCoupon, clearCoupon} = useCouponStore();
+  const {
+    shipping,
+    billing,
+    billingSameAsShipping,
+    clearShipping,
+    clearBilling,
+  } = useShippingOrBillingStore();
 
-  const { items, totalAmount, setCheckOut, setOrderId } = useCartStore();
+  const [discountCode, setDiscountCode] = useState('');
+  const [couponLoading, setCouponLoading] = useState(false);
 
+  let discountAmount = 0;
+  let shippingPrice = Number(shipping?.country_price) || 0;
+  let finalTotal = totalAmount + shippingPrice;
 
-  const finalTotal = totalAmount + 10; // Example of additional shipping or VAT
-  const shipping = { country_name: 'UK', country_price: 5.0 };
+  if (Coupon?.Data?.type === 'Percent') {
+    discountAmount = (totalAmount / 100) * Coupon?.Data?.discount;
+  } else {
+    discountAmount = Coupon?.Data?.discount || 0;
+  }
+
+  if (discountAmount) {
+    finalTotal = totalAmount - discountAmount + shippingPrice;
+  }
+
+  const isApplyEnabled = discountCode.trim().length > 0;
 
   const handleEdit = () => {
     navigation.navigate('dose-selection');
   };
 
+  const handleApplyCoupon = async () => {
+    setCouponLoading(true);
+    try {
+      const res = await CouponApi({coupon_code: discountCode});
+      if (res?.data?.status === true) {
+        Toast.show({type: 'success', text1: 'Coupon applied successfully!'});
+        setCoupon(res.data);
+        setDiscountCode('');
+      }
+    } catch (error) {
+      const err = error?.response?.data?.errors?.Coupon;
+      if (err) {
+        Toast.show({type: 'error', text1: err});
+        clearCoupon();
+      } else {
+        Toast.show({type: 'error', text1: 'Something went wrong'});
+      }
+    } finally {
+      setCouponLoading(false);
+    }
+  };
+
   const handleRemoveCoupon = () => {
-    // Remove coupon logic
+    clearCoupon();
+    Toast.show({type: 'info', text1: 'Coupon removed'});
   };
 
-  const handleApplyCoupon = () => {
-    // Apply coupon logic
+  const handleSubmit = () => {
+    // if (!isChecked) {
+    //   alert('Please confirm the consent.');
+    //   return;
+    // }
+
+    setLoading(true);
+    setTimeout(() => {
+      setLoading(false);
+      setThankYou(true);
+
+      setTimeout(() => {
+        setThankYou(false);
+        navigation.navigate('dashboard');
+      }, 1500);
+    }, 2000);
   };
-
-  // Combine doses and addons into one array with a type
-  // const items = [
-  //   ...doses.map(item => ({ ...item, type: 'dose' })),
-  //   ...addons.map(item => ({ ...item, type: 'addon' })),
-  // ];
-
-  console.log(items, "itemsitems")
 
   const renderItem = (item, idx) => {
     if (item.type === 'dose') {
@@ -67,7 +125,7 @@ const OrderSummary = () => {
         </React.Fragment>
       );
     }
-    // Addon
+
     return (
       <View style={styles.itemContainer} key={idx}>
         <View style={styles.itemDetails}>
@@ -80,64 +138,133 @@ const OrderSummary = () => {
   };
 
   return (
-    <View style={styles.container}>
-      <View style={styles.headerContainer}>
-        <Text style={styles.sectionTitle}>Order Summary</Text>
-        <TouchableOpacity style={styles.editButton} onPress={handleEdit}>
-          <Text style={styles.editText}>Edit order</Text>
-          <Feather name="edit" size={24} color="#47317c" />
-        </TouchableOpacity>
-      </View>
-      {items.doses?.map(renderItem)}
-      <View style={styles.summaryContainer}>
-        <View style={styles.summaryRow}>
-          <Text style={styles.summaryLabel}>Subtotal</Text>
-          <Text style={styles.summaryValue}>£{totalAmount.toFixed(2)}</Text>
-        </View>
-        <View style={styles.summaryRow}>
-          <Text style={styles.summaryLabel}>VAT</Text>
-          <Text style={styles.summaryValue}>£0.00</Text>
-        </View>
-        <View style={styles.summaryRow}>
-          <Text style={styles.summaryLabel}>
-            Shipping ({shipping.country_name})
-          </Text>
-          <Text style={styles.summaryValue}>£{shipping.country_price}</Text>
-        </View>
-        <View style={styles.separator} />
-        <View style={styles.summaryRow}>
-          <Text style={styles.summaryTitle}>Total</Text>
-          <Text style={styles.summaryTitle}>£{finalTotal.toFixed(2)}</Text>
-        </View>
-        <View style={styles.separator} />
-        {/* Discount Section */}
-        {/* <View style={styles.discountSection}>
-          <View style={styles.discountDetails}>
-            <View>
-              <Text style={styles.discountText}>Coupon Code Applied</Text>
-              <Text style={styles.discountAmount}>- £5.00 (10% off)</Text>
-            </View>
+    <>
+      <View style={styles.card}>
+        <View style={styles.container}>
+          <View style={styles.headerContainer}>
+            <Text style={styles.sectionTitle}>Order Summary</Text>
+            <TouchableOpacity style={styles.editButton} onPress={handleEdit}>
+              <Text style={styles.editText}>Edit order</Text>
+              <Feather name="edit" size={24} color="#47317c" />
+            </TouchableOpacity>
           </View>
-          <TouchableOpacity
-            style={styles.removeButton}
-            onPress={handleRemoveCoupon}>
-            <Entypo name="cross" size={24} />
-          </TouchableOpacity>
-        </View> */}
-        {/* Apply Coupon Section */}
-        <View style={styles.applyCouponContainer}>
-          <TextInput
-            style={styles.couponInput}
-            placeholder="Enter discount code"
-          />
-          <TouchableOpacity
-            style={styles.applyCouponButton}
-            onPress={handleApplyCoupon}>
-            <Text style={styles.applyCouponButtonText}>Apply</Text>
-          </TouchableOpacity>
+
+          {items.doses?.map(renderItem)}
+
+          <View style={styles.summaryContainer}>
+            <View style={styles.summaryRow}>
+              <Text style={styles.summaryLabel}>Subtotal</Text>
+              <Text style={styles.summaryValue}>£{totalAmount.toFixed(2)}</Text>
+            </View>
+
+            <View style={styles.summaryRow}>
+              <Text style={styles.summaryLabel}>VAT</Text>
+              <Text style={styles.summaryValue}>£0.00</Text>
+            </View>
+
+            {Coupon && (
+              <View style={styles.summaryRow}>
+                <Text style={[styles.summaryLabel, {color: '#47317c'}]}>
+                  Discount
+                </Text>
+                <Text style={[styles.summaryValue, {color: '#47317c'}]}>
+                  -£{discountAmount.toFixed(2)}
+                </Text>
+              </View>
+            )}
+
+            <View style={styles.summaryRow}>
+              <Text style={styles.summaryLabel}>
+                Shipping ({shipping?.country_name})
+              </Text>
+              <Text style={styles.summaryValue}>
+                £{shipping?.country_price}
+              </Text>
+            </View>
+
+            <View style={styles.separator} />
+
+            <View style={styles.summaryRow}>
+              <Text style={styles.summaryTitle}>Total</Text>
+              <Text style={styles.summaryTitle}>£{finalTotal.toFixed(2)}</Text>
+            </View>
+
+            <View style={styles.separator} />
+
+            {/* Discount Message */}
+            {Coupon && (
+              <View style={styles.discountSection}>
+                <View>
+                  <Text style={styles.discountText}>
+                    {Coupon?.Data?.code} Applied
+                  </Text>
+                  <Text style={styles.discountAmount}>
+                    - £{Coupon?.Data?.discount}{' '}
+                    {Coupon?.Data?.type === 'Percent' &&
+                      `(${Coupon?.Data?.discount}% off)`}
+                  </Text>
+                </View>
+                <TouchableOpacity
+                  style={styles.removeButton}
+                  onPress={handleRemoveCoupon}>
+                  <Entypo name="cross" size={24} color="#fff" />
+                </TouchableOpacity>
+              </View>
+            )}
+
+            {/* Apply Coupon */}
+            {!Coupon && (
+              <View style={styles.applyCouponContainer}>
+                <TextInput
+                  style={styles.couponInput}
+                  placeholder="Enter discount code"
+                  value={discountCode}
+                  onChangeText={setDiscountCode}
+                />
+                <TouchableOpacity
+                  style={[
+                    styles.applyCouponButton,
+                    {backgroundColor: isApplyEnabled ? '#4B0082' : '#ccc'},
+                  ]}
+                  onPress={handleApplyCoupon}
+                  disabled={!isApplyEnabled}>
+                  <Text style={styles.applyCouponButtonText}>
+                    {couponLoading ? 'Applying...' : 'Apply'}
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            )}
+          </View>
         </View>
       </View>
-    </View>
+
+      <NextButton
+        label="Procceed to Payment"
+        style={{marginBottom: 30}}
+        onPress={handleSubmit}
+        disabled={!isNextDisabled}
+      />
+
+      {/* Loading Modal */}
+      <Modal transparent visible={loading}>
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalBox}>
+            <ActivityIndicator size="large" color="#4B0082" />
+            <Text style={{marginTop: 12}}>Processing payment...</Text>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Thank You Modal */}
+      <Modal transparent visible={thankYou}>
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalBox}>
+            <Text style={styles.thankText}>Thank you!</Text>
+            <Text>Your order has been placed.</Text>
+          </View>
+        </View>
+      </Modal>
+    </>
   );
 };
 
@@ -152,6 +279,17 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 16,
     marginTop: 8,
+  },
+  card: {
+    backgroundColor: '#fff',
+    padding: 20,
+    borderRadius: 16,
+    marginBottom: 20,
+    shadowColor: '#000',
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    shadowOffset: {width: 0, height: 2},
+    elevation: 2,
   },
   sectionTitle: {
     fontSize: 20,
@@ -287,6 +425,25 @@ const styles = StyleSheet.create({
   paymentButtonText: {
     fontSize: 18,
     color: '#fff',
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.4)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalBox: {
+    backgroundColor: '#fff',
+    padding: 24,
+    borderRadius: 16,
+    alignItems: 'center',
+    width: '80%',
+  },
+  thankText: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#4B0082',
+    marginBottom: 8,
   },
 });
 

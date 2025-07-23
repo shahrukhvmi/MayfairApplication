@@ -74,8 +74,6 @@ export default function CalculateBmi() {
 
   // Load values from store
   useEffect(() => {
-    console.log(bmi, 'This is bmi');
-
     console.log(bmi?.ft, '====================== this is bmi ft');
 
     setValue('heightFt', bmi?.ft);
