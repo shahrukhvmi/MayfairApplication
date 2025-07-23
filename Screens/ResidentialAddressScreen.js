@@ -1,5 +1,5 @@
-import React, {useEffect, useState} from 'react';
-import {useNavigation} from '@react-navigation/native';
+import React, { useEffect, useState } from 'react';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import {
   ScrollView,
   StyleSheet,
@@ -8,7 +8,7 @@ import {
   View,
 } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import {useForm, Controller} from 'react-hook-form';
+import { useForm, Controller } from 'react-hook-form';
 
 import Header from '../Layout/header';
 import TextField from '../Components/TextFields';
@@ -50,7 +50,7 @@ const fetchAddresses = async postcode => {
 
 export default function ResidentialAddressScreen() {
   const navigation = useNavigation();
-  const {patientInfo, setPatientInfo} = usePatientInfoStore();
+  const { patientInfo, setPatientInfo } = usePatientInfoStore();
 
   const [showManual, setShowManual] = useState(false);
   const [addressOptions, setAddressOptions] = useState([]);
@@ -62,7 +62,7 @@ export default function ResidentialAddressScreen() {
     handleSubmit,
     setValue,
     watch,
-    formState: {errors},
+    formState: { errors },
   } = useForm({
     mode: 'onChange',
     defaultValues: {
@@ -82,24 +82,26 @@ export default function ResidentialAddressScreen() {
   const isNextEnabled =
     !!address1?.trim() && !!city?.trim() && !!country?.trim();
 
-  useEffect(() => {
-    if (patientInfo?.address) {
-      setValue('postcode', patientInfo.address.postalcode || '');
-      setValue('address1', patientInfo.address.addressone || '');
-      setValue('address2', patientInfo.address.addresstwo || '');
-      setValue('city', patientInfo.address.city || '');
-      setValue('country', patientInfo.address.country || '');
+  useFocusEffect(
+    useCallback(() => {
+      if (patientInfo?.address) {
+        setValue('postcode', patientInfo.address.postalcode || '');
+        setValue('address1', patientInfo.address.addressone || '');
+        setValue('address2', patientInfo.address.addresstwo || '');
+        setValue('city', patientInfo.address.city || '');
+        setValue('country', patientInfo.address.country || '');
 
-      if (
-        patientInfo.address.addressone ||
-        patientInfo.address.addresstwo ||
-        patientInfo.address.city ||
-        patientInfo.address.country
-      ) {
-        setShowManual(true);
+        if (
+          patientInfo.address.addressone ||
+          patientInfo.address.addresstwo ||
+          patientInfo.address.city ||
+          patientInfo.address.country
+        ) {
+          setShowManual(true);
+        }
       }
-    }
-  }, [patientInfo]);
+    }, [patientInfo])
+  );
 
   const onSubmit = data => {
     const fullAddress = {
@@ -111,7 +113,7 @@ export default function ResidentialAddressScreen() {
       country: data.country,
     };
 
-    setPatientInfo({...patientInfo, address: fullAddress});
+    setPatientInfo({ ...patientInfo, address: fullAddress });
     navigation.navigate('preferred-phone-number');
   };
 
@@ -160,7 +162,7 @@ export default function ResidentialAddressScreen() {
           <Controller
             control={control}
             name="postcode"
-            render={({field: {onChange, value}}) => (
+            render={({ field: { onChange, value } }) => (
               <TextField
                 placeholder="Enter your postal code"
                 value={value}
@@ -181,8 +183,8 @@ export default function ResidentialAddressScreen() {
           <Controller
             control={control}
             name="selectedAddress"
-            rules={{required: 'Please select your address'}}
-            render={({field: {onChange, value}}) => (
+            rules={{ required: 'Please select your address' }}
+            render={({ field: { onChange, value } }) => (
               <SelectFields
                 label="Select Your Address"
                 value={value}
@@ -230,7 +232,7 @@ export default function ResidentialAddressScreen() {
             <Controller
               control={control}
               name="address1"
-              render={({field: {onChange, value}}) => (
+              render={({ field: { onChange, value } }) => (
                 <TextField
                   placeholder="Enter address line 1"
                   value={value}
@@ -241,7 +243,7 @@ export default function ResidentialAddressScreen() {
             <Controller
               control={control}
               name="address2"
-              render={({field: {onChange, value}}) => (
+              render={({ field: { onChange, value } }) => (
                 <TextField
                   placeholder="Enter address line 2 (optional)"
                   value={value}
@@ -252,7 +254,7 @@ export default function ResidentialAddressScreen() {
             <Controller
               control={control}
               name="city"
-              render={({field: {onChange, value}}) => (
+              render={({ field: { onChange, value } }) => (
                 <TextField
                   placeholder="Enter city or town"
                   value={value}
@@ -263,7 +265,7 @@ export default function ResidentialAddressScreen() {
             <Controller
               control={control}
               name="country"
-              render={({field: {onChange, value}}) => (
+              render={({ field: { onChange, value } }) => (
                 <TextField
                   placeholder="Enter state or country"
                   value={value}

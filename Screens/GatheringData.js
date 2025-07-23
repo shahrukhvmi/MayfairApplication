@@ -1,7 +1,7 @@
 // screens/GatherDataScreen.js
 import React, { useEffect, useState } from "react";
 import { View, StyleSheet, ActivityIndicator, ToastAndroid } from "react-native";
-import { useNavigation } from "@react-navigation/native";
+import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import { useMutation } from "@tanstack/react-query";
 
 import getVariationsApi from "../api/getVariationsApi";
@@ -96,12 +96,20 @@ const GatherDataScreen = () => {
         },
     });
 
-    useEffect(() => {
-        setShowLoader(true);
-        if (productId != null) {
-            variationMutation.mutate({ id: productId, data: {} });
-        }
-    }, [productId]);
+    // ✅ Replace useEffect with useFocusEffect
+    useFocusEffect(
+        React.useCallback(() => {
+            setShowLoader(true);
+            if (productId != null) {
+                variationMutation.mutate({ id: productId, data: {} });
+            }
+
+            // optional: cleanup when leaving screen
+            return () => {
+                setShowLoader(false);
+            };
+        }, [productId])
+    );
 
     return (
         <View style={styles.container}>

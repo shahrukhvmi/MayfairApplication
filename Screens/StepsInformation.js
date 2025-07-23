@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { View, StyleSheet, Dimensions, ActivityIndicator } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { useMutation } from '@tanstack/react-query';
 import Toast from 'react-native-toast-message';
 
@@ -130,19 +130,26 @@ const StepsInformation = () => {
     },
   });
 
-  useEffect(() => {
+  useFocusEffect(
+    React.useCallback(() => {
+      if (!productId) return;
 
-    const formData = {
-      clinic_id: 1,
-      product_id: productId,
-    };
-    setShowLoader(true);
-    if (productId != null) {
+      setShowLoader(true);
+
+      const formData = {
+        clinic_id: 1,
+        product_id: productId,
+      };
 
       consultationMutation.mutate(formData);
       medicalQuestionsMutation.mutate();
-    }
-  }, [productId]);
+
+      return () => {
+        // Optional cleanup
+        setShowLoader(false);
+      };
+    }, [productId])
+  );
   console.log(showLoader, "showLoader")
   return (
 

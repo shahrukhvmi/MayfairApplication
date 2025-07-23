@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -14,17 +14,17 @@ import {
   ActivityIndicator,
   Alert,
 } from 'react-native';
-import {useRoute, useNavigation} from '@react-navigation/native';
+import { useRoute, useNavigation, useFocusEffect } from '@react-navigation/native';
 import Toast from 'react-native-toast-message';
-import {logApiSuccess} from '../utils/logApiDebug';
+import { logApiSuccess } from '../utils/logApiDebug';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import {forgotPassword} from '../api/ChangePasswordApi';
-import {Controller, useForm} from 'react-hook-form';
-import {useMutation} from '@tanstack/react-query';
+import { forgotPassword } from '../api/ChangePasswordApi';
+import { Controller, useForm } from 'react-hook-form';
+import { useMutation } from '@tanstack/react-query';
 
 const ResetPassword = () => {
   const route = useRoute();
-  const {token, email} = route.params || {};
+  const { token, email } = route.params || {};
   const navigation = useNavigation();
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -33,7 +33,7 @@ const ResetPassword = () => {
     control,
     handleSubmit,
     watch,
-    formState: {errors},
+    formState: { errors },
   } = useForm();
 
   const forgotPasswordMutation = useMutation(forgotPassword, {
@@ -44,7 +44,7 @@ const ResetPassword = () => {
         text1: 'Password Updated Successfully',
         text2: 'You can now log in with your new password.',
       });
-      navigation.reset({index: 0, routes: [{name: 'Login'}]});
+      navigation.reset({ index: 0, routes: [{ name: 'Login' }] });
       setLoading(false);
     },
     onError: error => {
@@ -57,10 +57,12 @@ const ResetPassword = () => {
     },
   });
 
-  useEffect(() => {
-    if (token) console.log('🔐 Token from URL:', token);
-    else console.log('❌ No token found in params');
-  }, [token]);
+  useFocusEffect(
+    useCallback(() => {
+      if (token) console.log('🔐 Token from URL:', token);
+      else console.log('❌ No token found in params');
+    }, [token])
+  );
 
   const onSubmit = data => {
     const formData = {
@@ -86,10 +88,10 @@ const ResetPassword = () => {
 
   return (
     <KeyboardAvoidingView
-      style={{flex: 1}}
+      style={{ flex: 1 }}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
       <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-        <ScrollView contentContainerStyle={{flexGrow: 1}}>
+        <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
           <View style={styles.container}>
             <View style={styles.logoContainer}>
               <Image
@@ -105,8 +107,8 @@ const ResetPassword = () => {
                 <Controller
                   control={control}
                   name="password"
-                  rules={{required: 'Password is required'}}
-                  render={({field: {onChange, value}}) => (
+                  rules={{ required: 'Password is required' }}
+                  render={({ field: { onChange, value } }) => (
                     <TextInput
                       style={styles.passwordInput}
                       placeholder="Password"
@@ -141,7 +143,7 @@ const ResetPassword = () => {
                     validate: val =>
                       val === watch('password') || "Passwords don't match",
                   }}
-                  render={({field: {onChange, value}}) => (
+                  render={({ field: { onChange, value } }) => (
                     <TextInput
                       style={styles.passwordInput}
                       placeholder="Confirm Password"
@@ -232,7 +234,7 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     justifyContent: 'space-between',
   },
-  passwordInput: {height: 40, width: '85%', textAlign: 'start', fontSize: 16},
+  passwordInput: { height: 40, width: '85%', textAlign: 'start', fontSize: 16 },
   btn: {
     marginTop: 20,
     height: 50,
@@ -241,20 +243,20 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  btnEnabled: {backgroundColor: '#4B0082'},
-  btnDisabled: {backgroundColor: '#aaa'},
-  btnText: {color: '#fff', fontWeight: 'bold', fontSize: 16},
-  loadingContent: {flexDirection: 'row', alignItems: 'center', gap: 10},
+  btnEnabled: { backgroundColor: '#4B0082' },
+  btnDisabled: { backgroundColor: '#aaa' },
+  btnText: { color: '#fff', fontWeight: 'bold', fontSize: 16 },
+  loadingContent: { flexDirection: 'row', alignItems: 'center', gap: 10 },
   endView: {
     flexDirection: 'row',
     marginTop: 30,
     justifyContent: 'center',
     alignItems: 'center',
   },
-  endTxt: {fontSize: 16, fontWeight: '600', marginRight: 8},
-  loginTxt: {fontSize: 16, fontWeight: 'bold', color: '#4B0082'},
-  logoContainer: {alignItems: 'center', justifyContent: 'center'},
-  image: {width: 200, height: 200, resizeMode: 'contain'},
+  endTxt: { fontSize: 16, fontWeight: '600', marginRight: 8 },
+  loginTxt: { fontSize: 16, fontWeight: 'bold', color: '#4B0082' },
+  logoContainer: { alignItems: 'center', justifyContent: 'center' },
+  image: { width: 200, height: 200, resizeMode: 'contain' },
   errorText: {
     color: 'red',
     fontSize: 12,
