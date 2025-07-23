@@ -145,8 +145,8 @@ export default function OrderDetail() {
         <View style={styles.tabs}>
           <TabButton label="Order Details" idx={0} />
           <TabButton label="Patient Details" idx={1} />
-          <TabButton label="Medical Questions" idx={2} />
-          <TabButton label="Shipping/Billing" idx={3} />
+          {/* <TabButton label="Medical Questions" idx={2} /> */}
+          {/* <TabButton label="Shipping/Billing" idx={3} /> */}
         </View>
 
         {/* tab content */}
@@ -190,23 +190,23 @@ export default function OrderDetail() {
               <Row left="Phone" right={patient?.phoneNo || 'N/A'} />
             </View>
 
-            <View style={styles.card}>
+            {/* <View style={styles.card}>
               <Text style={styles.cardTitle}>GP Details</Text>
               <Row left="Registered with UK GP?" right={gp?.gpConsent || 'N/A'} />
               <Row left="Address" right={gp?.addressLine1 || 'N/A'} />
               <Row left="City" right={gp?.city || 'N/A'} />
               <Row left="Email" right={gp?.email || 'N/A'} />
               <Row left="County" right={gp?.state || 'N/A'} />
-            </View>
+            </View> */}
 
-            <View style={styles.card}>
+            {/* <View style={styles.card}>
               <Text style={styles.cardTitle}>BMI Information</Text>
               <Row left="BMI" right={bmi?.bmi ?? 'N/A'} />
               <Row left="Height Unit" right={bmi?.height_unit?.toUpperCase() ?? 'N/A'} />
               <Row left="Height" right={formatHeight(bmi)} />
               <Row left="Weight Unit" right={bmi?.weight_unit?.toUpperCase() ?? 'N/A'} />
               <Row left="Weight" right={formatWeight(bmi)} />
-            </View>
+            </View> */}
           </>
         )}
 
@@ -443,7 +443,7 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     paddingHorizontal: 14,
     borderRadius: 14,
-    minWidth: 110,
+    minWidth: 105,
 
   },
 

@@ -160,7 +160,7 @@ export default function ConfirmationSummary() {
   };
 
   const reviewAll = () => {
-    navigation.navigate('review-answers');
+    navigation.navigate('review-answer');
   };
 
   const back = () => {
