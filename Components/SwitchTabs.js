@@ -1,61 +1,96 @@
-import React from 'react';
-import {View, TouchableOpacity, Text, StyleSheet} from 'react-native';
+import React, { useEffect, useRef } from 'react';
+import {
+  View,
+  TouchableOpacity,
+  Text,
+  StyleSheet,
+  Animated,
+  useWindowDimensions,
+} from 'react-native';
 
-const SwitchTabs = ({tabs, selectedTab, onTabChange}) => {
+const SwitchTabs = ({ tabs, selectedTab, onTabChange }) => {
+  const { width } = useWindowDimensions();
+  const tabWidth = (width - 36) / tabs.length; // subtract padding (16 left + 16 right)
+  const translateX = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    const index = tabs.findIndex(tab => tab.value === selectedTab);
+    Animated.spring(translateX, {
+      toValue: tabWidth * index,
+      useNativeDriver: true,
+    }).start();
+  }, [selectedTab]);
+
   return (
-    <View style={styles.tabContainer}>
-      {tabs.map((tab, index) => {
-        const isActive = selectedTab === tab.value;
-        const isLast = index === tabs.length - 1;
-
-        return (
-          <TouchableOpacity
-            key={tab.value}
-            onPress={() => onTabChange(tab.value)}
-            style={[
-              styles.tabButton,
-              isActive && styles.activeTab,
-              !isLast && styles.borderRight,
-            ]}>
-            <Text style={[styles.tabText, isActive && styles.activeTabText]}>
-              {tab.label}
-            </Text>
-          </TouchableOpacity>
-        );
-      })}
+    <View style={styles.wrapper}>
+      <View style={[styles.container, { width: tabWidth * tabs.length }]}>
+        {/* Sliding animated background */}
+        <Animated.View
+          style={[
+            styles.slider,
+            {
+              width: tabWidth - 8,
+              transform: [{ translateX }],
+              marginHorizontal: 4,
+            },
+          ]}
+        />
+        {tabs.map((tab, index) => {
+          const isActive = selectedTab === tab.value;
+          return (
+            <TouchableOpacity
+              key={tab.value}
+              onPress={() => onTabChange(tab.value)}
+              style={[styles.tab, { width: tabWidth }]}>
+              <Text style={[styles.tabText, isActive && styles.activeTabText]}>
+                {tab.label}
+              </Text>
+            </TouchableOpacity>
+          );
+        })}
+      </View>
     </View>
   );
 };
 
 const styles = StyleSheet.create({
-  tabContainer: {
-    flexDirection: 'row',
-    borderWidth: 1,
-    borderColor: '#15803d', // green-700
-    borderRadius: 6,
-    overflow: 'hidden',
+  wrapper: {
+    paddingHorizontal: 16,
     marginBottom: 24,
+    alignItems: 'center',
   },
-  tabButton: {
-    flex: 1,
+  container: {
+    flexDirection: 'row',
+    backgroundColor: '#e0e0e0ff',
+    borderRadius: 30,
+    position: 'relative',
+    overflow: 'hidden',
+  },
+  tab: {
     paddingVertical: 10,
     alignItems: 'center',
-    backgroundColor: '#ffffff',
+    justifyContent: 'center',
   },
-  activeTab: {
-    backgroundColor: '#dcfce7', // green-100
+  slider: {
+    position: 'absolute',
+    height: '100%',
+    backgroundColor: '#4B0082',
+    borderRadius: 30,
+    top: 0,
+
   },
-  borderRight: {
-    borderRightWidth: 1,
-    borderColor: '#000000',
-  },
+
   tabText: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#000000',
+    color: '#4B0082',
+    textTransform: 'capitalize'
+
   },
   activeTabText: {
-    color: '#000000',
+    color: '#ffffff',
+    textTransform: 'capitalize'
+
   },
 });
 

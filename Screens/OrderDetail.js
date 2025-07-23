@@ -152,7 +152,8 @@ export default function OrderDetail() {
         {/* tab content */}
         {/* TAB 0 – Order Details ------------------------------------------------ */}
         {activeTab === 0 && (
-          <View>
+          <View style={styles.card}>
+            <Text style={styles.cardTitle}>Order Details</Text>
             {products.map((p) => (
               <Row
                 key={p.id}
@@ -261,7 +262,7 @@ export default function OrderDetail() {
 
 
         </TouchableOpacity>
-        
+
       </ScrollView>
     </>
   );

@@ -1,5 +1,5 @@
 import React from 'react';
-import {View, Text, TextInput, StyleSheet} from 'react-native';
+import { View, Text, TextInput, StyleSheet } from 'react-native';
 
 const BmiTextField = ({
   required,
@@ -9,9 +9,14 @@ const BmiTextField = ({
   fieldProps = {},
   errors = {},
   onBlur,
+  readOnly = false,
+  disabled = false,
 }) => {
+  const showError = !!errors[name];
+  const editable = !readOnly && !disabled;
+
   return (
-    <View style={styles.container}>
+    <View style={styles.fieldWrapper}>
       {label && (
         <Text style={styles.label}>
           {label}
@@ -24,16 +29,19 @@ const BmiTextField = ({
       )}
 
       <TextInput
+        editable={editable}
+        onBlur={onBlur}
         style={[
           styles.input,
-          errors[name] ? styles.inputError : styles.inputDefault,
+          showError && styles.errorInput,
+          !editable && styles.disabledInput,
         ]}
-        keyboardType={type === 'number' ? 'numeric' : 'default'}
-        onEndEditing={onBlur}
+        placeholderTextColor="#9ca3af"
+        keyboardType={type}
         {...fieldProps}
       />
 
-      {errors[name] && (
+      {showError && (
         <Text style={styles.errorText}>
           {errors[name]?.message || 'This field is required'}
         </Text>
@@ -43,41 +51,43 @@ const BmiTextField = ({
 };
 
 const styles = StyleSheet.create({
-  container: {
+  fieldWrapper: {
     marginBottom: 16,
   },
   label: {
     fontWeight: '600',
-    marginBottom: 6,
-    fontSize: 16,
-    color: '#111',
+    fontSize: 14,
+    marginBottom: 4,
+    color: '#000',
   },
   required: {
-    color: '#e11d48', // red-500
+    color: '#ef4444',
   },
   optional: {
-    fontSize: 14,
-    color: '#6b7280', // gray-500
+    color: '#6b7280',
+    fontSize: 12,
     fontWeight: '400',
+    marginLeft: 4,
   },
   input: {
     width: '100%',
-    paddingVertical: 12,
-    paddingHorizontal: 12,
-    borderWidth: 1,
-    borderRadius: 4,
-    fontSize: 16,
+    backgroundColor: '#fff',
     color: '#000',
+    paddingHorizontal: 12,
+    paddingVertical: 12,
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: '#CBCBCB66',
   },
-  inputDefault: {
-    borderColor: '#000',
+  errorInput: {
+    borderColor: '#ef4444',
   },
-  inputError: {
-    borderColor: '#e11d48', // red-500
+  disabledInput: {
+    opacity: 0.5,
   },
   errorText: {
-    color: '#e11d48',
-    fontSize: 14,
+    color: '#ef4444',
+    fontSize: 12,
     marginTop: 4,
   },
 });

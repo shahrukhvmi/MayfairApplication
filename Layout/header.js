@@ -35,7 +35,7 @@ const Header = () => {
         <>
             <View style={styles.header}>
                 {/* Logo */}
-                <TouchableOpacity onPress={() => navigation.navigate("Initial")}>
+                <TouchableOpacity onPress={() => navigation.navigate("dashboard")}>
                     <Image
                         source={require("../assets/images/logo.png")}
                         style={styles.logo}

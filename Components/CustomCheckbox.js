@@ -1,11 +1,14 @@
 // components/CustomCheckbox.js
 import React from 'react';
-import {View, Text, TouchableOpacity, StyleSheet} from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 
-const CustomCheckbox = ({label, value, onChange}) => {
+const CustomCheckbox = ({ label, value, onChange }) => {
+  const toggleCheckbox = () => {
+    onChange(!value); // important: update the form state
+  };
   return (
-    <TouchableOpacity style={styles.container} onPress={() => onChange(!value)}>
+    <TouchableOpacity style={styles.container} onPress={toggleCheckbox}>
       <Ionicons
         name={value ? 'checkbox-outline' : 'square-outline'}
         size={24}

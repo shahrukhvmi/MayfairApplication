@@ -107,7 +107,7 @@ const OrdersScreen = () => {
         <View style={[styles.cell, styles.stat]}>
           <Text style={pillStyle(item.status)}>{item.status}</Text>
         </View>
-        <Text style={[styles.cell, styles.total]} numberOfLines={1}>£{item.total_price}</Text>
+        <Text style={[styles.cell, styles.totalAmount]} numberOfLines={1}>£{item.total_price}</Text>
         <TouchableOpacity
           style={[styles.cell, styles.eye]}
           onPress={() => handleSendId(item.id)}>
@@ -118,9 +118,7 @@ const OrdersScreen = () => {
   };
 
   return (
-
     <>
-
       <Header />
       <View style={styles.container}>
         <Text style={styles.heading}>My Orders</Text>
@@ -140,26 +138,7 @@ const OrdersScreen = () => {
           </View>
         </View>
 
-        {/* Filter tag */}
-        {/* <View style={styles.statusTagWrapper}>
-        <Text style={styles.statusTagLabel}>Showing:</Text>
-        <View
-          style={[
-            styles.statusTag,
-            status === 'all' ? styles.defaultPill : pillStyle(status),
-          ]}>
-          <Text style={styles.statusTagText}>
-            {status === 'all' ? 'All Orders' : status}
-          </Text>
-        </View>
-      </View> */}
-        {/* processing: { backgroundColor: '#fef3c7', color: '#92400e' },
-  incomplete: { backgroundColor: '#ffedd5', color: '#c2410c' },
-  approved: { backgroundColor: '#d1fae5', color: '#065f46' },
-  cancelled: { backgroundColor: '#fee2e2', color: '#991b1b' },
-  defaultPill: { backgroundColor: '#e5e7eb', color: '#374151' }, */}
-
-        {/* Dropdown */}
+        {/* Filter Dropdown */}
         <View style={styles.filterRow}>
           <Text style={styles.filterLabel}>Sort by status</Text>
           <View style={[
@@ -186,7 +165,7 @@ const OrdersScreen = () => {
           </View>
         </View>
 
-        {/* Banner */}
+        {/* Info Banner */}
         <View style={styles.banner}>
           <Ionicons name="bulb-outline" size={16} color="#2563eb" />
           <Text style={styles.bannerText}>
@@ -194,9 +173,9 @@ const OrdersScreen = () => {
           </Text>
         </View>
 
-        {/* Orders table */}
+        {/* Orders Table */}
         <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-          <View style={{ minWidth: 670 }}>
+          <View style={{ minWidth: 670, flex: 1 }}>
             <View style={styles.headerRow}>
               <Text style={[styles.hCell, styles.id]}>ORDER ID</Text>
               <Text style={[styles.hCell, styles.date]}>ORDER DATE</Text>
@@ -206,8 +185,16 @@ const OrdersScreen = () => {
               <Text style={[styles.hCell, styles.total]}>TOTAL</Text>
               <Text style={[styles.hCell, styles.eye]} />
             </View>
+
+            {/* Vertically Center Loader or Empty */}
             {isLoading ? (
-              <ActivityIndicator style={{ marginTop: 30 }} size="large" />
+              <View style={styles.centeredContent}>
+                <ActivityIndicator size="large" color="#47317c" />
+              </View>
+            ) : filteredOrders?.length === 0 ? (
+              <View style={styles.centeredContent}>
+                <Text style={{ color: '#6b7280' }}>No orders found</Text>
+              </View>
             ) : (
               <FlatList
                 data={filteredOrders}
@@ -219,7 +206,6 @@ const OrdersScreen = () => {
           </View>
         </ScrollView>
       </View>
-
     </>
   );
 };
@@ -287,29 +273,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 4,
   },
   dropdown: {
-    // height: 36,
     color: 'black',
-  },
-
-  statusTagWrapper: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    marginBottom: 12,
-  },
-  statusTagLabel: {
-    fontSize: 13,
-    color: '#6b7280',
-  },
-  statusTag: {
-    paddingVertical: 4,
-    paddingHorizontal: 10,
-  },
-  statusTagText: {
-    fontSize: 13,
-    fontWeight: '500',
-    textTransform: 'capitalize',
-    color: '#111',
   },
 
   banner: {
@@ -352,8 +316,9 @@ const styles = StyleSheet.create({
   treat: { width: COL_WIDTH.treat },
   items: { width: COL_WIDTH.items },
   stat: { width: COL_WIDTH.stat, justifyContent: 'center' },
-  total: { width: COL_WIDTH.total },
-  eye: { width: COL_WIDTH.eye, alignItems: 'center' },
+  total: { width: COL_WIDTH.total, alignItems: 'end', justifyContent: 'center' },
+  totalAmount: { width: COL_WIDTH.total, alignItems: 'end', justifyContent: 'center', marginRight: 24 },
+  eye: { width: COL_WIDTH.eye, alignItems: 'end', justifyContent: 'center' },
 
   pill: {
     paddingHorizontal: 8,
@@ -370,6 +335,12 @@ const styles = StyleSheet.create({
   approved: { backgroundColor: '#d1fae5', color: '#065f46' },
   cancelled: { backgroundColor: '#fee2e2', color: '#991b1b' },
   defaultPill: { backgroundColor: '#e5e7eb', color: '#374151' },
+
+  centeredContent: {
+    height: 400,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
 });
 
 export default OrdersScreen;

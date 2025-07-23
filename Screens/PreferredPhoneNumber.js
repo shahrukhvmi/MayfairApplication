@@ -1,5 +1,5 @@
-import {useEffect, useRef, useState} from 'react';
-import {useNavigation} from '@react-navigation/native';
+import { useEffect, useRef, useState } from 'react';
+import { useNavigation } from '@react-navigation/native';
 import {
   KeyboardAvoidingView,
   Platform,
@@ -10,23 +10,24 @@ import {
 } from 'react-native';
 
 import PhoneInput from 'react-native-phone-number-input';
-import {useForm, Controller} from 'react-hook-form';
+import { useForm, Controller } from 'react-hook-form';
 
 import Header from '../Layout/header';
 import usePatientInfoStore from '../store/patientInfoStore';
+import useReturning from '../store/useReturningPatient';
 
 export default function PreferredPhoneNumber() {
   const navigation = useNavigation();
   const phoneInput = useRef(null);
   const [countryCode, setCountryCode] = useState('GB');
-
-  const {patientInfo, setPatientInfo} = usePatientInfoStore();
+  const { isReturningPatient } = useReturning();
+  const { patientInfo, setPatientInfo } = usePatientInfoStore();
 
   const {
     control,
     handleSubmit,
     setValue,
-    formState: {errors, isValid},
+    formState: { errors, isValid },
     watch,
   } = useForm({
     mode: 'onChange',
@@ -47,7 +48,14 @@ export default function PreferredPhoneNumber() {
       phoneNo: data.phoneNo,
     });
 
-    navigation.navigate('ethnicity');
+
+    if (isReturningPatient) {
+
+      navigation.navigate("calculate-bmi");
+    } else {
+      navigation.navigate("ethnicity");
+
+    }
   };
 
   const getMaxDigitsForCountry = countryCode => {
@@ -65,7 +73,7 @@ export default function PreferredPhoneNumber() {
       <Header />
       <KeyboardAvoidingView
         style={styles.container}
-        behavior={Platform.select({ios: 'padding', android: undefined})}>
+        behavior={Platform.select({ ios: 'padding', android: undefined })}>
         {/* Progress Bar */}
         <View style={styles.progressContainer}>
           <View style={styles.progressBar} />
@@ -98,7 +106,7 @@ export default function PreferredPhoneNumber() {
               return true;
             },
           }}
-          render={({field: {onChange, value}}) => (
+          render={({ field: { onChange, value } }) => (
             <>
               <PhoneInput
                 ref={phoneInput}
@@ -116,7 +124,7 @@ export default function PreferredPhoneNumber() {
                 autoFocus
               />
               {errors.phoneNo && (
-                <Text style={{color: 'red', marginTop: 4}}>
+                <Text style={{ color: 'red', marginTop: 4 }}>
                   {errors.phoneNo.message}
                 </Text>
               )}

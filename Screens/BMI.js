@@ -1,5 +1,5 @@
 // React Native equivalent of the provided Next.js screen
-import React, {useState, useEffect} from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -10,13 +10,13 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
-import {useForm, Controller} from 'react-hook-form';
+import { useForm, Controller } from 'react-hook-form';
 import useBmiStore from '../store/bmiStore';
 import usePatientInfoStore from '../store/patientInfoStore';
 import useReorder from '../store/useReorderStore';
 import useLastBmi from '../store/useLastBmiStore';
 import useReturning from '../store/useReturningPatient';
-import {useNavigation} from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 // import TextField from '../Components/TextField';
 import NextButton from '../Components/NextButton';
 import BackButton from '../Components/BackButton';
@@ -26,11 +26,11 @@ import Header from '../Layout/header';
 
 export default function BmiDetail() {
   const [showLoader, setShowLoader] = useState(false);
-  const {bmi, setBmi} = useBmiStore();
-  const {patientInfo} = usePatientInfoStore();
-  const {reorder, reorderStatus} = useReorder();
-  const {lastBmi} = useLastBmi();
-  const {isReturningPatient} = useReturning();
+  const { bmi, setBmi } = useBmiStore();
+  const { patientInfo } = usePatientInfoStore();
+  const { reorder, reorderStatus } = useReorder();
+  const { lastBmi } = useLastBmi();
+  const { isReturningPatient } = useReturning();
   const navigation = useNavigation();
 
   const {
@@ -38,7 +38,7 @@ export default function BmiDetail() {
     handleSubmit,
     watch,
     setValue,
-    formState: {errors},
+    formState: { errors },
   } = useForm({
     mode: 'onChange',
     defaultValues: {
@@ -62,7 +62,8 @@ export default function BmiDetail() {
 
   const shouldShowInfoMessage =
     patientInfo?.ethnicity === 'Yes' && bmiValue >= 27.5 && bmiValue <= 29.9;
-  const isReorderAndBmiLow = isReturningPatient && bmiValue < 20;
+  const isApproachingUnderweight = bmiValue >= 19.5 && bmiValue <= 21.0;
+  const isReorderAndBmiLow = isReturningPatient && bmiValue < 19.4;
 
   const isEthnicityYes = patientInfo?.ethnicity === 'Yes';
   const isEthnicityNo = patientInfo?.ethnicity === 'No';
@@ -73,6 +74,10 @@ export default function BmiDetail() {
   } else if (isEthnicityNo && bmiValue < 27 && !isReturningPatient) {
     bmiError = 'BMI must be at least 27';
   }
+  else if (isApproachingUnderweight && isReturningPatient) {
+    bmiError = "Your BMI is approaching the lower end of healthy weight. Due to the risk of becoming underweight, you are not able to proceed. Please arrange a telephone consultation with a member of our clinical team to discuss alternatives";
+  }
+
 
   const isNextDisabled =
     (!isReturningPatient &&
@@ -145,7 +150,7 @@ export default function BmiDetail() {
       }
     }
 
-    setBmi({...bmi, bmiConsent: consent});
+    setBmi({ ...bmi, bmiConsent: consent });
     setShowLoader(true);
 
     setTimeout(() => {
@@ -170,10 +175,7 @@ export default function BmiDetail() {
         {isReorderAndBmiLow && (
           <View style={styles.alertBox}>
             <Text style={styles.alertText}>
-              Your BMI is approaching the lower end of healthy weight. Due to
-              the risk of becoming underweight, you are not able to proceed.
-              Please arrange a telephone consultation with a member of our
-              clinical team to discuss alternatives.
+              Your BMI is in the underweight category. Therefore, losing further weight is not safe and you are not able to proceed further. Please contact us to discuss your options with the clinical team.
             </Text>
           </View>
         )}
@@ -197,13 +199,13 @@ export default function BmiDetail() {
         )}
 
         {shouldShowCheckboxes && !isReturningPatient && (
-          <View style={{marginBottom: 24}}>
+          <View style={{ marginBottom: 24 }}>
             {(patientInfo?.ethnicity === 'No' ||
               patientInfo?.ethnicity === 'Prefer not to say') && (
-              <Text style={styles.paragraph}>
-                Your BMI is between 27-29.9 which indicates you are overweight.
-              </Text>
-            )}
+                <Text style={styles.paragraph}>
+                  Your BMI is between 27-29.9 which indicates you are overweight.
+                </Text>
+              )}
             <Text style={styles.paragraph}>
               You should only continue with the consultation if you have tried
               losing weight through a reduced-calorie diet and increased
@@ -214,7 +216,7 @@ export default function BmiDetail() {
             <Controller
               name="checkbox1"
               control={control}
-              render={({field}) => (
+              render={({ field }) => (
                 <CustomCheckbox
                   label={getCheckbox1Label()}
                   value={field.value}
@@ -226,7 +228,7 @@ export default function BmiDetail() {
             <Controller
               name="checkbox2"
               control={control}
-              render={({field}) => (
+              render={({ field }) => (
                 <CustomCheckbox
                   label="You have at least one weight-related comorbidity (e.g. PCOS, diabetes, etc.)"
                   value={field.value}
@@ -239,8 +241,8 @@ export default function BmiDetail() {
               <Controller
                 name="weight_related_comorbidity_explanation"
                 control={control}
-                rules={{required: 'Explanation is required'}}
-                render={({field}) => (
+                rules={{ required: 'Explanation is required' }}
+                render={({ field }) => (
                   <TextInput
                     value={field.value}
                     onChangeText={field.onChange}
@@ -257,7 +259,7 @@ export default function BmiDetail() {
             <Controller
               name="noneOfTheAbove"
               control={control}
-              render={({field}) => (
+              render={({ field }) => (
                 <CustomCheckbox
                   label="None of the above"
                   value={field.value}
@@ -314,7 +316,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     shadowColor: '#000',
     shadowOpacity: 0.1,
-    shadowOffset: {width: 0, height: 1},
+    shadowOffset: { width: 0, height: 1 },
     shadowRadius: 4,
     elevation: 2,
   },
@@ -343,7 +345,7 @@ const styles = StyleSheet.create({
     marginBottom: 24,
     shadowColor: '#000',
     shadowOpacity: 0.05,
-    shadowOffset: {width: 0, height: 1},
+    shadowOffset: { width: 0, height: 1 },
     shadowRadius: 4,
     elevation: 2,
   },

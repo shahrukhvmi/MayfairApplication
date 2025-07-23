@@ -1,5 +1,5 @@
-import {useNavigation} from '@react-navigation/native';
-import {useEffect, useState} from 'react';
+import { useNavigation } from '@react-navigation/native';
+import { useEffect, useState } from 'react';
 import {
   ScrollView,
   StyleSheet,
@@ -14,11 +14,12 @@ import BackButton from '../Components/BackButton';
 import useLastBmi from '../store/useLastBmiStore';
 import useReorder from '../store/useReorderStore';
 import useBmiStore from '../store/bmiStore';
-import {Controller, useForm} from 'react-hook-form';
+import { Controller, useForm } from 'react-hook-form';
 import SwitchTabs from '../Components/SwitchTabs';
 import BmiTextField from '../Components/BmiTextField';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import useReorderBackProcessStore from '../store/useReorderBackProcess';
+import useReturning from '../store/useReturningPatient';
 
 const validateRange = (value, min, max, wholeOnly, message) => {
   const num = Number(value);
@@ -35,13 +36,13 @@ export default function CalculateBmi() {
   const [showLoader, setShowLoader] = useState(false);
   const [heightUnitKey, setHeightUnitKey] = useState(''); // Will be "imperial" or "metrics"
   const [weightUnitKey, setWeightUnitKey] = useState('');
-  const {reorder, reorderStatus} = useReorder();
-  const {lastBmi} = useLastBmi();
-  const {reorderBackProcess} = useReorderBackProcessStore();
+  const { reorder, reorderStatus } = useReorder();
+  const { lastBmi } = useLastBmi();
+  const { reorderBackProcess } = useReorderBackProcessStore();
 
-  const {bmi, setBmi} = useBmiStore();
+  const { bmi, setBmi } = useBmiStore();
   const navigation = useNavigation();
-
+  const { isReturningPatient } = useReturning();
   const {
     register,
     handleSubmit,
@@ -50,7 +51,7 @@ export default function CalculateBmi() {
     watch,
     getValues,
     control,
-    formState: {errors},
+    formState: { errors },
   } = useForm({
     mode: 'onChange',
     defaultValues: {
@@ -143,8 +144,8 @@ export default function CalculateBmi() {
           ? ['heightFt', 'heightIn']
           : ['heightCm']
         : weightUnit === 'imperial'
-        ? ['weightSt', 'weightLbs']
-        : ['weightKg'];
+          ? ['weightSt', 'weightLbs']
+          : ['weightKg'];
 
     // Validate
     const isValid = await trigger(fields);
@@ -301,9 +302,20 @@ export default function CalculateBmi() {
     setValue('weightLbs', lbs ? Math.round(lbs) : '');
   };
 
+  // const back = () => {
+  //   if (reorderBackProcess == true) {
+  //     navigation.navigate('re-order');
+  //   } else {
+  //     navigation.navigate('ethnicity');
+  //   }
+  // };
+
+
   const back = () => {
     if (reorderBackProcess == true) {
       navigation.navigate('re-order');
+    } else if (isReturningPatient) {
+      navigation.navigate('preferred-phone-number');
     } else {
       navigation.navigate('ethnicity');
     }
@@ -332,13 +344,13 @@ export default function CalculateBmi() {
           tabs={
             localStep === 1
               ? [
-                  {label: 'cm', value: 'metrics'},
-                  {label: 'ft/inch', value: 'imperial'},
-                ]
+                { label: 'cm', value: 'metrics' },
+                { label: 'ft/inch', value: 'imperial' },
+              ]
               : [
-                  {label: 'kg', value: 'metrics'},
-                  {label: 'st/lb', value: 'imperial'},
-                ]
+                { label: 'kg', value: 'metrics' },
+                { label: 'st/lb', value: 'imperial' },
+              ]
           }
           selectedTab={localStep === 1 ? heightUnit : weightUnit}
           onTabChange={value => {
@@ -412,11 +424,13 @@ export default function CalculateBmi() {
                         'Only numbers from 4 to 10 are allowed',
                       ),
                   }}
-                  render={({field: {onChange, onBlur, value}}) => (
+                  render={({ field: { onChange, onBlur, value } }) => (
                     <BmiTextField
                       required
                       label="Feet (ft)"
                       name="heightFt"
+                      disabled={isReturningPatient}
+                      readOnly={isReturningPatient}
                       fieldProps={{
                         value:
                           value !== undefined && value !== null
@@ -449,11 +463,13 @@ export default function CalculateBmi() {
                         'Only valid numbers (0–11) are allowed',
                       ),
                   }}
-                  render={({field: {onChange, onBlur, value}}) => (
+                  render={({ field: { onChange, onBlur, value } }) => (
                     <BmiTextField
                       required
                       label="Inches (in)"
                       name="heightIn"
+                      disabled={isReturningPatient}
+                      readOnly={isReturningPatient}
                       fieldProps={{
                         value:
                           value !== undefined && value !== null
@@ -488,10 +504,12 @@ export default function CalculateBmi() {
                     return true;
                   },
                 }}
-                render={({field: {onChange, onBlur, value}}) => (
+                render={({ field: { onChange, onBlur, value } }) => (
                   <BmiTextField
                     required
                     label="Centimetres (cm)"
+                    disabled={isReturningPatient}
+                    readOnly={isReturningPatient}
                     name="heightCm"
                     fieldProps={{
                       value:
@@ -533,7 +551,7 @@ export default function CalculateBmi() {
                           'Only valid numbers (4–80) are allowed',
                         ),
                     }}
-                    render={({field: {onChange, onBlur, value}}) => (
+                    render={({ field: { onChange, onBlur, value } }) => (
                       <BmiTextField
                         required
                         label="Stone (st)"
@@ -570,7 +588,7 @@ export default function CalculateBmi() {
                           'Only valid numbers (0–20) are allowed',
                         ),
                     }}
-                    render={({field: {onChange, onBlur, value}}) => (
+                    render={({ field: { onChange, onBlur, value } }) => (
                       <BmiTextField
                         required
                         label="Pounds (lb)"
@@ -609,7 +627,7 @@ export default function CalculateBmi() {
                         'Only whole numbers from 40 to 500 are allowed',
                       ),
                   }}
-                  render={({field: {onChange, onBlur, value}}) => (
+                  render={({ field: { onChange, onBlur, value } }) => (
                     <BmiTextField
                       required
                       label="Kilograms (kg)"
@@ -636,7 +654,7 @@ export default function CalculateBmi() {
 
               {lastBmi ? (
                 lastBmi?.weight_unit == 'metrics' ||
-                lastBmi?.weight_unit == 'metric' ? (
+                  lastBmi?.weight_unit == 'metric' ? (
                   <View style={styles.infoBox}>
                     <View style={styles.infoRow}>
                       <Ionicons
@@ -801,7 +819,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     shadowColor: '#000',
     shadowOpacity: 0.1,
-    shadowOffset: {width: 0, height: 1},
+    shadowOffset: { width: 0, height: 1 },
     shadowRadius: 3,
     elevation: 3,
   },

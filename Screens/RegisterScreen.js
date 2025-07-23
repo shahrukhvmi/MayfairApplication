@@ -36,8 +36,8 @@ const RegisterScreen = () => {
     watch,
     formState: {errors},
   } = useForm();
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [showPassword, setShowPassword] = useState(true);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(true);
   const [loading, setLoading] = useState(false);
   const [already, setAlready] = useState(false);
 

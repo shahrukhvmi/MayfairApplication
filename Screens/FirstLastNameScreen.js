@@ -148,7 +148,7 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   form: {
-    gap: 16,
+    gap: 4,
   },
   loaderOverlay: {
     ...StyleSheet.absoluteFillObject,
