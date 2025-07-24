@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -7,14 +7,16 @@ import {
   TouchableOpacity,
   ActivityIndicator,
 } from 'react-native';
-import {useForm, Controller} from 'react-hook-form';
-import {useMutation} from '@tanstack/react-query';
+import { useForm, Controller } from 'react-hook-form';
+import { useMutation } from '@tanstack/react-query';
 
 import TextFields from './TextFields';
 import SelectField from './SelectField';
-import {getProfileData, sendProfileData} from '../api/myProfileApi';
+import { getProfileData, sendProfileData } from '../api/myProfileApi';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import PostcodeSearchInput from './PostcodeSearchInput';
+import { useFocusEffect } from '@react-navigation/native';
+import NextButton from './NextButton';
 
 const GETADDRESS_KEY = '_UFb05P76EyMidU1VHIQ_A42976';
 
@@ -42,7 +44,7 @@ const fetchAddresses = async postcode => {
   });
 };
 
-export default function Billing({billingCountries}) {
+export default function Billing({ billingCountries }) {
   const [showLoader, setShowLoader] = useState(false);
   const [manual, setManual] = useState(false);
   const [addressOptions, setAddressOptions] = useState([]);
@@ -58,7 +60,7 @@ export default function Billing({billingCountries}) {
     setValue,
     watch,
     control,
-    formState: {errors, isValid},
+    formState: { errors, isValid },
   } = useForm({
     mode: 'onChange',
     defaultValues: {
@@ -93,29 +95,33 @@ export default function Billing({billingCountries}) {
     onError: () => console.log('Failed to load profile data'),
   });
 
-  useEffect(() => {
-    if (billingCountries?.length) {
-      getProfileDataMutation.mutate();
-    }
-  }, [billingCountries]);
+  useFocusEffect(
+    React.useCallback(() => {
+      if (billingCountries?.length) {
+        getProfileDataMutation.mutate();
+      }
+    }, [billingCountries])
+  );
 
-  useEffect(() => {
-    if (!billing || !billingCountries?.length || countryChangedManually) return;
+  useFocusEffect(
+    React.useCallback(() => {
+      if (!billing || !billingCountries?.length || countryChangedManually) return;
 
-    setValue('postalcode', billing.postalcode || '');
-    setValue('addressone', billing.addressone || '');
-    setValue('addresstwo', billing.addresstwo || '');
-    setValue('city', billing.city || '');
-    setValue('state', billing.state || '');
+      setValue('postalcode', billing.postalcode || '');
+      setValue('addressone', billing.addressone || '');
+      setValue('addresstwo', billing.addresstwo || '');
+      setValue('city', billing.city || '');
+      setValue('state', billing.state || '');
 
-    const country = billingCountries.find(
-      c => c.name === billing.country_name || c.name === billing.country,
-    );
-    if (country) {
-      setValue('billingCountry', country.id.toString(), {shouldValidate: true});
-      setBillingIndex(country.id.toString());
-    }
-  }, [billing, billingCountries]);
+      const country = billingCountries.find(
+        c => c.name === billing.country_name || c.name === billing.country,
+      );
+      if (country) {
+        setValue('billingCountry', country.id.toString(), { shouldValidate: true });
+        setBillingIndex(country.id.toString());
+      }
+    }, [billing, billingCountries])
+  );
 
   const handleSearch = async () => {
     if (!postalCodeValue?.trim()) return;
@@ -171,13 +177,13 @@ export default function Billing({billingCountries}) {
         Update your billing details — changes will apply to future orders only.
       </Text>
 
-      <View style={{marginTop: 24}}>
+      <View style={{ marginTop: 24 }}>
         {/* Country Dropdown */}
         <Controller
           name="billingCountry"
           control={control}
-          rules={{required: 'Country is required'}}
-          render={({field}) => (
+          rules={{ required: 'Country is required' }}
+          render={({ field }) => (
             <SelectField
               label="Select Country"
               value={field.value}
@@ -215,8 +221,8 @@ export default function Billing({billingCountries}) {
           <Controller
             name="postalcode"
             control={control}
-            rules={{required: 'Postcode is required'}}
-            render={({field}) => (
+            rules={{ required: 'Postcode is required' }}
+            render={({ field }) => (
               <PostcodeSearchInput
                 label="Post code"
                 value={field.value}
@@ -266,7 +272,7 @@ export default function Billing({billingCountries}) {
         <Controller
           name="addressone"
           control={control}
-          render={({field}) => (
+          render={({ field }) => (
             <TextFields
               label="Address"
               value={field.value}
@@ -280,7 +286,7 @@ export default function Billing({billingCountries}) {
         <Controller
           name="addresstwo"
           control={control}
-          render={({field}) => (
+          render={({ field }) => (
             <TextFields
               label="Address 2"
               value={field.value}
@@ -293,7 +299,7 @@ export default function Billing({billingCountries}) {
         <Controller
           name="city"
           control={control}
-          render={({field}) => (
+          render={({ field }) => (
             <TextFields
               label="Town / City"
               value={field.value}
@@ -307,7 +313,7 @@ export default function Billing({billingCountries}) {
         <Controller
           name="state"
           control={control}
-          render={({field}) => (
+          render={({ field }) => (
             <TextFields
               label="State / County"
               value={field.value}
@@ -317,20 +323,15 @@ export default function Billing({billingCountries}) {
             />
           )}
         />
-
-        <TouchableOpacity
-          style={[styles.submitBtn, !isValid && styles.submitDisabled]}
-          onPress={handleSubmit(onSubmit)}
-          disabled={!isValid}>
-          <Text style={styles.submitText}>Continue</Text>
-        </TouchableOpacity>
+        <NextButton disabled={!isValid} label='Update' onPress={handleSubmit(onSubmit)} loading={showLoader} />
+       
       </View>
     </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {paddingBottom: 60},
+  container: { paddingBottom: 60 },
   title: {
     fontSize: 20,
     fontWeight: '700',

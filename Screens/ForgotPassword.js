@@ -17,7 +17,7 @@ import { useForm, Controller } from 'react-hook-form';
 import { useMutation } from '@tanstack/react-query';
 import { forgotPasswordLink } from '../api/forgotPasswordLinkApi';
 import Toast from 'react-native-toast-message';
-import { useNavigation } from '@react-navigation/native';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { passwordlink } from '../config/constants';
 
 const ForgotPasswordScreen = () => {
@@ -31,23 +31,25 @@ const ForgotPasswordScreen = () => {
 
     const forgotLinkMutation = useMutation(forgotPasswordLink);
 
-    useEffect(() => {
-        if (isSuccess && resendTimer === 0) {
-            setResendTimer(30);
-        }
-    }, [isSuccess]);
+    useFocusEffect(
+        React.useCallback(() => {
+            if (isSuccess && resendTimer === 0) {
+                setResendTimer(30);
+            }
+        }, [isSuccess]));
 
-    useEffect(() => {
-        let interval = null;
-        if (resendTimer > 0) {
-            interval = setInterval(() => {
-                setResendTimer((prev) => prev - 1);
-            }, 1000);
-        }
-        return () => {
-            if (interval) clearInterval(interval);
-        };
-    }, [resendTimer]);
+    useFocusEffect(
+        React.useCallback(() => {
+            let interval = null;
+            if (resendTimer > 0) {
+                interval = setInterval(() => {
+                    setResendTimer((prev) => prev - 1);
+                }, 1000);
+            }
+            return () => {
+                if (interval) clearInterval(interval);
+            };
+        }, [resendTimer]));
 
     const onSubmit = (data) => {
         setLoading(true);

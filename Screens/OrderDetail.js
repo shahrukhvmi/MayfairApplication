@@ -12,7 +12,7 @@ import moment from 'moment';
 import useOrderId from '../store/useOrderIdStore';
 import getOrderByIdApi from '../api/getOrderByIdApi';
 import Header from '../Layout/header';
-import { useNavigation } from '@react-navigation/native';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import AnimatedLogoLoader from '../Components/AnimatedLogoLoader';
 /* ––––––––– utility helpers ––––––––– */
@@ -37,13 +37,14 @@ export default function OrderDetail() {
   const [activeTab, setActiveTab] = useState(0); // 0-3
   const navigation = useNavigation();
   /* fetch order */
-  useEffect(() => {
-    if (!orderId) return;
-    setLoading(true);
-    getOrderByIdApi(orderId)
-      .then((res) => setOrder(res?.data))
-      .finally(() => setLoading(false));
-  }, [orderId]);
+  useFocusEffect(
+    React.useCallback(() => {
+      if (!orderId) return;
+      setLoading(true);
+      getOrderByIdApi(orderId)
+        .then((res) => setOrder(res?.data))
+        .finally(() => setLoading(false));
+    }, [orderId]));
 
   /* quick destructuring (guards for “undefined”) */
   const o = order?.data?.order;

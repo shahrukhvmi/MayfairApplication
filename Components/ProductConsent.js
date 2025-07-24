@@ -1,7 +1,8 @@
-import React, {useEffect, useState} from 'react';
-import {View, Text, TouchableOpacity, StyleSheet} from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import useVariationStore from '../store/useVariationStore';
+import { useFocusEffect } from '@react-navigation/native';
 
 // Helper to decode HTML entities
 const decodeHtmlEntities = text =>
@@ -24,18 +25,19 @@ const extractListItems = html => {
   return items;
 };
 
-const ProductConsent = ({onConsentChange, setIsConcentCheck}) => {
+const ProductConsent = ({ onConsentChange, setIsConcentCheck }) => {
   const [isValid, setIsValid] = useState();
   const [isChecked, setIsChecked] = useState(false);
 
-  const {variation} = useVariationStore();
+  const { variation } = useVariationStore();
 
-  useEffect(() => {
-    setIsValid(isChecked);
+  useFocusEffect(
+    React.useCallback(() => {
+      setIsValid(isChecked);
 
-    console.log(isValid, 'isValid');
-    setIsConcentCheck(isChecked);
-  }, [isChecked]);
+      console.log(isValid, 'isValid');
+      setIsConcentCheck(isChecked);
+    }, [isChecked]));
 
   return (
     <View style={styles.card}>
@@ -71,14 +73,14 @@ const ProductConsent = ({onConsentChange, setIsConcentCheck}) => {
             color="#47317c"
           />
         )}
-        <Text style={{marginLeft: 10, fontSize: 14, paddingRight: 10}}>
+        <Text style={{ marginLeft: 10, fontSize: 14, paddingRight: 10 }}>
           I confirm that I have read, understood and accepted all of the above
           information.
         </Text>
       </TouchableOpacity>
 
       {!isChecked && (
-        <Text style={{fontSize: 12, color: 'red', marginTop: 8}}>
+        <Text style={{ fontSize: 12, color: 'red', marginTop: 8 }}>
           You must accept the terms to continue.
         </Text>
       )}
@@ -104,7 +106,7 @@ const styles = StyleSheet.create({
     shadowColor: '#000',
     shadowOpacity: 0.05,
     shadowRadius: 4,
-    shadowOffset: {width: 0, height: 2},
+    shadowOffset: { width: 0, height: 2 },
     elevation: 2,
   },
   paragraphExplain: {

@@ -17,7 +17,7 @@ import useOrderId from '../store/useOrderIdStore';
 import usePaginationStore from '../store/pagination';
 import { useStatusStore } from '../store/useStatusStore';
 import GetOrdersApi from '../api/getOrders';
-import { useNavigation } from '@react-navigation/native';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import Header from '../Layout/header';
 
 const OrdersScreen = () => {
@@ -42,9 +42,10 @@ const OrdersScreen = () => {
     },
   });
 
-  useEffect(() => {
-    getOrdersMutation.mutate({ page: currentPage });
-  }, [currentPage]);
+  useFocusEffect(
+    React.useCallback(() => {
+      getOrdersMutation.mutate({ page: currentPage });
+    }, [currentPage]));
 
   const filteredOrders = data?.allorders?.filter(order => {
     const q = searchValue.toLowerCase();
@@ -183,6 +184,7 @@ const OrdersScreen = () => {
               <Text style={[styles.hCell, styles.items]}>ITEMS</Text>
               <Text style={[styles.hCell, styles.stat]}>STATUS</Text>
               <Text style={[styles.hCell, styles.total]}>TOTAL</Text>
+              <Text style={[styles.hCell, styles.total]}>ACTION</Text>
               <Text style={[styles.hCell, styles.eye]} />
             </View>
 
@@ -317,7 +319,7 @@ const styles = StyleSheet.create({
   items: { width: COL_WIDTH.items },
   stat: { width: COL_WIDTH.stat, justifyContent: 'center' },
   total: { width: COL_WIDTH.total, alignItems: 'end', justifyContent: 'center' },
-  totalAmount: { width: COL_WIDTH.total, alignItems: 'end', justifyContent: 'center', marginRight: 24 },
+  totalAmount: { width: COL_WIDTH.total, alignItems: 'end', justifyContent: 'center', margin: 28 },
   eye: { width: COL_WIDTH.eye, alignItems: 'end', justifyContent: 'center' },
 
   pill: {

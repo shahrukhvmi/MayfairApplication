@@ -1,4 +1,4 @@
-import React, {useEffect, useState, useRef} from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import {
   View,
   Text,
@@ -7,13 +7,14 @@ import {
   TouchableOpacity,
   ActivityIndicator,
 } from 'react-native';
-import {useForm, Controller} from 'react-hook-form';
+import { useForm, Controller } from 'react-hook-form';
 import TextFields from './TextFields';
 import SelectField from './SelectField';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import PostcodeSearchInput from './PostcodeSearchInput';
 import useBillingCountries from '../store/useBillingCountriesStore';
 import useShippingOrBillingStore from '../store/shipingOrbilling';
+import { useFocusEffect } from '@react-navigation/native';
 
 const GETADDRESS_KEY = '_UFb05P76EyMidU1VHIQ_A42976';
 
@@ -44,10 +45,10 @@ const fetchAddresses = async postcode => {
   });
 };
 
-export default function BillingAddress({sameAsShipping, setIsBillingCheck}) {
-  const {billing, setBilling, shipping, clearBilling} =
+export default function BillingAddress({ sameAsShipping, setIsBillingCheck }) {
+  const { billing, setBilling, shipping, clearBilling } =
     useShippingOrBillingStore();
-  const {billingCountries} = useBillingCountries();
+  const { billingCountries } = useBillingCountries();
   const prevBillingRef = useRef({});
 
   const [manual, setManual] = useState(false);
@@ -60,7 +61,7 @@ export default function BillingAddress({sameAsShipping, setIsBillingCheck}) {
     control,
     setValue,
     watch,
-    formState: {errors},
+    formState: { errors },
   } = useForm({
     mode: 'onChange',
     defaultValues: {
@@ -88,56 +89,60 @@ export default function BillingAddress({sameAsShipping, setIsBillingCheck}) {
   const isSearchAllowed =
     selectedCountryObj && allowedCountryNames.includes(selectedCountryObj.name);
 
-  useEffect(() => {
-    const selectedCountryObj = (billingCountries || []).find(
-      c => c.id.toString() === selectedBillingCountry,
-    );
-
-    const isAllowed =
-      selectedCountryObj &&
-      allowedCountryNames.includes(selectedCountryObj.name);
-
-    if (!isAllowed && selectedCountryObj) {
-      clearBilling();
-      setValue('postalcode', '');
-      setValue('addressone', '');
-      setValue('addresstwo', '');
-      setValue('city', '');
-      setValue('state', '');
-    }
-  }, [selectedBillingCountry, billingCountries]);
-
-  useEffect(() => {
-    if (shipping?.same_as_shipping) {
-      setValue('postalcode', shipping.postalcode || '');
-      setValue('addressone', shipping.addressone || '');
-      setValue('addresstwo', shipping.addresstwo || '');
-      setValue('city', shipping.city || '');
-      setValue('state', shipping.state || '');
-
-      const country = billingCountries.find(
-        c => c.name === shipping.country_name,
+  useFocusEffect(
+    React.useCallback(() => {
+      const selectedCountryObj = (billingCountries || []).find(
+        c => c.id.toString() === selectedBillingCountry,
       );
-      if (country) {
-        setValue('billingCountry', country.id.toString());
-        setBillingIndex(country.id.toString());
-      }
-    } else if (billing) {
-      setValue('postalcode', billing.postalcode || '');
-      setValue('addressone', billing.addressone || '');
-      setValue('addresstwo', billing.addresstwo || '');
-      setValue('city', billing.city || '');
-      setValue('state', billing.state || '');
 
-      const country = billingCountries.find(
-        c => c.name === billing.country_name,
-      );
-      if (country) {
-        setValue('billingCountry', country.id.toString());
-        setBillingIndex(country.id.toString());
+      const isAllowed =
+        selectedCountryObj &&
+        allowedCountryNames.includes(selectedCountryObj.name);
+
+      if (!isAllowed && selectedCountryObj) {
+        clearBilling();
+        setValue('postalcode', '');
+        setValue('addressone', '');
+        setValue('addresstwo', '');
+        setValue('city', '');
+        setValue('state', '');
       }
-    }
-  }, [shipping, billing, billingCountries]);
+    }, [selectedBillingCountry, billingCountries])
+  );
+
+  useFocusEffect(
+    React.useCallback(() => {
+      if (shipping?.same_as_shipping) {
+        setValue('postalcode', shipping.postalcode || '');
+        setValue('addressone', shipping.addressone || '');
+        setValue('addresstwo', shipping.addresstwo || '');
+        setValue('city', shipping.city || '');
+        setValue('state', shipping.state || '');
+
+        const country = billingCountries.find(
+          c => c.name === shipping.country_name,
+        );
+        if (country) {
+          setValue('billingCountry', country.id.toString());
+          setBillingIndex(country.id.toString());
+        }
+      } else if (billing) {
+        setValue('postalcode', billing.postalcode || '');
+        setValue('addressone', billing.addressone || '');
+        setValue('addresstwo', billing.addresstwo || '');
+        setValue('city', billing.city || '');
+        setValue('state', billing.state || '');
+
+        const country = billingCountries.find(
+          c => c.name === billing.country_name,
+        );
+        if (country) {
+          setValue('billingCountry', country.id.toString());
+          setBillingIndex(country.id.toString());
+        }
+      }
+    }, [shipping, billing, billingCountries])
+  );
 
   const handleSearch = async () => {
     const postal = postalCodeValue?.trim();
@@ -157,50 +162,52 @@ export default function BillingAddress({sameAsShipping, setIsBillingCheck}) {
     }
   };
 
-  useEffect(() => {
-    const subscription = watch(values => {
-      const selectedCountry =
-        billingCountries.find(c => c.id.toString() === values.billingCountry) ||
-        billingCountries.find(c => c.id.toString() === billingIndex);
+  useFocusEffect(
+    React.useCallback(() => {
+      const subscription = watch(values => {
+        const selectedCountry =
+          billingCountries.find(c => c.id.toString() === values.billingCountry) ||
+          billingCountries.find(c => c.id.toString() === billingIndex);
 
-      const updatedBilling = {
-        id: selectedCountry?.id || '',
-        country_name: selectedCountry?.name || '',
-        country_price: selectedCountry?.price || '',
-        postalcode: values.postalcode || '',
-        addressone: values.addressone || '',
-        addresstwo: values.addresstwo || '',
-        city: values.city || '',
-        state: values.state || '',
-        same_as_shipping: false,
-      };
+        const updatedBilling = {
+          id: selectedCountry?.id || '',
+          country_name: selectedCountry?.name || '',
+          country_price: selectedCountry?.price || '',
+          postalcode: values.postalcode || '',
+          addressone: values.addressone || '',
+          addresstwo: values.addresstwo || '',
+          city: values.city || '',
+          state: values.state || '',
+          same_as_shipping: false,
+        };
 
-      const prev = prevBillingRef.current;
-      const hasChanged =
-        JSON.stringify(prev) !== JSON.stringify(updatedBilling);
+        const prev = prevBillingRef.current;
+        const hasChanged =
+          JSON.stringify(prev) !== JSON.stringify(updatedBilling);
 
-      if (hasChanged) {
-        prevBillingRef.current = updatedBilling;
-        setBilling(updatedBilling);
-      }
-    });
+        if (hasChanged) {
+          prevBillingRef.current = updatedBilling;
+          setBilling(updatedBilling);
+        }
+      });
 
-    return () => subscription.unsubscribe();
-  }, [watch, billingCountries, billingIndex, setBilling]);
+      return () => subscription.unsubscribe();
+    }, [watch, billingCountries, billingIndex, setBilling]));
 
-  useEffect(() => {
-    const fields = watch([
-      'billingCountry',
-      'postalcode',
-      'addressone',
-      'city',
-    ]);
-    const allFilled = fields.every(field => field && field !== '');
-    setIsBillingCheck(allFilled);
-  }, [
-    watch(['billingCountry', 'postalcode', 'addressone', 'city']),
-    setIsBillingCheck,
-  ]);
+  useFocusEffect(
+    React.useCallback(() => {
+      const fields = watch([
+        'billingCountry',
+        'postalcode',
+        'addressone',
+        'city',
+      ]);
+      const allFilled = fields.every(field => field && field !== '');
+      setIsBillingCheck(allFilled);
+    }, [
+      watch(['billingCountry', 'postalcode', 'addressone', 'city']),
+      setIsBillingCheck,
+    ]));
 
   if (sameAsShipping) {
     return null; // ✅ Do not render anything if same as shipping
@@ -216,8 +223,8 @@ export default function BillingAddress({sameAsShipping, setIsBillingCheck}) {
         <Controller
           name="billingCountry"
           control={control}
-          rules={{required: 'Country is required'}}
-          render={({field}) => (
+          rules={{ required: 'Country is required' }}
+          render={({ field }) => (
             <SelectField
               label="Select Country"
               value={field.value}
@@ -238,8 +245,8 @@ export default function BillingAddress({sameAsShipping, setIsBillingCheck}) {
         <Controller
           name="postalcode"
           control={control}
-          rules={{required: 'Postcode is required'}}
-          render={({field}) => (
+          rules={{ required: 'Postcode is required' }}
+          render={({ field }) => (
             <PostcodeSearchInput
               label="Post code"
               value={field.value}
@@ -255,7 +262,7 @@ export default function BillingAddress({sameAsShipping, setIsBillingCheck}) {
           <Controller
             name="addressone"
             control={control}
-            render={({field}) => (
+            render={({ field }) => (
               <SelectField
                 label="Select Your Address"
                 value={selectedIndex}
@@ -289,7 +296,7 @@ export default function BillingAddress({sameAsShipping, setIsBillingCheck}) {
         <Controller
           name="addressone"
           control={control}
-          render={({field}) => (
+          render={({ field }) => (
             <TextFields
               label="Address"
               value={field.value}
@@ -304,7 +311,7 @@ export default function BillingAddress({sameAsShipping, setIsBillingCheck}) {
         <Controller
           name="addresstwo"
           control={control}
-          render={({field}) => (
+          render={({ field }) => (
             <TextFields
               label="Address 2"
               value={field.value}
@@ -318,7 +325,7 @@ export default function BillingAddress({sameAsShipping, setIsBillingCheck}) {
         <Controller
           name="city"
           control={control}
-          render={({field}) => (
+          render={({ field }) => (
             <TextFields
               label="Town / City"
               value={field.value}
@@ -333,7 +340,7 @@ export default function BillingAddress({sameAsShipping, setIsBillingCheck}) {
         <Controller
           name="state"
           control={control}
-          render={({field}) => (
+          render={({ field }) => (
             <TextFields
               label="State / County"
               value={field.value}
@@ -349,7 +356,7 @@ export default function BillingAddress({sameAsShipping, setIsBillingCheck}) {
 }
 
 const styles = StyleSheet.create({
-  container: {paddingBottom: 0},
+  container: { paddingBottom: 0 },
   card: {
     backgroundColor: '#fff',
     padding: 20,
@@ -358,7 +365,7 @@ const styles = StyleSheet.create({
     shadowColor: '#000',
     shadowOpacity: 0.05,
     shadowRadius: 4,
-    shadowOffset: {width: 0, height: 2},
+    shadowOffset: { width: 0, height: 2 },
     elevation: 2,
   },
   title: {

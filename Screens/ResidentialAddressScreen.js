@@ -81,27 +81,26 @@ export default function ResidentialAddressScreen() {
 
   const isNextEnabled =
     !!address1?.trim() && !!city?.trim() && !!country?.trim();
+  useEffect(() => {
+    if (patientInfo?.address) {
+      setValue('postcode', patientInfo.address.postalcode || '');
+      setValue('address1', patientInfo.address.addressone || '');
+      setValue('address2', patientInfo.address.addresstwo || '');
+      setValue('city', patientInfo.address.city || '');
+      setValue('country', patientInfo.address.country || '');
 
-  useFocusEffect(
-    useCallback(() => {
-      if (patientInfo?.address) {
-        setValue('postcode', patientInfo.address.postalcode || '');
-        setValue('address1', patientInfo.address.addressone || '');
-        setValue('address2', patientInfo.address.addresstwo || '');
-        setValue('city', patientInfo.address.city || '');
-        setValue('country', patientInfo.address.country || '');
-
-        if (
-          patientInfo.address.addressone ||
-          patientInfo.address.addresstwo ||
-          patientInfo.address.city ||
-          patientInfo.address.country
-        ) {
-          setShowManual(true);
-        }
+      if (
+        patientInfo.address.addressone ||
+        patientInfo.address.addresstwo ||
+        patientInfo.address.city ||
+        patientInfo.address.country
+      ) {
+        setShowManual(true);
       }
-    }, [patientInfo])
-  );
+    }
+  }, [patientInfo])
+
+
 
   const onSubmit = data => {
     const fullAddress = {

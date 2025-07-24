@@ -1,19 +1,21 @@
+import { useFocusEffect } from '@react-navigation/native';
 import React, { useEffect } from 'react';
 import { View, StyleSheet, Animated, Easing } from 'react-native';
 
 const PageLoader = () => {
   const rotateValue = new Animated.Value(0);
 
-  useEffect(() => {
-    Animated.loop(
-      Animated.timing(rotateValue, {
-        toValue: 1,
-        duration: 1000,
-        easing: Easing.linear,
-        useNativeDriver: true,
-      })
-    ).start();
-  }, []);
+  useFocusEffect(
+    React.useCallback(() => {
+      Animated.loop(
+        Animated.timing(rotateValue, {
+          toValue: 1,
+          duration: 1000,
+          easing: Easing.linear,
+          useNativeDriver: true,
+        })
+      ).start();
+    }, []));
 
   const rotateInterpolate = rotateValue.interpolate({
     inputRange: [0, 1],

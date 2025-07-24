@@ -23,6 +23,7 @@ import NextButton from '../Components/NextButton';
 import { abandonCart } from '../api/abandonCartApi';
 import useProductId from '../store/useProductIdStore';
 import CustomCheckbox from '../Components/CustomCheckbox';
+import { useFocusEffect } from '@react-navigation/native';
 
 export default function DoseSelection({ navigation }) {
   const {
@@ -33,9 +34,9 @@ export default function DoseSelection({ navigation }) {
     formState: { isValid, errors },
   } = useForm({
     mode: "onChange",
-      defaultValues: {
-    terms: false,
-  },
+    defaultValues: {
+      terms: false,
+    },
 
   });
 
@@ -45,19 +46,20 @@ export default function DoseSelection({ navigation }) {
   const [isExpiryRequired, setIsExpiryRequired] = useState(false);
 
   // Variation From zustand
-useEffect(() => {
-  if (variation?.show_expiry === 1) {
-    setIsExpiryRequired(true);
-    setTimeout(() => {
-      // Force validation to kick in
-      setValue("terms", false, { shouldValidate: true });
-    }, 0);
-  } else {
-    setIsExpiryRequired(false);
-    clearErrors("terms");
-    setValue("terms", false);
-  }
-}, [variation?.show_expiry, clearErrors, setValue]);
+  useFocusEffect(
+    React.useCallback(() => {
+      if (variation?.show_expiry === 1) {
+        setIsExpiryRequired(true);
+        setTimeout(() => {
+          // Force validation to kick in
+          setValue("terms", false, { shouldValidate: true });
+        }, 0);
+      } else {
+        setIsExpiryRequired(false);
+        clearErrors("terms");
+        setValue("terms", false);
+      }
+    }, [variation?.show_expiry, clearErrors, setValue]));
   const { addToCart, increaseQuantity, decreaseQuantity, items, totalAmount } =
     useCartStore();
   const { reorder } = useReorder();
@@ -291,7 +293,7 @@ useEffect(() => {
                 : 'Proceed to Checkout'
             }
             onPress={handleSubmit(onSubmit)}
-            disabled={!isValid || totalSelectedQty() === 0 || abandonMutation.isLoading }
+            disabled={!isValid || totalSelectedQty() === 0 || abandonMutation.isLoading}
           />
           <BackButton
             label="Back"

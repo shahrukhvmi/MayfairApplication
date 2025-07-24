@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -7,8 +7,8 @@ import {
   ScrollView,
   ActivityIndicator,
 } from 'react-native';
-import {useForm, Controller} from 'react-hook-form';
-import {useNavigation} from '@react-navigation/native';
+import { useForm, Controller } from 'react-hook-form';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
 // import {FiCheck} from 'react-icons/fi'; // Only valid in Web; for React Native use react-native-vector-icons
 
 import useReorder from '../store/useReorderStore';
@@ -22,9 +22,9 @@ import useReorderButtonStore from '../store/useReorderButton';
 
 export default function ReOrder() {
   const navigation = useNavigation();
-  const {setReorderStatus} = useReorder();
-  const {setIsFromReorder} = useReorderButtonStore();
-  const {setReorderBackProcess} = useReorderBackProcessStore();
+  const { setReorderStatus } = useReorder();
+  const { setIsFromReorder } = useReorderButtonStore();
+  const { setReorderBackProcess } = useReorderBackProcessStore();
 
   const [showLoader, setShowLoader] = useState(false);
 
@@ -32,7 +32,7 @@ export default function ReOrder() {
     control,
     handleSubmit,
     watch,
-    formState: {isValid},
+    formState: { isValid },
   } = useForm({
     mode: 'onChange',
     defaultValues: {
@@ -42,9 +42,10 @@ export default function ReOrder() {
 
   const personalUse = watch('personalUse');
 
-  useEffect(() => {
-    setReorderBackProcess(false);
-  }, []);
+  useFocusEffect(
+    React.useCallback(() => {
+      setReorderBackProcess(false);
+    }, []));
 
   const onSubmit = async data => {
     setIsFromReorder(false);
@@ -71,16 +72,16 @@ export default function ReOrder() {
             style={[
               styles.optionButton,
               isSelected &&
-                (option === 'yes'
-                  ? styles.optionYesSelected
-                  : styles.optionNoSelected),
+              (option === 'yes'
+                ? styles.optionYesSelected
+                : styles.optionNoSelected),
             ]}
             onPress={() => onChange(option)}>
             <View
               style={[
                 styles.checkbox,
                 isSelected &&
-                  (option === 'yes' ? styles.checkboxYes : styles.checkboxNo),
+                (option === 'yes' ? styles.checkboxYes : styles.checkboxNo),
               ]}>
               {isSelected && <Text style={styles.checkmark}>✓</Text>}
             </View>
@@ -103,14 +104,14 @@ export default function ReOrder() {
         <Controller
           control={control}
           name="personalUse"
-          rules={{required: true}}
-          render={({field: {value, onChange}}) =>
+          rules={{ required: true }}
+          render={({ field: { value, onChange } }) =>
             renderYesNo('personalUse', value, onChange)
           }
         />
 
         <NextButton
-          style={{marginTop: 30}}
+          style={{ marginTop: 30 }}
           disabled={!isValid}
           label="I Confirm"
           onPress={handleSubmit(onSubmit)}

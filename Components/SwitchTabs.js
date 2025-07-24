@@ -1,3 +1,4 @@
+import { useFocusEffect } from '@react-navigation/native';
 import React, { useEffect, useRef } from 'react';
 import {
   View,
@@ -13,13 +14,14 @@ const SwitchTabs = ({ tabs, selectedTab, onTabChange }) => {
   const tabWidth = (width - 36) / tabs.length; // subtract padding (16 left + 16 right)
   const translateX = useRef(new Animated.Value(0)).current;
 
-  useEffect(() => {
-    const index = tabs.findIndex(tab => tab.value === selectedTab);
-    Animated.spring(translateX, {
-      toValue: tabWidth * index,
-      useNativeDriver: true,
-    }).start();
-  }, [selectedTab]);
+  useFocusEffect(
+    React.useCallback(() => {
+      const index = tabs.findIndex(tab => tab.value === selectedTab);
+      Animated.spring(translateX, {
+        toValue: tabWidth * index,
+        useNativeDriver: true,
+      }).start();
+    }, [selectedTab]));
 
   return (
     <View style={styles.wrapper}>

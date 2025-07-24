@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View,
   TouchableOpacity,
@@ -7,10 +7,11 @@ import {
   ScrollView,
 } from 'react-native';
 import Header from '../Layout/header';
-import {useMutation} from '@tanstack/react-query';
-import {getProfileData} from '../api/myProfileApi';
+import { useMutation } from '@tanstack/react-query';
+import { getProfileData } from '../api/myProfileApi';
 import Shipping from '../Components/Shipping';
 import Billing from '../Components/Billing';
+import { useFocusEffect } from '@react-navigation/native';
 
 const AddressBookScreen = () => {
   const [tabActive, setTabActive] = useState('shipping');
@@ -28,9 +29,10 @@ const AddressBookScreen = () => {
     },
   });
 
-  useEffect(() => {
-    getProfileDataMutation.mutate();
-  }, []);
+  useFocusEffect(
+    React.useCallback(() => {
+      getProfileDataMutation.mutate();
+    }, []));
   return (
     <>
       <Header />
@@ -65,7 +67,7 @@ const AddressBookScreen = () => {
 
 /* --- Reusable tab button --- */
 
-const TabButton = ({label, isActive, onPress}) => (
+const TabButton = ({ label, isActive, onPress }) => (
   <TouchableOpacity
     onPress={onPress}
     style={[styles.tabButton, isActive && styles.tabButtonActive]}>

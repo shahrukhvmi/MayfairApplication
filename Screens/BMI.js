@@ -16,7 +16,7 @@ import usePatientInfoStore from '../store/patientInfoStore';
 import useReorder from '../store/useReorderStore';
 import useLastBmi from '../store/useLastBmiStore';
 import useReturning from '../store/useReturningPatient';
-import { useNavigation } from '@react-navigation/native';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
 // import TextField from '../Components/TextField';
 import NextButton from '../Components/NextButton';
 import BackButton from '../Components/BackButton';
@@ -96,31 +96,34 @@ export default function BmiDetail() {
       : 'You have previously taken weight loss medication your starting (baseline) BMI was above 30';
   };
 
-  useEffect(() => {
-    const consent = bmi?.bmiConsent;
-    if (consent) {
-      if (consent.previously_taking_medicine?.length)
-        setValue('checkbox1', true);
-      if (consent.weight_related_comorbidity?.length)
-        setValue('checkbox2', true);
-      if (consent.weight_related_comorbidity_explanation)
-        setValue(
-          'weight_related_comorbidity_explanation',
-          consent.weight_related_comorbidity_explanation,
-        );
-      if (consent.assian_message) setValue('noneOfTheAbove', true);
-    }
-  }, [bmi]);
+  useFocusEffect(
+    React.useCallback(() => {
+      const consent = bmi?.bmiConsent;
+      if (consent) {
+        if (consent.previously_taking_medicine?.length)
+          setValue('checkbox1', true);
+        if (consent.weight_related_comorbidity?.length)
+          setValue('checkbox2', true);
+        if (consent.weight_related_comorbidity_explanation)
+          setValue(
+            'weight_related_comorbidity_explanation',
+            consent.weight_related_comorbidity_explanation,
+          );
+        if (consent.assian_message) setValue('noneOfTheAbove', true);
+      }
+    }, [bmi]));
 
-  useEffect(() => {
-    if ((checkbox1 || checkbox2) && noneOfTheAbove)
-      setValue('noneOfTheAbove', false);
-  }, [checkbox1, checkbox2, noneOfTheAbove]);
+  useFocusEffect(
+    React.useCallback(() => {
+      if ((checkbox1 || checkbox2) && noneOfTheAbove)
+        setValue('noneOfTheAbove', false);
+    }, [checkbox1, checkbox2, noneOfTheAbove]));
 
-  useEffect(() => {
-    if (!checkbox2 && explanation)
-      setValue('weight_related_comorbidity_explanation', '');
-  }, [checkbox2, explanation]);
+  useFocusEffect(
+    React.useCallback(() => {
+      if (!checkbox2 && explanation)
+        setValue('weight_related_comorbidity_explanation', '');
+    }, [checkbox2, explanation]));
 
   const onSubmit = data => {
     const consent = {

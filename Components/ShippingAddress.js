@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -7,7 +7,7 @@ import {
   TouchableOpacity,
   ActivityIndicator,
 } from 'react-native';
-import {useForm, Controller} from 'react-hook-form';
+import { useForm, Controller } from 'react-hook-form';
 import TextFields from './TextFields';
 import SelectField from './SelectField';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
@@ -15,6 +15,7 @@ import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import PostcodeSearchInput from './PostcodeSearchInput';
 import useShipmentCountries from '../store/useShipmentCountriesStore';
 import useShippingOrBillingStore from '../store/shipingOrbilling';
+import { useFocusEffect } from '@react-navigation/native';
 
 const GETADDRESS_KEY = '_UFb05P76EyMidU1VHIQ_A42976';
 
@@ -44,10 +45,10 @@ const fetchAddresses = async postcode => {
   });
 };
 
-export default function ShippingAddress({setIsShippingCheck}) {
-  const {shipping, setShipping, setBilling, setBillingSameAsShipping} =
+export default function ShippingAddress({ setIsShippingCheck }) {
+  const { shipping, setShipping, setBilling, setBillingSameAsShipping } =
     useShippingOrBillingStore();
-  const {shipmentCountries} = useShipmentCountries();
+  const { shipmentCountries } = useShipmentCountries();
 
   const [showLoader, setShowLoader] = useState(false);
   const [manual, setManual] = useState(false);
@@ -66,7 +67,7 @@ export default function ShippingAddress({setIsShippingCheck}) {
     watch,
     getValues,
     control,
-    formState: {errors, isValid},
+    formState: { errors, isValid },
   } = useForm({
     mode: 'onChange',
     defaultValues: {
@@ -82,79 +83,82 @@ export default function ShippingAddress({setIsShippingCheck}) {
   const sameAsShippingValue = watch('same_as_shipping');
 
   // 2️⃣ Prefill form from Zustand `shipping`
-  useEffect(() => {
-    if (!shipmentCountries?.length || !shipping) return;
+  useFocusEffect(
+    React.useCallback(() => {
+      if (!shipmentCountries?.length || !shipping) return;
 
-    setValue('postalcode', shipping.postalcode || '');
-    setValue('addressone', shipping.addressone || '');
-    setValue('addresstwo', shipping.addresstwo || '');
-    setValue('city', shipping.city || '');
+      setValue('postalcode', shipping.postalcode || '');
+      setValue('addressone', shipping.addressone || '');
+      setValue('addresstwo', shipping.addresstwo || '');
+      setValue('city', shipping.city || '');
 
-    const country = shipmentCountries.find(
-      c => c.name === shipping.country_name,
-    );
-
-    if (country) {
-      const idStr = country.id.toString();
-      const currentValue = getValues('shippingCountry'); // ✅ one-time read
-
-      if (currentValue !== idStr) {
-        setValue('shippingCountry', idStr);
-        setShippingIndex(idStr);
-      }
-    }
-  }, []);
-
-  // 3️⃣ Auto-save to Zustand on any field change
-  useEffect(() => {
-    const subscription = watch(values => {
-      const selectedCountry =
-        shipmentCountries.find(
-          c => c.id.toString() === values.shippingCountry,
-        ) || shipmentCountries.find(c => c.id.toString() === shippingIndex);
-
-      const updatedShipping = {
-        id: selectedCountry?.id || '',
-        country_name: selectedCountry?.name || '',
-        country_price: selectedCountry?.price || '',
-        postalcode: values.postalcode || '',
-        addressone: values.addressone || '',
-        addresstwo: values.addresstwo || '',
-        city: values.city || '',
-        state: '',
-        same_as_shipping: values.same_as_shipping || false,
-      };
-
-      setShipping(updatedShipping);
-    });
-
-    return () => subscription.unsubscribe();
-  }, [watch, shipmentCountries, shippingIndex, setShipping]);
-
-  useEffect(() => {
-    if (sameAsShippingValue) {
-      const selectedCountry = shipmentCountries.find(
-        c => c.id.toString() === shippingIndex,
+      const country = shipmentCountries.find(
+        c => c.name === shipping.country_name,
       );
 
-      const shippingPayload = {
-        id: selectedCountry?.id || '',
-        country_name: selectedCountry?.name || '',
-        country_price: selectedCountry?.price || '',
-        postalcode: watch('postalcode'),
-        addressone: watch('addressone'),
-        addresstwo: watch('addresstwo'),
-        city: watch('city'),
-        state: '',
-        same_as_shipping: true,
-      };
+      if (country) {
+        const idStr = country.id.toString();
+        const currentValue = getValues('shippingCountry'); // ✅ one-time read
 
-      setShipping(shippingPayload); // ✅
-      setBilling(shippingPayload); // ✅
-    }
+        if (currentValue !== idStr) {
+          setValue('shippingCountry', idStr);
+          setShippingIndex(idStr);
+        }
+      }
+    }, []));
 
-    setBillingSameAsShipping(sameAsShippingValue);
-  }, [sameAsShippingValue]);
+  // 3️⃣ Auto-save to Zustand on any field change
+  useFocusEffect(
+    React.useCallback(() => {
+      const subscription = watch(values => {
+        const selectedCountry =
+          shipmentCountries.find(
+            c => c.id.toString() === values.shippingCountry,
+          ) || shipmentCountries.find(c => c.id.toString() === shippingIndex);
+
+        const updatedShipping = {
+          id: selectedCountry?.id || '',
+          country_name: selectedCountry?.name || '',
+          country_price: selectedCountry?.price || '',
+          postalcode: values.postalcode || '',
+          addressone: values.addressone || '',
+          addresstwo: values.addresstwo || '',
+          city: values.city || '',
+          state: '',
+          same_as_shipping: values.same_as_shipping || false,
+        };
+
+        setShipping(updatedShipping);
+      });
+
+      return () => subscription.unsubscribe();
+    }, [watch, shipmentCountries, shippingIndex, setShipping]));
+
+  useFocusEffect(
+    React.useCallback(() => {
+      if (sameAsShippingValue) {
+        const selectedCountry = shipmentCountries.find(
+          c => c.id.toString() === shippingIndex,
+        );
+
+        const shippingPayload = {
+          id: selectedCountry?.id || '',
+          country_name: selectedCountry?.name || '',
+          country_price: selectedCountry?.price || '',
+          postalcode: watch('postalcode'),
+          addressone: watch('addressone'),
+          addresstwo: watch('addresstwo'),
+          city: watch('city'),
+          state: '',
+          same_as_shipping: true,
+        };
+
+        setShipping(shippingPayload); // ✅
+        setBilling(shippingPayload); // ✅
+      }
+
+      setBillingSameAsShipping(sameAsShippingValue);
+    }, [sameAsShippingValue]));
 
   const handleSearch = async () => {
     const postal = watch('postalcode')?.trim();
@@ -179,7 +183,8 @@ export default function ShippingAddress({setIsShippingCheck}) {
     }
   };
 
-  useEffect(() => {
+  useFocusEffect(
+    React.useCallback(() => {
     const checkFields = () => {
       const values = getValues(); // ✅ read immediately
       const requiredFields = [
@@ -205,7 +210,7 @@ export default function ShippingAddress({setIsShippingCheck}) {
     });
 
     return () => subscription.unsubscribe();
-  }, [watch, getValues, setIsShippingCheck]);
+  }, [watch, getValues, setIsShippingCheck]));
 
   const toggleCheckbox = (fieldOnChange, value) => {
     fieldOnChange(!value);
@@ -222,12 +227,12 @@ export default function ShippingAddress({setIsShippingCheck}) {
           only.
         </Text>
 
-        <View style={{marginTop: 24}}>
+        <View style={{ marginTop: 24 }}>
           <Controller
             name="shippingCountry"
             control={control}
-            rules={{required: 'Country is required'}}
-            render={({field}) => (
+            rules={{ required: 'Country is required' }}
+            render={({ field }) => (
               <SelectField
                 label="Select Country"
                 value={field.value}
@@ -250,8 +255,8 @@ export default function ShippingAddress({setIsShippingCheck}) {
             <Controller
               name="postalcode"
               control={control}
-              rules={{required: 'Postcode is required'}}
-              render={({field}) => (
+              rules={{ required: 'Postcode is required' }}
+              render={({ field }) => (
                 <PostcodeSearchInput
                   label="Post code"
                   value={field.value}
@@ -268,7 +273,7 @@ export default function ShippingAddress({setIsShippingCheck}) {
             <Controller
               name="addressone"
               control={control}
-              render={({field}) => (
+              render={({ field }) => (
                 <SelectField
                   label="Select Your Address"
                   value={selectedIndex}
@@ -299,7 +304,7 @@ export default function ShippingAddress({setIsShippingCheck}) {
           <Controller
             name="addressone"
             control={control}
-            render={({field}) => (
+            render={({ field }) => (
               <TextFields
                 label="Address"
                 value={field.value}
@@ -314,7 +319,7 @@ export default function ShippingAddress({setIsShippingCheck}) {
           <Controller
             name="addresstwo"
             control={control}
-            render={({field}) => (
+            render={({ field }) => (
               <TextFields
                 label="Address 2"
                 value={field.value}
@@ -328,7 +333,7 @@ export default function ShippingAddress({setIsShippingCheck}) {
           <Controller
             name="city"
             control={control}
-            render={({field}) => (
+            render={({ field }) => (
               <TextFields
                 label="Town / City"
                 value={field.value}
@@ -343,7 +348,7 @@ export default function ShippingAddress({setIsShippingCheck}) {
           <Controller
             name="same_as_shipping"
             control={control}
-            render={({field}) => (
+            render={({ field }) => (
               <TouchableOpacity
                 style={styles.checkboxRow}
                 onPress={() => toggleCheckbox(field.onChange, field.value)}>
@@ -356,7 +361,7 @@ export default function ShippingAddress({setIsShippingCheck}) {
                     color="#47317c"
                   />
                 )}
-                <Text style={{marginLeft: 10, fontSize: 14}}>
+                <Text style={{ marginLeft: 10, fontSize: 14 }}>
                   Make billing address same as shipping address
                 </Text>
               </TouchableOpacity>
@@ -369,7 +374,7 @@ export default function ShippingAddress({setIsShippingCheck}) {
 }
 
 const styles = StyleSheet.create({
-  container: {paddingBottom: 0},
+  container: { paddingBottom: 0 },
   card: {
     backgroundColor: '#fff',
     padding: 20,
@@ -378,7 +383,7 @@ const styles = StyleSheet.create({
     shadowColor: '#000',
     shadowOpacity: 0.05,
     shadowRadius: 4,
-    shadowOffset: {width: 0, height: 2},
+    shadowOffset: { width: 0, height: 2 },
     elevation: 2,
   },
   title: {

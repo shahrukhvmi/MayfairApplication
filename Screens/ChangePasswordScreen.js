@@ -148,7 +148,7 @@ export default function PasswordChange() {
 
         <NextButton
           type="submit"
-          label={isLoading ? 'Saving...' : 'Save'}
+          label={isLoading ? 'Updating...' : 'Update'}
           disabled={!isValid || isLoading}
           onPress={handleSubmit(onSubmit)}
         />

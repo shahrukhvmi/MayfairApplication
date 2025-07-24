@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -7,22 +7,22 @@ import {
   TouchableOpacity,
   ActivityIndicator,
 } from 'react-native';
-import {useForm} from 'react-hook-form';
-import {useNavigation} from '@react-navigation/native';
+import { useForm } from 'react-hook-form';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import useConfirmationQuestionsStore from '../store/confirmationQuestionStore';
 import useConfirmationInfoStore from '../store/confirmationInfoStore';
 import Header from '../Layout/header';
 import NextButton from '../Components/NextButton';
 import BackButton from '../Components/BackButton';
-import {MdCheckBox, MdCheckBoxOutlineBlank} from 'react-icons/md'; // ignore in RN
+import { MdCheckBox, MdCheckBoxOutlineBlank } from 'react-icons/md'; // ignore in RN
 import Ionicons from 'react-native-vector-icons/Ionicons';
 
 export default function PatientConsent() {
   const navigation = useNavigation();
   const [showLoader, setShowLoader] = useState(false);
 
-  const {confirmationQuestions} = useConfirmationQuestionsStore();
-  const {confirmationInfo, setConfirmationInfo} = useConfirmationInfoStore();
+  const { confirmationQuestions } = useConfirmationQuestionsStore();
+  const { confirmationInfo, setConfirmationInfo } = useConfirmationInfoStore();
   const [questions, setQuestions] = useState([]);
 
   const {
@@ -30,40 +30,42 @@ export default function PatientConsent() {
     handleSubmit,
     setValue,
     watch,
-    formState: {errors, isValid},
+    formState: { errors, isValid },
   } = useForm({
     mode: 'onChange',
   });
 
-  useEffect(() => {
-    if (confirmationInfo && confirmationInfo.length) {
-      console.log('✅ Loading from confirmationInfo (user answers)');
-      setQuestions(confirmationInfo);
-    } else if (confirmationQuestions && confirmationQuestions.length) {
-      console.log('🟡 Loading from confirmationQuestions (API fallback)');
-      const initialized = confirmationQuestions.map(q => ({
-        ...q,
-        answer: false,
-        has_check_list: true,
-        has_checklist: true,
-      }));
-      console.log(initialized, 'initialized');
-      setQuestions(initialized);
-    } else {
-      console.log('❌ No questions found');
-    }
-  }, [confirmationInfo, confirmationQuestions]);
+  useFocusEffect(
+    React.useCallback(() => {
+      if (confirmationInfo && confirmationInfo.length) {
+        console.log('✅ Loading from confirmationInfo (user answers)');
+        setQuestions(confirmationInfo);
+      } else if (confirmationQuestions && confirmationQuestions.length) {
+        console.log('🟡 Loading from confirmationQuestions (API fallback)');
+        const initialized = confirmationQuestions.map(q => ({
+          ...q,
+          answer: false,
+          has_check_list: true,
+          has_checklist: true,
+        }));
+        console.log(initialized, 'initialized');
+        setQuestions(initialized);
+      } else {
+        console.log('❌ No questions found');
+      }
+    }, [confirmationInfo, confirmationQuestions]));
 
-  useEffect(() => {
-    questions.forEach(q => {
-      setValue(`responses[${q.id}].answer`, q.answer ?? false);
-    });
-  }, [questions]);
+  useFocusEffect(
+    React.useCallback(() => {
+      questions.forEach(q => {
+        setValue(`responses[${q.id}].answer`, q.answer ?? false);
+      });
+    }, [questions]));
 
   const handleCheckboxChange = (id, value) => {
     const updated = questions.map(q =>
       q.id === id
-        ? {...q, answer: value, has_check_list: true, has_checklist: true}
+        ? { ...q, answer: value, has_check_list: true, has_checklist: true }
         : q,
     );
 
@@ -150,7 +152,7 @@ export default function PatientConsent() {
             label="Next"
             onPress={handleSubmit(onSubmit)}
             disabled={!isNextEnabled}
-            style={{marginTop: 20}}
+            style={{ marginTop: 20 }}
           />
           <BackButton
             label="Back"

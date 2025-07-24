@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   ScrollView,
   Text,
@@ -8,8 +8,8 @@ import {
   TouchableOpacity,
   ActivityIndicator,
 } from 'react-native';
-import {useForm, Controller} from 'react-hook-form';
-import {useNavigation} from '@react-navigation/native';
+import { useForm, Controller } from 'react-hook-form';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 
 import Header from '../Layout/header';
@@ -24,41 +24,43 @@ import AnimatedLogoLoader from '../Components/AnimatedLogoLoader';
 export default function MedicalQuestions() {
   const navigation = useNavigation();
   const [showLoader, setShowLoader] = useState(false);
-  const {medicalQuestions} = useMedicalQuestionsStore();
-  const {medicalInfo, setMedicalInfo} = useMedicalInfoStore();
+  const { medicalQuestions } = useMedicalQuestionsStore();
+  const { medicalInfo, setMedicalInfo } = useMedicalInfoStore();
   const [questions, setQuestions] = useState([]);
 
-  const {control, handleSubmit, setValue, watch} = useForm({mode: 'onChange'});
+  const { control, handleSubmit, setValue, watch } = useForm({ mode: 'onChange' });
 
-  useEffect(() => {
-    if (medicalInfo && medicalInfo.length) {
-      setQuestions(medicalInfo);
-    } else if (medicalQuestions && medicalQuestions.length) {
-      const initialized = medicalQuestions.map(q => ({
-        ...q,
-        subfield_response: '',
-      }));
-      setQuestions(initialized);
-    }
-  }, [medicalQuestions, medicalInfo]);
-
-  useEffect(() => {
-    questions.forEach(q => {
-      if (q.answer) setValue(`responses[${q.id}].answer`, q.answer);
-      if (q.subfield_response) {
-        setValue(`responses[${q.id}].subfield_response`, q.subfield_response);
+  useFocusEffect(
+    React.useCallback(() => {
+      if (medicalInfo && medicalInfo.length) {
+        setQuestions(medicalInfo);
+      } else if (medicalQuestions && medicalQuestions.length) {
+        const initialized = medicalQuestions.map(q => ({
+          ...q,
+          subfield_response: '',
+        }));
+        setQuestions(initialized);
       }
-    });
-  }, [questions]);
+    }, [medicalQuestions, medicalInfo]));
+
+  useFocusEffect(
+    React.useCallback(() => {
+      questions.forEach(q => {
+        if (q.answer) setValue(`responses[${q.id}].answer`, q.answer);
+        if (q.subfield_response) {
+          setValue(`responses[${q.id}].subfield_response`, q.subfield_response);
+        }
+      });
+    }, [questions]));
 
   const handleAnswerChange = (id, value) => {
     const updated = questions.map(q =>
       q.id === id
         ? {
-            ...q,
-            answer: value,
-            subfield_response: value === 'no' ? '' : q.subfield_response,
-          }
+          ...q,
+          answer: value,
+          subfield_response: value === 'no' ? '' : q.subfield_response,
+        }
         : q,
     );
     setQuestions(updated);
@@ -70,7 +72,7 @@ export default function MedicalQuestions() {
 
   const handleSubFieldChange = (id, value) => {
     const updated = questions.map(q =>
-      q.id === id ? {...q, subfield_response: value} : q,
+      q.id === id ? { ...q, subfield_response: value } : q,
     );
     setQuestions(updated);
     setValue(`responses[${id}].subfield_response`, value);

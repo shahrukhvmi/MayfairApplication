@@ -115,9 +115,6 @@ export default function ConfirmationSummary() {
     },
   });
 
-  //   useEffect(() => {
-  //     setShowLoader(false);
-  //   }, []);
 
   const hanldeConfirm = () => {
     setShowLoader(true);
