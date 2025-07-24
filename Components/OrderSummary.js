@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -10,22 +10,22 @@ import {
 } from 'react-native';
 import Feather from 'react-native-vector-icons/Feather';
 import Entypo from 'react-native-vector-icons/Entypo';
-import {useNavigation} from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import useCartStore from '../store/useCartStore';
 import useCouponStore from '../store/couponStore';
 import Toast from 'react-native-toast-message';
-import {CouponApi} from '../api/couponApi';
+import { CouponApi } from '../api/couponApi';
 import useShippingOrBillingStore from '../store/shipingOrbilling';
 import NextButton from './NextButton';
 
-const OrderSummary = ({isNextDisabled}) => {
+const OrderSummary = ({ isNextDisabled }) => {
   const navigation = useNavigation();
 
   const [loading, setLoading] = useState(false);
   const [thankYou, setThankYou] = useState(false);
 
-  const {items, totalAmount, setCheckOut, setOrderId} = useCartStore();
-  const {Coupon, setCoupon, clearCoupon} = useCouponStore();
+  const { items, totalAmount, setCheckOut, setOrderId } = useCartStore();
+  const { Coupon, setCoupon, clearCoupon } = useCouponStore();
   const {
     shipping,
     billing,
@@ -60,19 +60,19 @@ const OrderSummary = ({isNextDisabled}) => {
   const handleApplyCoupon = async () => {
     setCouponLoading(true);
     try {
-      const res = await CouponApi({coupon_code: discountCode});
+      const res = await CouponApi({ coupon_code: discountCode });
       if (res?.data?.status === true) {
-        Toast.show({type: 'success', text1: 'Coupon applied successfully!'});
+        Toast.show({ type: 'success', text1: 'Coupon applied successfully!' });
         setCoupon(res.data);
         setDiscountCode('');
       }
     } catch (error) {
       const err = error?.response?.data?.errors?.Coupon;
       if (err) {
-        Toast.show({type: 'error', text1: err});
+        Toast.show({ type: 'error', text1: err });
         clearCoupon();
       } else {
-        Toast.show({type: 'error', text1: 'Something went wrong'});
+        Toast.show({ type: 'error', text1: 'Something went wrong' });
       }
     } finally {
       setCouponLoading(false);
@@ -81,7 +81,7 @@ const OrderSummary = ({isNextDisabled}) => {
 
   const handleRemoveCoupon = () => {
     clearCoupon();
-    Toast.show({type: 'info', text1: 'Coupon removed'});
+    Toast.show({ type: 'info', text1: 'Coupon removed' });
   };
 
   const handleSubmit = () => {
@@ -109,17 +109,23 @@ const OrderSummary = ({isNextDisabled}) => {
           <View style={styles.itemContainer}>
             <View style={styles.itemDetails}>
               <Text style={styles.itemTitle}>{item.product}</Text>
-              <Text style={styles.itemQuantity}>Quantity: x{item.qty}</Text>
+              <Text style={styles.itemQuantity}>Qty: x{item.qty}</Text>
             </View>
-            <Text style={styles.itemPrice}>£{item.price.toFixed(2)}</Text>
+            <View style={styles.priceBadge}>
+              <Text style={styles.priceText}>£{item.price.toFixed(2)}</Text>
+            </View>
           </View>
+
           {item.product === 'Mounjaro (Tirzepatide)' && (
-            <View style={[styles.itemContainer, styles.mounjaroContainer]}>
+            <View style={[styles.itemContainer]}>
               <View style={styles.itemDetails}>
-                <Text style={styles.itemTitle}>Pack of 5 Needle</Text>
-                <Text style={styles.itemQuantity}>Quantity: x{item.qty}</Text>
+                <Text style={styles.itemTitle}>Pack of 5 Needles</Text>
+                <Text style={styles.itemQuantity}>Qty: x{item.qty}</Text>
+
               </View>
-              <Text style={styles.itemPrice}>£0.00</Text>
+              <View style={styles.priceBadge}>
+                <Text style={styles.priceText}>£0.00</Text>
+              </View>
             </View>
           )}
         </React.Fragment>
@@ -130,13 +136,28 @@ const OrderSummary = ({isNextDisabled}) => {
       <View style={styles.itemContainer} key={idx}>
         <View style={styles.itemDetails}>
           <Text style={styles.itemTitle}>{item.name}</Text>
-          <Text style={styles.itemQuantity}>Quantity: x{item.qty}</Text>
+          <Text style={styles.itemQuantity}>Qty: x{item.qty}</Text>
         </View>
-        <Text style={styles.itemPrice}>£{item.price.toFixed(2)}</Text>
+        <View style={styles.priceBadge}>
+          <Text style={styles.priceText}>£{item.price.toFixed(2)}</Text>
+        </View>
       </View>
     );
   };
 
+  const renderAddon = (item, idx) => {
+    return (
+      <View style={styles.itemContainer} key={idx}>
+        <View style={styles.itemDetails}>
+          <Text style={styles.itemTitle}>{item.product}</Text>
+          <Text style={styles.itemQuantity}>Qty: x{item.qty}</Text>
+        </View>
+        <View style={styles.priceBadge}>
+          <Text style={styles.priceText}>£{item.price.toFixed(2)}</Text>
+        </View>
+      </View>
+    );
+  };
   return (
     <>
       <View style={styles.card}>
@@ -150,6 +171,7 @@ const OrderSummary = ({isNextDisabled}) => {
           </View>
 
           {items.doses?.map(renderItem)}
+          {items.addons?.map(renderAddon)}
 
           <View style={styles.summaryContainer}>
             <View style={styles.summaryRow}>
@@ -164,10 +186,10 @@ const OrderSummary = ({isNextDisabled}) => {
 
             {Coupon && (
               <View style={styles.summaryRow}>
-                <Text style={[styles.summaryLabel, {color: '#47317c'}]}>
+                <Text style={[styles.summaryLabel, { color: '#47317c' }]}>
                   Discount
                 </Text>
-                <Text style={[styles.summaryValue, {color: '#47317c'}]}>
+                <Text style={[styles.summaryValue, { color: '#47317c' }]}>
                   -£{discountAmount.toFixed(2)}
                 </Text>
               </View>
@@ -218,13 +240,14 @@ const OrderSummary = ({isNextDisabled}) => {
                 <TextInput
                   style={styles.couponInput}
                   placeholder="Enter discount code"
+                  placeholderTextColor={'#000'}
                   value={discountCode}
                   onChangeText={setDiscountCode}
                 />
                 <TouchableOpacity
                   style={[
                     styles.applyCouponButton,
-                    {backgroundColor: isApplyEnabled ? '#4B0082' : '#ccc'},
+                    { backgroundColor: isApplyEnabled ? '#4B0082' : '#ccc' },
                   ]}
                   onPress={handleApplyCoupon}
                   disabled={!isApplyEnabled}>
@@ -240,7 +263,7 @@ const OrderSummary = ({isNextDisabled}) => {
 
       <NextButton
         label="Procceed to Payment"
-        style={{marginBottom: 30}}
+        style={{ marginBottom: 30 }}
         onPress={handleSubmit}
         disabled={!isNextDisabled}
       />
@@ -250,7 +273,7 @@ const OrderSummary = ({isNextDisabled}) => {
         <View style={styles.modalOverlay}>
           <View style={styles.modalBox}>
             <ActivityIndicator size="large" color="#4B0082" />
-            <Text style={{marginTop: 12}}>Processing payment...</Text>
+            <Text style={{ marginTop: 12 }}>Processing payment...</Text>
           </View>
         </View>
       </Modal>
@@ -288,7 +311,7 @@ const styles = StyleSheet.create({
     shadowColor: '#000',
     shadowOpacity: 0.05,
     shadowRadius: 4,
-    shadowOffset: {width: 0, height: 2},
+    shadowOffset: { width: 0, height: 2 },
     elevation: 2,
   },
   sectionTitle: {
@@ -394,20 +417,23 @@ const styles = StyleSheet.create({
   },
   couponInput: {
     flex: 1,
-    padding: 8,
+    padding: 18,
     backgroundColor: '#f0f0f0',
-    borderRadius: 4,
-    borderTopRightRadius: 0,
-    borderBottomRightRadius: 0,
+    borderRadius: 12,
+    color: '#000',
+    position: 'relative'
   },
   applyCouponButton: {
     padding: 8,
+    paddingHorizontal: 16,
     backgroundColor: '#4B0082',
-    borderRadius: 4,
+    borderRadius: 12,
     justifyContent: 'center',
     alignItems: 'center',
-    borderTopLeftRadius: 0,
-    borderBottomLeftRadius: 0,
+    position: 'absolute',
+    right: 10,
+    top: 10,
+
   },
   applyCouponButtonText: {
     color: '#fff',
@@ -445,6 +471,29 @@ const styles = StyleSheet.create({
     color: '#4B0082',
     marginBottom: 8,
   },
+
+
+
+  priceBadge: {
+    backgroundColor: '#fff',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+    alignSelf: 'center',
+  },
+
+  priceText: {
+    fontWeight: 'bold',
+    fontSize: 14,
+    color: '#333',
+  },
+
+
 });
 
 export default OrderSummary;

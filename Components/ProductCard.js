@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -7,8 +7,8 @@ import {
   StyleSheet,
   ActivityIndicator,
 } from 'react-native';
-import {useNavigation} from '@react-navigation/native';
-import {useMutation} from '@tanstack/react-query';
+import { useNavigation } from '@react-navigation/native';
+import { useMutation } from '@tanstack/react-query';
 import Toast from 'react-native-toast-message';
 
 // ✅ your stores (paths may differ)
@@ -42,24 +42,24 @@ const ProductCard = ({
 }) => {
   /* ───────── hooks / stores ───────── */
   const navigation = useNavigation();
-  const {setProductId} = useProductId();
-  const {setReorder} = useReorder();
-  const {clearCoupon} = useCouponStore();
+  const { setProductId } = useProductId();
+  const { setReorder } = useReorder();
+  const { clearCoupon } = useCouponStore();
 
   // many setters cleared/filled by API response
-  const {setBmi, clearBmi} = useBmiStore();
-  const {setCheckout, clearCheckout} = useCheckoutStore();
-  const {setConfirmationInfo, clearConfirmationInfo} =
+  const { setBmi, clearBmi } = useBmiStore();
+  const { setCheckout, clearCheckout } = useCheckoutStore();
+  const { setConfirmationInfo, clearConfirmationInfo } =
     useConfirmationInfoStore();
-  const {setGpDetails, clearGpDetails} = useGpDetailsStore();
-  const {setMedicalInfo, clearMedicalInfo} = useMedicalInfoStore();
-  const {setPatientInfo, clearPatientInfo} = usePatientInfoStore();
-  const {setAuthUserDetail, clearAuthUserDetail} = useAuthUserDetailStore();
-  const {setShipping, clearShipping, setBilling, clearBilling} =
+  const { setGpDetails, clearGpDetails } = useGpDetailsStore();
+  const { setMedicalInfo, clearMedicalInfo } = useMedicalInfoStore();
+  const { setPatientInfo, clearPatientInfo } = usePatientInfoStore();
+  const { setAuthUserDetail, clearAuthUserDetail } = useAuthUserDetailStore();
+  const { setShipping, clearShipping, setBilling, clearBilling } =
     useShippingOrBillingStore();
-  const {setLastBmi} = useLastBmi();
-  const {setFirstName, setLastName} = useSignupStore();
-  const {setIsReturningPatient} = useReturning();
+  const { setLastBmi } = useLastBmi();
+  const { setFirstName, setLastName } = useSignupStore();
+  const { setIsReturningPatient } = useReturning();
 
   /* ───────── local state ───────── */
   const [loading, setLoading] = useState(false);
@@ -153,7 +153,7 @@ const ProductCard = ({
       {/* product image */}
       <View style={styles.imageWrap}>
         <Image
-          source={{uri: image}}
+          source={{ uri: image }}
           style={styles.image}
           resizeMode="contain"
         />
@@ -207,21 +207,23 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
     paddingHorizontal: 32,
     backgroundColor: '#ff5555',
-    transform: [{rotate: '-45deg'}],
+    transform: [{ rotate: '-45deg' }],
     zIndex: 20,
   },
   ribbonLeft: {
     left: -40,
   },
   ribbonRight: {
-    right: -40,
+    right: -25,
     backgroundColor: '#4285f4',
-    transform: [{rotate: '45deg'}],
+    transform: [{ rotate: '45deg' }],
   },
   ribbonText: {
     color: '#fff',
     fontSize: 10,
     fontWeight: 'bold',
+    position: 'relative',
+    left: 12,
   },
   imageWrap: {
     height: 160,

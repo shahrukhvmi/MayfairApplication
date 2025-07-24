@@ -303,16 +303,19 @@ export default function DoseSelection({ navigation }) {
       </ScrollView>
 
       <View style={styles.footer}>
-        <View style={styles.footerLeft}>
+        <View style={styles.footerContent}>
           <Image source={{ uri: variation.img }} style={styles.footerImg} />
-          <View style={styles.footerTextWrapper}>
-            <Text style={styles.footerName}>{variation.name}</Text>
+          <View style={styles.footerDetails}>
+            <Text style={styles.footerName} numberOfLines={1}>
+              {variation.name}
+            </Text>
             <Text style={styles.footerTotal}>
-              Order total £{parseFloat(totalAmount).toFixed(2)}
+              Order total <Text style={styles.amount}>£{parseFloat(totalAmount).toFixed(2)}</Text>
             </Text>
           </View>
         </View>
       </View>
+
 
       <Modal
         isVisible={showDoseModal}
@@ -369,42 +372,49 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   modalText: { fontSize: 16, marginBottom: 20, textAlign: 'center' },
-
   footer: {
-    padding: 8,
-    borderTopWidth: 1,
-    borderColor: '#ddd',
-    backgroundColor: '#fff',
+    position: 'absolute',
+    bottom: 0,
+    width: '100%',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    backgroundColor: 'white',
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: -3 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 10,
   },
-
-  footerLeft: {
+  footerContent: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 0,
   },
-
   footerImg: {
-    width: 50,
-    height: 50,
-    marginRight: 12,
-    borderRadius: 8,
-    resizeMode: 'contain',
+    width: 56,
+    height: 56,
+    borderRadius: 14,
+    marginRight: 14,
+    borderWidth: 1,
+    borderColor: '#eee',
   },
-
-  footerTextWrapper: {
+  footerDetails: {
     flex: 1,
   },
-
   footerName: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#111827',
+    color: '#111',
+    marginBottom: 4,
   },
-
   footerTotal: {
-    fontSize: 15,
-    color: '#6b7280',
-    marginTop: 2,
+    fontSize: 14,
+    color: '#666',
+  },
+  amount: {
+    color: '#000',
+    fontWeight: '700',
   },
 
   footerRight: {
@@ -412,10 +422,14 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'start',
     gap: 4,
-    margin: 6,
+    marginBottom: 90,
   },
   nextBtn: {
     flexGrow: 1, // 💥 let the button expand as needed
     maxWidth: 200, // optional minimum width
   },
+
+
+
+
 });

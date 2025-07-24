@@ -37,7 +37,7 @@ const LoginScreen = () => {
     watch,
     formState: { errors },
   } = useForm();
-  const [showPassword, setShowPassword] = useState(true);
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const { setIsReturningPatient } = useReturning();
 
@@ -76,10 +76,7 @@ const LoginScreen = () => {
       setEmail(user?.email);
       setIsReturningPatient(user?.isReturning)
 
-      navigation.reset({
-        index: 0,
-        routes: [{ name: 'dashboard' }],
-      });
+      navigation.navigate("dashboard");
 
       setIsPasswordReset(false);
       setShowResetPassword(user?.show_password_reset);
@@ -289,6 +286,7 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     textAlign: 'start',
     fontSize: 16,
+    color: '#000'
   },
   passwordContainer: {
     flexDirection: 'row',
@@ -310,6 +308,7 @@ const styles = StyleSheet.create({
     width: '85%',
     textAlign: 'start',
     fontSize: 16,
+    color:'#000'
   },
   btn: {
     marginTop: 20,

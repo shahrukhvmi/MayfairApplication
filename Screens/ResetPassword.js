@@ -14,7 +14,7 @@ import {
   ActivityIndicator,
   Alert,
 } from 'react-native';
-import { useRoute, useNavigation, useFocusEffect } from '@react-navigation/native';
+import { useRoute, useNavigation } from '@react-navigation/native';
 import Toast from 'react-native-toast-message';
 import { logApiSuccess } from '../utils/logApiDebug';
 import Ionicons from 'react-native-vector-icons/Ionicons';
@@ -44,7 +44,7 @@ const ResetPassword = () => {
         text1: 'Password Updated Successfully',
         text2: 'You can now log in with your new password.',
       });
-      navigation.reset({ index: 0, routes: [{ name: 'Login' }] });
+      navigation.navigate("Login");
       setLoading(false);
     },
     onError: error => {
@@ -57,12 +57,13 @@ const ResetPassword = () => {
     },
   });
 
-  useFocusEffect(
-    useCallback(() => {
-      if (token) console.log('🔐 Token from URL:', token);
-      else console.log('❌ No token found in params');
-    }, [token])
-  );
+  useEffect(() => {
+    if (token) console.log('🔐 Token from URL:', token);
+
+  }, [token])
+
+
+
 
   const onSubmit = data => {
     const formData = {
@@ -234,7 +235,7 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     justifyContent: 'space-between',
   },
-  passwordInput: { height: 40, width: '85%', textAlign: 'start', fontSize: 16 },
+  passwordInput: { height: 40, width: '85%', textAlign: 'start', fontSize: 16, color: '#000' },
   btn: {
     marginTop: 20,
     height: 50,
