@@ -67,8 +67,8 @@ export default function BillingAddress({ sameAsShipping, setIsBillingCheck }) {
     mode: 'onChange',
     defaultValues: {
       postalcode: '',
-      addressone: '',
-      addresstwo: '',
+      address1: '',
+      address2: '',
       city: '',
       state: '',
       billingCountry: '',
@@ -103,8 +103,8 @@ export default function BillingAddress({ sameAsShipping, setIsBillingCheck }) {
       if (!isAllowed && selectedCountryObj) {
         clearBilling();
         setValue('postalcode', '');
-        setValue('addressone', '');
-        setValue('addresstwo', '');
+        setValue('address1', '');
+        setValue('address2', '');
         setValue('city', '');
         setValue('state', '');
       }
@@ -115,8 +115,8 @@ export default function BillingAddress({ sameAsShipping, setIsBillingCheck }) {
     React.useCallback(() => {
       if (shipping?.same_as_shipping) {
         setValue('postalcode', shipping.postalcode || '');
-        setValue('addressone', shipping.addressone || '');
-        setValue('addresstwo', shipping.addresstwo || '');
+        setValue('address1', shipping.address1 || '');
+        setValue('address2', shipping.address2 || '');
         setValue('city', shipping.city || '');
         setValue('state', shipping.state || '');
 
@@ -129,8 +129,8 @@ export default function BillingAddress({ sameAsShipping, setIsBillingCheck }) {
         }
       } else if (billing) {
         setValue('postalcode', billing.postalcode || '');
-        setValue('addressone', billing.addressone || '');
-        setValue('addresstwo', billing.addresstwo || '');
+        setValue('address1', billing.address1 || '');
+        setValue('address2', billing.address2 || '');
         setValue('city', billing.city || '');
         setValue('state', billing.state || '');
 
@@ -175,8 +175,8 @@ export default function BillingAddress({ sameAsShipping, setIsBillingCheck }) {
           country_name: selectedCountry?.name || '',
           country_price: selectedCountry?.price || '',
           postalcode: values.postalcode || '',
-          addressone: values.addressone || '',
-          addresstwo: values.addresstwo || '',
+          address1: values.address1 || '',
+          address2: values.address2 || '',
           city: values.city || '',
           state: values.state || '',
           same_as_shipping: false,
@@ -200,13 +200,13 @@ export default function BillingAddress({ sameAsShipping, setIsBillingCheck }) {
       const fields = watch([
         'billingCountry',
         'postalcode',
-        'addressone',
+        'address1',
         'city',
       ]);
       const allFilled = fields.every(field => field && field !== '');
       setIsBillingCheck(allFilled);
     }, [
-      watch(['billingCountry', 'postalcode', 'addressone', 'city']),
+      watch(['billingCountry', 'postalcode', 'address1', 'city']),
       setIsBillingCheck,
     ]));
 
@@ -282,7 +282,7 @@ export default function BillingAddress({ sameAsShipping, setIsBillingCheck }) {
                   setValue('city', selected.town_or_city || '', {
                     shouldValidate: true,
                   });
-                  setValue('country', selected.country || '', {
+                  setValue('state', selected.county || '', {
                     shouldValidate: true,
                   });
                 }}
@@ -297,7 +297,7 @@ export default function BillingAddress({ sameAsShipping, setIsBillingCheck }) {
           />
         )}
         <Controller
-          name="addressone"
+          name="address1"
           control={control}
           render={({ field }) => (
             <TextFields
@@ -312,7 +312,7 @@ export default function BillingAddress({ sameAsShipping, setIsBillingCheck }) {
         />
 
         <Controller
-          name="addresstwo"
+          name="address2"
           control={control}
           render={({ field }) => (
             <TextFields

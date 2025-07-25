@@ -96,7 +96,7 @@ const SelectFields = ({
               placeholderTextColor={"#999"}
               onChangeText={setSearch}
               style={styles.searchInput}
-              autoFocus
+              // autoFocus
             />
 
             <FlatList

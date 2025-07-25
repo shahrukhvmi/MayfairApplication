@@ -280,13 +280,13 @@ export default function GpDetail() {
               </Text> */}
               <TextFields
                 label={"Email"}
-                placeholder="Email"
+                style={{ marginTop: 22 }}
                 value={watch('email')}
                 onChangeText={text => setValue('email', text)}
               />
 
-              <View style={{ marginBottom: 16 }}>
-                <View style={{ marginBottom: 16 }}>
+              <View style={{ marginBottom: 4 }}>
+                <View >
                   <Controller
                     name="postalCode"
                     control={control}
@@ -344,7 +344,7 @@ export default function GpDetail() {
             <>
               <TextFields
                 required
-                placeholder="GP Name"
+
                 label="GP Name"
                 value={watch('gpName')}
                 onChangeText={text => setValue('gpName', text)}
@@ -352,20 +352,20 @@ export default function GpDetail() {
               <TextFields
                 required
                 label="Address"
-                placeholder="Address"
+
                 value={watch('addressLine1')}
                 onChangeText={text => setValue('addressLine1', text)}
               />
               <TextFields
                 label="Address 2"
-                placeholder="Address 2"
+
                 valueTextField={watch('addressLine2')}
                 onChangeText={text => setValue('addressLine2', text)}
               />
               <TextFields
                 required
                 label="Town / City"
-                placeholder="Town / City"
+
                 value={watch('city')}
                 onChangeText={text => setValue('city', text)}
               />

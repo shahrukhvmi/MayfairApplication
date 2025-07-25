@@ -293,7 +293,7 @@ export default function ShippingAddress({ setIsShippingCheck }) {
                     setValue('city', selected.town_or_city || '', {
                       shouldValidate: true,
                     });
-                
+                    
                   }}
                   options={addressOptions.map((addr, idx) => ({
                     value: idx,

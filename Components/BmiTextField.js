@@ -5,7 +5,7 @@ const BmiTextField = ({
   required,
   label,
   name,
-  type = 'number',
+  type = 'numeric',
   fieldProps = {},
   errors = {},
   onBlur,
