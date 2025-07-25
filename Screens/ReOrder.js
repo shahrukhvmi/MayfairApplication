@@ -5,11 +5,11 @@ import {
   TouchableOpacity,
   StyleSheet,
   ScrollView,
-  ActivityIndicator,
 } from 'react-native';
 import { useForm, Controller } from 'react-hook-form';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 // import {FiCheck} from 'react-icons/fi'; // Only valid in Web; for React Native use react-native-vector-icons
+import Icon from 'react-native-vector-icons/Feather';
 
 import useReorder from '../store/useReorderStore';
 // import useReorderButtonStore from '../store/useReorderButton';
@@ -61,36 +61,33 @@ export default function ReOrder() {
       setReorderBackProcess(true);
     }
   };
-
   const renderYesNo = (fieldName, value, onChange) => (
-    <View style={styles.optionsContainer}>
+    <View style={styles.inlineOptionsContainer}>
       {['yes', 'no'].map(option => {
         const isSelected = value === option;
+
         return (
           <TouchableOpacity
             key={option}
+            onPress={() => onChange(option)}
             style={[
-              styles.optionButton,
-              isSelected &&
-              (option === 'yes'
-                ? styles.optionYesSelected
-                : styles.optionNoSelected),
-            ]}
-            onPress={() => onChange(option)}>
-            <View
-              style={[
-                styles.checkbox,
-                isSelected &&
-                (option === 'yes' ? styles.checkboxYes : styles.checkboxNo),
-              ]}>
-              {isSelected && <Text style={styles.checkmark}>✓</Text>}
+              styles.optionBox,
+              isSelected ? styles.optionSelected : styles.optionUnselected,
+            ]}>
+            <View style={[styles.iconWrapper, isSelected && styles.iconSelected]}>
+              {isSelected && (
+                <Icon name="check" size={14} color="#fff" />
+              )}
             </View>
-            <Text style={styles.optionText}>{option}</Text>
+            <Text style={[styles.optionText, isSelected && { color: '#4B0082' }]}>
+              {option.charAt(0).toUpperCase() + option.slice(1)}
+            </Text>
           </TouchableOpacity>
         );
       })}
     </View>
   );
+
 
   return (
     <>
@@ -161,7 +158,7 @@ const styles = StyleSheet.create({
   },
   optionYesSelected: {
     backgroundColor: '#eee7ff',
-    borderColor: '#7c3aed',
+    borderColor: '#4B0082',
   },
   optionNoSelected: {
     backgroundColor: '#e6ffef',
@@ -179,8 +176,8 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
   },
   checkboxYes: {
-    backgroundColor: '#7c3aed',
-    borderColor: '#7c3aed',
+    backgroundColor: '#4B0082',
+    borderColor: '#4B0082',
   },
   checkboxNo: {
     backgroundColor: '#10b981',
@@ -204,4 +201,85 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     zIndex: 10,
   },
+
+  inlineOptionsContainer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    gap: 16,
+    marginTop: 10,
+  },
+
+  inlineOptionButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    borderRadius: 30,
+    borderWidth: 1,
+    borderColor: '#ccc',
+    backgroundColor: '#f9f9f9',
+  },
+
+  optionYesSelected: {
+    backgroundColor: '#eee7ff',
+    borderColor: '#4B0082',
+  },
+
+
+  inlineOptionText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#222',
+    textTransform: 'capitalize',
+  },
+  inlineOptionsContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    gap: 12,
+    marginTop: 16,
+  },
+
+  optionBox: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 12,
+    borderWidth: 1.5,
+    flex: 1,
+  },
+
+  optionUnselected: {
+    backgroundColor: '#fff',
+    borderColor: '#ddd',
+  },
+
+  optionSelected: {
+    backgroundColor: '#f5edff',
+    borderColor: '#4B0082',
+  },
+
+  iconWrapper: {
+    width: 20,
+    height: 20,
+    borderRadius: 4,
+    borderWidth: 1.5,
+    borderColor: '#4B0082',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 8,
+  },
+
+  iconSelected: {
+    backgroundColor: '#4B0082',
+    borderColor: '#4B0082',
+  },
+
+  optionText: {
+    fontSize: 16,
+    color: '#333',
+    fontWeight: '600',
+    textTransform: 'capitalize',
+  },
+
 });
