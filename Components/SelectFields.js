@@ -84,9 +84,11 @@ const SelectFields = ({
             </TouchableOpacity>
             <Text style={{
               color: '#000',
-              fontSize: 16,
+              fontSize: 19,
+              fontWeight: 'bold',
+
             }}>
-              Select or search your address
+              Select an option
             </Text>
             <TextInput
               placeholder="Search..."

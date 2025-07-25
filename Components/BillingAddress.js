@@ -304,7 +304,7 @@ export default function BillingAddress({ sameAsShipping, setIsBillingCheck }) {
               label="Address"
               value={field.value}
               onChangeText={field.onChange}
-              placeholder="123 Main Street"
+      
               required
               errors={errors}
             />
@@ -319,7 +319,7 @@ export default function BillingAddress({ sameAsShipping, setIsBillingCheck }) {
               label="Address 2"
               value={field.value}
               onChangeText={field.onChange}
-              placeholder="Flat 14"
+              
               errors={errors}
             />
           )}
@@ -333,7 +333,7 @@ export default function BillingAddress({ sameAsShipping, setIsBillingCheck }) {
               label="Town / City"
               value={field.value}
               onChangeText={field.onChange}
-              placeholder="e.g., London"
+           
               required
               errors={errors}
             />
@@ -348,7 +348,7 @@ export default function BillingAddress({ sameAsShipping, setIsBillingCheck }) {
               label="State / County"
               value={field.value}
               onChangeText={field.onChange}
-              placeholder="e.g., Essex"
+             
               errors={errors}
             />
           )}
