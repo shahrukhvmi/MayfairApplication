@@ -17,6 +17,7 @@ import { getProfileData, sendProfileData } from '../api/myProfileApi';
 import PostcodeSearchInput from './PostcodeSearchInput';
 import { useFocusEffect } from '@react-navigation/native';
 import NextButton from './NextButton';
+import SelectFields from './SelectFields';
 
 const GETADDRESS_KEY = '_UFb05P76EyMidU1VHIQ_A42976';
 
@@ -185,7 +186,7 @@ export default function Shipping({ shipmentCountries }) {
             control={control}
             rules={{ required: 'Country is required' }}
             render={({ field }) => (
-              <SelectField
+              <SelectFields
                 label="Select Country"
                 value={field.value}
                 onChange={id => {
@@ -240,7 +241,7 @@ export default function Shipping({ shipmentCountries }) {
               name="addressone" // You can change this to any form field name like "addressone"
               control={control}
               render={({ field }) => (
-                <SelectField
+                <SelectFields
                   label="Select Your Address"
                   value={selectedIndex}
                   onChange={idx => {

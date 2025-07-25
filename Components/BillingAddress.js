@@ -15,6 +15,7 @@ import PostcodeSearchInput from './PostcodeSearchInput';
 import useBillingCountries from '../store/useBillingCountriesStore';
 import useShippingOrBillingStore from '../store/shipingOrbilling';
 import { useFocusEffect } from '@react-navigation/native';
+import SelectFields from './SelectFields';
 
 const GETADDRESS_KEY = '_UFb05P76EyMidU1VHIQ_A42976';
 
@@ -225,7 +226,7 @@ export default function BillingAddress({ sameAsShipping, setIsBillingCheck }) {
           control={control}
           rules={{ required: 'Country is required' }}
           render={({ field }) => (
-            <SelectField
+            <SelectFields
               label="Select Country"
               value={field.value}
               onChange={id => {
@@ -258,27 +259,30 @@ export default function BillingAddress({ sameAsShipping, setIsBillingCheck }) {
           )}
         />
 
-        {manual && addressOptions.length > 0 && (
+        {addressOptions.length > 0 && (
           <Controller
-            name="addressone"
             control={control}
-            render={({ field }) => (
-              <SelectField
+            name="selectedAddress"
+            rules={{ required: 'Please select your address' }}
+            render={({ field: { onChange, value } }) => (
+              <SelectFields
                 label="Select Your Address"
-                value={selectedIndex}
+                value={value}
                 onChange={idx => {
-                  const selected = addressOptions[idx];
                   setSelectedIndex(idx);
-                  setValue('addressone', selected.line_1 || '', {
+                  const selected = addressOptions[idx];
+                  onChange(idx);
+
+                  setValue('address1', selected.line_1 || '', {
                     shouldValidate: true,
                   });
-                  setValue('addresstwo', selected.line_2 || '', {
+                  setValue('address2', selected.line_2 || '', {
                     shouldValidate: true,
                   });
                   setValue('city', selected.town_or_city || '', {
                     shouldValidate: true,
                   });
-                  setValue('state', selected.county || '', {
+                  setValue('country', selected.country || '', {
                     shouldValidate: true,
                   });
                 }}
@@ -287,12 +291,11 @@ export default function BillingAddress({ sameAsShipping, setIsBillingCheck }) {
                   label: addr.formatted_address.join(', '),
                 }))}
                 required
-                error={errors?.addressone?.message}
+                error={errors?.selectedAddress?.message}
               />
             )}
           />
         )}
-
         <Controller
           name="addressone"
           control={control}

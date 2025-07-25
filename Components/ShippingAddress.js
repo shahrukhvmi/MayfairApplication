@@ -16,6 +16,7 @@ import PostcodeSearchInput from './PostcodeSearchInput';
 import useShipmentCountries from '../store/useShipmentCountriesStore';
 import useShippingOrBillingStore from '../store/shipingOrbilling';
 import { useFocusEffect } from '@react-navigation/native';
+import SelectFields from './SelectFields';
 
 const GETADDRESS_KEY = '_UFb05P76EyMidU1VHIQ_A42976';
 
@@ -72,8 +73,8 @@ export default function ShippingAddress({ setIsShippingCheck }) {
     mode: 'onChange',
     defaultValues: {
       postalcode: '',
-      addressone: '',
-      addresstwo: '',
+      address1: '',
+      address2: '',
       city: '',
       shippingCountry: '',
       same_as_shipping: false,
@@ -88,8 +89,8 @@ export default function ShippingAddress({ setIsShippingCheck }) {
       if (!shipmentCountries?.length || !shipping) return;
 
       setValue('postalcode', shipping.postalcode || '');
-      setValue('addressone', shipping.addressone || '');
-      setValue('addresstwo', shipping.addresstwo || '');
+      setValue('address1', shipping.address1 || '');
+      setValue('address2', shipping.address2 || '');
       setValue('city', shipping.city || '');
 
       const country = shipmentCountries.find(
@@ -121,8 +122,8 @@ export default function ShippingAddress({ setIsShippingCheck }) {
           country_name: selectedCountry?.name || '',
           country_price: selectedCountry?.price || '',
           postalcode: values.postalcode || '',
-          addressone: values.addressone || '',
-          addresstwo: values.addresstwo || '',
+          address1: values.address1 || '',
+          address2: values.address2 || '',
           city: values.city || '',
           state: '',
           same_as_shipping: values.same_as_shipping || false,
@@ -146,8 +147,8 @@ export default function ShippingAddress({ setIsShippingCheck }) {
           country_name: selectedCountry?.name || '',
           country_price: selectedCountry?.price || '',
           postalcode: watch('postalcode'),
-          addressone: watch('addressone'),
-          addresstwo: watch('addresstwo'),
+          address1: watch('address1'),
+          address2: watch('address2'),
           city: watch('city'),
           state: '',
           same_as_shipping: true,
@@ -185,32 +186,32 @@ export default function ShippingAddress({ setIsShippingCheck }) {
 
   useFocusEffect(
     React.useCallback(() => {
-    const checkFields = () => {
-      const values = getValues(); // ✅ read immediately
-      const requiredFields = [
-        values.shippingCountry,
-        values.postalcode,
-        values.addressone,
-        values.city,
-      ];
+      const checkFields = () => {
+        const values = getValues(); // ✅ read immediately
+        const requiredFields = [
+          values.shippingCountry,
+          values.postalcode,
+          values.address1,
+          values.city,
+        ];
 
-      const allFilled = requiredFields.every(
-        field => field && field.toString().trim() !== '',
-      );
+        const allFilled = requiredFields.every(
+          field => field && field.toString().trim() !== '',
+        );
 
-      setIsShippingCheck?.(allFilled);
-    };
+        setIsShippingCheck?.(allFilled);
+      };
 
-    // 🔁 run once on mount
-    checkFields();
-
-    // 🔁 run on form updates
-    const subscription = watch(() => {
+      // 🔁 run once on mount
       checkFields();
-    });
 
-    return () => subscription.unsubscribe();
-  }, [watch, getValues, setIsShippingCheck]));
+      // 🔁 run on form updates
+      const subscription = watch(() => {
+        checkFields();
+      });
+
+      return () => subscription.unsubscribe();
+    }, [watch, getValues, setIsShippingCheck]));
 
   const toggleCheckbox = (fieldOnChange, value) => {
     fieldOnChange(!value);
@@ -233,7 +234,7 @@ export default function ShippingAddress({ setIsShippingCheck }) {
             control={control}
             rules={{ required: 'Country is required' }}
             render={({ field }) => (
-              <SelectField
+              <SelectFields
                 label="Select Country"
                 value={field.value}
                 onChange={id => {
@@ -269,40 +270,44 @@ export default function ShippingAddress({ setIsShippingCheck }) {
             />
           </View>
 
-          {manual && addressOptions.length > 0 && (
+          {addressOptions.length > 0 && (
             <Controller
-              name="addressone"
               control={control}
-              render={({ field }) => (
-                <SelectField
+              name="selectedAddress"
+              rules={{ required: 'Please select your address' }}
+              render={({ field: { onChange, value } }) => (
+                <SelectFields
                   label="Select Your Address"
-                  value={selectedIndex}
+                  value={value}
                   onChange={idx => {
-                    const selected = addressOptions[idx];
                     setSelectedIndex(idx);
-                    setValue('addressone', selected.line_1 || '', {
+                    const selected = addressOptions[idx];
+                    onChange(idx);
+
+                    setValue('address1', selected.line_1 || '', {
                       shouldValidate: true,
                     });
-                    setValue('addresstwo', selected.line_2 || '', {
+                    setValue('address2', selected.line_2 || '', {
                       shouldValidate: true,
                     });
                     setValue('city', selected.town_or_city || '', {
                       shouldValidate: true,
                     });
+                
                   }}
                   options={addressOptions.map((addr, idx) => ({
                     value: idx,
                     label: addr.formatted_address.join(', '),
                   }))}
                   required
-                  error={errors?.addressone?.message}
+                  error={errors?.selectedAddress?.message}
                 />
               )}
             />
           )}
 
           <Controller
-            name="addressone"
+            name="address1"
             control={control}
             render={({ field }) => (
               <TextFields
@@ -317,7 +322,7 @@ export default function ShippingAddress({ setIsShippingCheck }) {
           />
 
           <Controller
-            name="addresstwo"
+            name="address2"
             control={control}
             render={({ field }) => (
               <TextFields

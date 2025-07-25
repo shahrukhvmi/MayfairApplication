@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import {
+  ActivityIndicator,
   ScrollView,
   StyleSheet,
   Text,
@@ -17,6 +18,7 @@ import BackButton from '../Components/BackButton';
 
 import usePatientInfoStore from '../store/patientInfoStore';
 import SelectFields from '../Components/SelectFields';
+import TextFields from '../Components/TextFields';
 
 // --- GETADDRESS.IO HELPER ---
 const GETADDRESS_KEY = '_UFb05P76EyMidU1VHIQ_A42976';
@@ -52,7 +54,7 @@ export default function ResidentialAddressScreen() {
   const navigation = useNavigation();
   const { patientInfo, setPatientInfo } = usePatientInfoStore();
 
-  const [showManual, setShowManual] = useState(false);
+
   const [addressOptions, setAddressOptions] = useState([]);
   const [selectedIndex, setSelectedIndex] = useState(null);
   const [searching, setSearching] = useState(false);
@@ -89,14 +91,14 @@ export default function ResidentialAddressScreen() {
       setValue('city', patientInfo.address.city || '');
       setValue('country', patientInfo.address.country || '');
 
-      if (
-        patientInfo.address.addressone ||
-        patientInfo.address.addresstwo ||
-        patientInfo.address.city ||
-        patientInfo.address.country
-      ) {
-        setShowManual(true);
-      }
+      // if (
+      //   patientInfo.address.addressone ||
+      //   patientInfo.address.addresstwo ||
+      //   patientInfo.address.city ||
+      //   patientInfo.address.country
+      // ) {
+      //   setShowManual(true);
+      // }
     }
   }, [patientInfo])
 
@@ -116,33 +118,43 @@ export default function ResidentialAddressScreen() {
     navigation.navigate('preferred-phone-number');
   };
 
+
   const handleSearch = async () => {
-    if (!postcode) {
-      alert('Please enter a valid postcode');
+    if (!postcode || postcode.trim().length === 0) {
+      Toast.show({
+        type: 'error',
+        text1: 'Missing Postcode',
+        text2: 'Please enter a valid postcode',
+      });
       return;
     }
 
     try {
       setSearching(true);
-      const addresses = await fetchAddresses(postcode);
+      const addresses = await fetchAddresses(postcode.trim());
 
-      if (addresses.length === 0) {
-        alert('No addresses found for this postcode');
+      if (!addresses || addresses.length === 0) {
+        Toast.show({
+          type: 'error',
+          text1: 'No Results',
+          text2: 'No addresses found for this postcode',
+        });
         setSearching(false);
         return;
       }
 
       setAddressOptions(addresses);
-      setShowManual(true);
-      setSearching(false);
+      // setShowManual(true);
     } catch (err) {
-      logApiError(err);
+      console.error(err, 'Error in address search');
+      logApiError(err, 'address search failed');
+
       Toast.show({
         type: 'error',
         text1: 'Postal Code Error',
-        text2: 'Postal Code Error',
+        text2: err?.message || 'Something went wrong while searching addresses',
       });
-      console.error(err);
+    } finally {
       setSearching(false);
     }
   };
@@ -162,25 +174,39 @@ export default function ResidentialAddressScreen() {
         </Text>
 
         {/* Postcode with button */}
+
         <View style={styles.relativeContainer}>
           <Controller
             control={control}
             name="postcode"
             render={({ field: { onChange, value } }) => (
-              <TextField
-                placeholder="Enter your postal code"
+              <TextFields
+                label={"Postcode"}
+                required
                 value={value}
                 onChangeText={onChange}
+                style={{ position: 'relative' }}
+
               />
             )}
           />
+
           <TouchableOpacity
-            style={styles.insideSearchButton}
+            style={[
+              styles.insideSearchButton,
+              searching && { opacity: 0.6 },
+            ]}
             onPress={handleSearch}
-            disabled={searching}>
-            <Ionicons name="search" size={18} color="#fff" />
+            disabled={searching}
+          >
+            {searching ? (
+              <ActivityIndicator size="small" color="#fff" />
+            ) : (
+              <Ionicons name="search" size={18} color="#fff" />
+            )}
           </TouchableOpacity>
         </View>
+
 
         {/* Address dropdown */}
         {addressOptions.length > 0 && (
@@ -221,64 +247,60 @@ export default function ResidentialAddressScreen() {
           />
         )}
 
-        {/* Manual Toggle */}
-        <TouchableOpacity onPress={() => setShowManual(!showManual)}>
-          <Text style={styles.toggleText}>
-            {showManual
-              ? 'Hide manual address entry'
-              : 'Enter address manually'}
-          </Text>
-        </TouchableOpacity>
+
 
         {/* Manual Address Fields */}
-        {showManual && (
-          <>
-            <Controller
-              control={control}
-              name="address1"
-              render={({ field: { onChange, value } }) => (
-                <TextField
-                  placeholder="Enter address line 1"
-                  value={value}
-                  onChangeText={onChange}
-                />
-              )}
+
+        <Controller
+          control={control}
+          name="address1"
+          render={({ field: { onChange, value } }) => (
+            <TextFields
+              label={"Address"}
+              required
+              value={value}
+              onChangeText={onChange}
             />
-            <Controller
-              control={control}
-              name="address2"
-              render={({ field: { onChange, value } }) => (
-                <TextField
-                  placeholder="Enter address line 2 (optional)"
-                  value={value}
-                  onChangeText={onChange}
-                />
-              )}
+          )}
+        />
+        <Controller
+          control={control}
+          name="address2"
+          render={({ field: { onChange, value } }) => (
+            <TextFields
+              label={"Address 2"}
+
+              value={value}
+              onChangeText={onChange}
             />
-            <Controller
-              control={control}
-              name="city"
-              render={({ field: { onChange, value } }) => (
-                <TextField
-                  placeholder="Enter city or town"
-                  value={value}
-                  onChangeText={onChange}
-                />
-              )}
+          )}
+        />
+        <Controller
+          control={control}
+          name="city"
+          render={({ field: { onChange, value } }) => (
+            <TextFields
+              required
+              label={"City"}
+              value={value}
+              onChangeText={onChange}
             />
-            <Controller
-              control={control}
-              name="country"
-              render={({ field: { onChange, value } }) => (
-                <TextField
-                  placeholder="Enter state or country"
-                  value={value}
-                  onChangeText={onChange}
-                />
-              )}
+          )}
+        />
+        <Controller
+          control={control}
+          name="country"
+          render={({ field: { onChange, value } }) => (
+            <TextFields
+              label={"Country"}
+              required
+              value={value}
+              onChangeText={onChange}
             />
-          </>
-        )}
+          )}
+        />
+
+
 
         <NextButton
           label="Next"
@@ -341,7 +363,7 @@ const styles = StyleSheet.create({
   insideSearchButton: {
     position: 'absolute',
     right: 0,
-    top: 0,
+    top: 26,
     backgroundColor: '#4B0082',
     borderRadius: 4,
     paddingHorizontal: 12,

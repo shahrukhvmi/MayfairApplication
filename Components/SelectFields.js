@@ -1,8 +1,17 @@
-// components/SelectField.js
-import React from 'react';
-import {View, Text, StyleSheet, Platform} from 'react-native';
-import {Picker} from '@react-native-picker/picker'; // Make sure this is installed
-import Icon from 'react-native-vector-icons/Ionicons'; // or any icon library
+import React, { useState } from 'react';
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  Modal,
+  FlatList,
+  StyleSheet,
+  Platform,
+} from 'react-native';
+import Ionicons from 'react-native-vector-icons/Ionicons';
+
+import Icon from 'react-native-vector-icons/Ionicons';
 
 const SelectFields = ({
   label,
@@ -11,8 +20,19 @@ const SelectFields = ({
   options = [],
   required = false,
   error,
+  placeholder = 'Select an option...',
   style,
 }) => {
+  const [modalVisible, setModalVisible] = useState(false);
+  const [search, setSearch] = useState('');
+
+  const selectedLabel =
+    options.find(opt => opt.value === value)?.label || placeholder;
+
+  const filteredOptions = options.filter(opt =>
+    opt.label.toLowerCase().includes(search.toLowerCase())
+  );
+
   return (
     <View style={[styles.container, style]}>
       {label && (
@@ -21,25 +41,84 @@ const SelectFields = ({
         </Text>
       )}
 
-      <View style={styles.pickerWrapper}>
-        <Picker
-          selectedValue={value}
-          onValueChange={(itemValue, itemIndex) => onChange(itemValue)}
-          style={styles.picker}
-          mode="dropdown">
-          <Picker.Item label="Select an option..." value="" enabled={false} />
-          {options.map(opt => (
-            <Picker.Item key={opt.value} label={opt.label} value={opt.value} />
-          ))}
-        </Picker>
-        {/* <Icon name="chevron-down" size={18} color="#000" style={styles.arrowIcon} /> */}
-      </View>
+      <TouchableOpacity
+        style={[
+          styles.selectBox,
+          {
+            borderColor: error ? 'red' : value ? '#000' : '#ccc',
+          },
+        ]}
+        onPress={() => {
+          setModalVisible(true);
+          setSearch('');
+        }}
+        activeOpacity={0.8}
+      >
+        <Text style={styles.optionText}
+          numberOfLines={1}
+          ellipsizeMode="tail">
+          {selectedLabel}
+        </Text>
+        <Ionicons name="chevron-down" size={20} color="#555" style={styles.arrow} />       </TouchableOpacity>
 
       {error && (
         <Text style={styles.errorText}>
           {error.message || 'This field is required'}
         </Text>
       )}
+
+      <Modal
+        visible={modalVisible}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setModalVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            {/* Cross icon */}
+            <TouchableOpacity
+              onPress={() => setModalVisible(false)}
+              style={styles.closeIcon}
+            >
+              <Icon name="close" size={24} color="#333" />
+            </TouchableOpacity>
+            <Text style={{
+              color: '#000',
+              fontSize: 16,
+            }}>
+              Select or search your address
+            </Text>
+            <TextInput
+              placeholder="Search..."
+              value={search}
+              placeholderTextColor={"#999"}
+              onChangeText={setSearch}
+              style={styles.searchInput}
+              autoFocus
+            />
+
+            <FlatList
+              data={filteredOptions}
+              keyExtractor={item => item.value.toString()}
+              keyboardShouldPersistTaps="handled"
+              renderItem={({ item }) => (
+                <TouchableOpacity
+                  style={styles.optionItem}
+                  onPress={() => {
+                    onChange(item.value);
+                    setModalVisible(false);
+                  }}
+                >
+                  <Text style={styles.optionText}>{item.label}</Text>
+                </TouchableOpacity>
+              )}
+              ListEmptyComponent={
+                <Text style={styles.noResult}>No match found</Text>
+              }
+            />
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 };
@@ -48,13 +127,6 @@ const styles = StyleSheet.create({
   container: {
     marginBottom: 16,
   },
-  arrowIcon: {
-    position: 'absolute',
-    right: 10,
-    top: Platform.OS === 'ios' ? 22 : 18,
-    pointerEvents: 'none',
-  },
-
   label: {
     fontSize: 14,
     fontWeight: '600',
@@ -64,23 +136,75 @@ const styles = StyleSheet.create({
   required: {
     color: 'red',
   },
-  pickerWrapper: {
+  selectBox: {
+    flexDirection: 'row',
+    alignItems: 'center',
     borderWidth: 1,
-    borderRadius: 6,
-    width: '100%',
-    borderColor: '#222',
+    borderRadius: 8,
+    paddingHorizontal: 14,
+    paddingVertical: Platform.OS === 'ios' ? 14 : 10,
     backgroundColor: '#fff',
-    color: '#000',
+    justifyContent: 'space-between',
   },
-  picker: {
-    height: Platform.OS === 'ios' ? 60 : 60,
-    width: '100%',
-    color: '#000',
+  selectText: {
+    fontSize: 16,
+    flex: 1,
+  },
+  arrow: {
+    fontSize: 16,
+    color: '#666',
+    marginLeft: 10,
   },
   errorText: {
     color: 'red',
-    marginTop: 4,
     fontSize: 12,
+    marginTop: 4,
+  },
+  modalOverlay: {
+    flex: 1,
+    justifyContent: 'center',
+    backgroundColor: 'rgba(0,0,0,0.3)',
+    padding: 20,
+  },
+  modalContent: {
+    backgroundColor: '#fff',
+    borderRadius: 10,
+    padding: 16,
+    maxHeight: '70%',
+    position: 'relative',
+  },
+  closeIcon: {
+    position: 'absolute',
+    right: 10,
+    top: 10,
+    zIndex: 1,
+    padding: 6,
+  },
+  searchInput: {
+    borderWidth: 1,
+    borderColor: '#ddd',
+    borderRadius: 6,
+    padding: 10,
+    fontSize: 16,
+    marginBottom: 10,
+    marginTop: 34, // to avoid overlapping with close icon
+  },
+  optionItem: {
+    paddingVertical: 12,
+    paddingHorizontal: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: '#eee',
+  },
+  optionText: {
+    fontSize: 16,
+    color: '#000',
+    maxWidth: '95%', // Ensures it stays inside layout
+  },
+
+  noResult: {
+    textAlign: 'center',
+    padding: 20,
+    color: '#666',
   },
 });
 

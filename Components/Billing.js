@@ -17,6 +17,7 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import PostcodeSearchInput from './PostcodeSearchInput';
 import { useFocusEffect } from '@react-navigation/native';
 import NextButton from './NextButton';
+import SelectFields from './SelectFields';
 
 const GETADDRESS_KEY = '_UFb05P76EyMidU1VHIQ_A42976';
 
@@ -65,8 +66,8 @@ export default function Billing({ billingCountries }) {
     mode: 'onChange',
     defaultValues: {
       postalcode: '',
-      addressone: '',
-      addresstwo: '',
+      address1: '',
+      address2: '',
       city: '',
       state: '',
       billingCountry: '',
@@ -108,8 +109,8 @@ export default function Billing({ billingCountries }) {
       if (!billing || !billingCountries?.length || countryChangedManually) return;
 
       setValue('postalcode', billing.postalcode || '');
-      setValue('addressone', billing.addressone || '');
-      setValue('addresstwo', billing.addresstwo || '');
+      setValue('address1', billing.address1 || '');
+      setValue('address2', billing.address2 || '');
       setValue('city', billing.city || '');
       setValue('state', billing.state || '');
 
@@ -161,8 +162,8 @@ export default function Billing({ billingCountries }) {
       billing: true,
       country_name: selectedCountry?.name || '',
       postalcode: data.postalcode,
-      addressone: data.addressone,
-      addresstwo: data.addresstwo,
+      address1: data.address1,
+      address2: data.address2,
       city: data.city,
       state: data.state,
     };
@@ -184,7 +185,7 @@ export default function Billing({ billingCountries }) {
           control={control}
           rules={{ required: 'Country is required' }}
           render={({ field }) => (
-            <SelectField
+            <SelectFields
               label="Select Country"
               value={field.value}
               onChange={id => {
@@ -195,8 +196,8 @@ export default function Billing({ billingCountries }) {
                 // ✅ Clear form fields
                 [
                   'postalcode',
-                  'addressone',
-                  'addresstwo',
+                  'address1',
+                  'address2',
                   'city',
                   'state',
                 ].forEach(k => setValue(k, ''));
@@ -241,16 +242,16 @@ export default function Billing({ billingCountries }) {
           postalCodeValue?.trim() &&
           !addressSearchLoading &&
           addressOptions.length > 0 && (
-            <SelectField
+            <SelectFields
               label="Select Your Address"
               value={selectedIndex}
               onChange={idx => {
                 const selected = addressOptions[idx];
                 setSelectedIndex(idx);
-                setValue('addressone', selected.line_1 || '', {
+                setValue('address1', selected.line_1 || '', {
                   shouldValidate: true,
                 });
-                setValue('addresstwo', selected.line_2 || '', {
+                setValue('address2', selected.line_2 || '', {
                   shouldValidate: true,
                 });
                 setValue('city', selected.town_or_city || '', {
@@ -270,7 +271,7 @@ export default function Billing({ billingCountries }) {
 
         {/* Address fields */}
         <Controller
-          name="addressone"
+          name="address1"
           control={control}
           render={({ field }) => (
             <TextFields
@@ -284,7 +285,7 @@ export default function Billing({ billingCountries }) {
           )}
         />
         <Controller
-          name="addresstwo"
+          name="address2"
           control={control}
           render={({ field }) => (
             <TextFields
