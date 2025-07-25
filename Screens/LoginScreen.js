@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, {useState} from 'react';
 import {
   View,
   Text,
@@ -14,13 +14,13 @@ import {
   ActivityIndicator,
 } from 'react-native';
 
-import { useForm, Controller } from 'react-hook-form';
-import { useNavigation } from '@react-navigation/native';
+import {useForm, Controller} from 'react-hook-form';
+import {useNavigation} from '@react-navigation/native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import { useMutation } from '@tanstack/react-query';
-import { Login } from '../api/loginApi';
+import {useMutation} from '@tanstack/react-query';
+import {Login} from '../api/loginApi';
 
-import { logApiError, logApiSuccess } from '../utils/logApiDebug';
+import {logApiError, logApiSuccess} from '../utils/logApiDebug';
 import useAuthStore from '../store/authStore';
 import useAuthUserDetailStore from '../store/useAuthUserDetailStore';
 import useSignupStore from '../store/signupStore';
@@ -28,6 +28,10 @@ import Fetcher from '../library/Fetcher';
 import Toast from 'react-native-toast-message';
 import usePasswordReset from '../store/usePasswordReset';
 import useReturning from '../store/useReturningPatient';
+import usePlayerStore from '../store/usePlayerStore';
+import {useFocusEffect} from '@react-navigation/native';
+import {useCallback} from 'react';
+import {OneSignal} from 'react-native-onesignal';
 
 const LoginScreen = () => {
   const navigation = useNavigation();
@@ -35,16 +39,44 @@ const LoginScreen = () => {
     control,
     handleSubmit,
     watch,
-    formState: { errors },
+    formState: {errors},
   } = useForm();
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
-  const { setIsReturningPatient } = useReturning();
+  const {setIsReturningPatient} = useReturning();
 
-  const { setIsPasswordReset, setShowResetPassword } = usePasswordReset();
-  const { setAuthUserDetail } = useAuthUserDetailStore();
-  const { setToken } = useAuthStore();
-  const { setLastName, setFirstName, setEmail } = useSignupStore();
+  const {setIsPasswordReset, setShowResetPassword} = usePasswordReset();
+  const {setAuthUserDetail} = useAuthUserDetailStore();
+  const {setToken} = useAuthStore();
+  const {setLastName, setFirstName, setEmail} = useSignupStore();
+  const {playerId} = usePlayerStore();
+
+  useFocusEffect(
+    useCallback(() => {
+      console.log('🟣 LoginScreen focused');
+
+      const fetchPlayerId = async () => {
+        try {
+          const latestPlayerId =
+            await OneSignal.User.pushSubscription.getIdAsync();
+          if (latestPlayerId) {
+            usePlayerStore.getState().setPlayerId(latestPlayerId);
+            console.log(
+              '📲 Refetched Player ID in LoginScreen:',
+              latestPlayerId,
+            );
+          } else {
+            console.log('🚫 Player ID still not available on LoginScreen');
+          }
+        } catch (e) {
+          console.error('❌ Error fetching player ID:', e);
+        }
+      };
+
+      fetchPlayerId();
+    }, []),
+  );
+
   const loginMutation = useMutation(Login, {
     onMutate: () => {
       setLoading(true); // start loading
@@ -74,9 +106,9 @@ const LoginScreen = () => {
       setFirstName(user?.fname);
       setLastName(user?.lname);
       setEmail(user?.email);
-      setIsReturningPatient(user?.isReturning)
+      setIsReturningPatient(user?.isReturning);
 
-      navigation.navigate("dashboard");
+      navigation.navigate('dashboard');
 
       setIsPasswordReset(false);
       setShowResetPassword(user?.show_password_reset);
@@ -134,6 +166,7 @@ const LoginScreen = () => {
       email: data.email,
       password: data.password,
       company_id: 1,
+      player_id: playerId, // Use playerId from Zustand store
     };
     setEmail(data?.email);
     loginMutation.mutate(formData);
@@ -145,10 +178,10 @@ const LoginScreen = () => {
 
   return (
     <KeyboardAvoidingView
-      style={{ flex: 1 }}
+      style={{flex: 1}}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
       <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-        <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
+        <ScrollView contentContainerStyle={{flexGrow: 1}}>
           <View style={styles.container}>
             <View style={styles.logoContainer}>
               <Image
@@ -164,8 +197,8 @@ const LoginScreen = () => {
               <Controller
                 control={control}
                 name="email"
-                rules={{ required: 'Email is required' }}
-                render={({ field: { onChange, value } }) => (
+                rules={{required: 'Email is required'}}
+                render={({field: {onChange, value}}) => (
                   <TextInput
                     style={styles.nameInput}
                     editable={!loginMutation.isLoading}
@@ -187,8 +220,8 @@ const LoginScreen = () => {
                 <Controller
                   control={control}
                   name="password"
-                  rules={{ required: 'Password is required' }}
-                  render={({ field: { onChange, value } }) => (
+                  rules={{required: 'Password is required'}}
+                  render={({field: {onChange, value}}) => (
                     <TextInput
                       editable={!loginMutation.isLoading}
                       style={styles.passwordInput}
@@ -286,7 +319,7 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     textAlign: 'start',
     fontSize: 16,
-    color: '#000'
+    color: '#000',
   },
   passwordContainer: {
     flexDirection: 'row',
@@ -308,7 +341,7 @@ const styles = StyleSheet.create({
     width: '85%',
     textAlign: 'start',
     fontSize: 16,
-    color:'#000'
+    color: '#000',
   },
   btn: {
     marginTop: 20,
