@@ -24,24 +24,24 @@ const TextFields = ({
   style,
 }) => {
   const [showPassword, setShowPassword] = useState(false);
-
   const isPassword = type === 'password';
-  const inputType = isPassword && !showPassword ? true : false;
 
   return (
     <View style={[styles.container, style]}>
       {label && (
         <View style={styles.labelRow}>
           <Text style={styles.label}>{label}</Text>
-          {required && <Text style={styles.required}>*</Text>}
+          {required ? (
+            <Text style={styles.required}> *</Text>
+          ) : (
+            <Text style={styles.optional}> (optional)</Text>
+          )}
         </View>
       )}
 
       <View style={styles.inputWrapper}>
         <TextInput
-          placeholderTextColor={
-            disabled ? '#999' : '#666'
-          }
+          placeholderTextColor={disabled ? '#999' : '#666'}
           placeholder={placeholder}
           secureTextEntry={isPassword && !showPassword}
           value={value}
@@ -81,6 +81,7 @@ const styles = StyleSheet.create({
   },
   labelRow: {
     flexDirection: 'row',
+    alignItems: 'center',
     marginBottom: 6,
   },
   label: {
@@ -90,6 +91,12 @@ const styles = StyleSheet.create({
   },
   required: {
     color: 'red',
+    fontWeight: '600',
+    marginLeft: 4,
+  },
+  optional: {
+    color: '#888',
+    fontSize: 12,
     marginLeft: 4,
   },
   inputWrapper: {

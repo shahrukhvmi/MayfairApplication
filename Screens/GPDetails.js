@@ -107,12 +107,16 @@ export default function GpDetail() {
         setAddressOptions(response.data.value);
       }
     } catch (err) {
-      console.error('Postal search failed', err);
-
+      logApiError(err);
       let message = 'Something went wrong';
 
       if (err.response?.status === 404) {
         // Custom error from NHS API
+        Toast.show({
+          type: 'error',
+          text1: 'Postal Code Error',
+          text2: message,
+        });
         const errorData = err.response?.data;
         message =
           errorData?.errorName ||
@@ -122,11 +126,7 @@ export default function GpDetail() {
         message = err.message;
       }
 
-      Toast.show({
-        type: 'error',
-        text1: 'Postal Code Error',
-        text2: message,
-      });
+
 
       setAddressOptions([]);
     } finally {
@@ -275,11 +275,11 @@ export default function GpDetail() {
 
           {gpDetails === 'yes' && gepTreatMent === 'yes' && (
             <>
-              <Text style={styles.optionalText}>
+              {/* <Text style={styles.optionalText}>
                 Email <Text style={styles.optionalNote}>(optional)</Text>
-              </Text>
+              </Text> */}
               <TextFields
-                // label={"Email"}
+                label={"Email"}
                 placeholder="Email"
                 value={watch('email')}
                 onChangeText={text => setValue('email', text)}

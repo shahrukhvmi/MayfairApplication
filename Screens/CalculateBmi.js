@@ -330,7 +330,9 @@ export default function CalculateBmi() {
         <Text style={styles.progressText}>70% Completed</Text>
 
         {/* Title */}
-        <Text style={styles.heading}>What is your height?</Text>
+        <Text style={styles.heading}>{localStep === 1
+          ? "What is your height?"
+          : "What is your current weight?"}</Text>
         <Text style={styles.subText}>
           Your Body Mass Index (BMI) is an important factor in assessing your
           eligibility for treatment. Please enter your height below to allow us

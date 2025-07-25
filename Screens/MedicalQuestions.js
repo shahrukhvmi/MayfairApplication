@@ -173,7 +173,7 @@ export default function MedicalQuestions() {
         />
         <BackButton
           label="Back"
-          onPress={() => navigation.navigate('bmi-detail')}
+          onPress={() => navigation.navigate('bmi')}
         />
 
         {showLoader && (

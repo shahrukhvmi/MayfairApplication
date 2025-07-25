@@ -136,7 +136,12 @@ export default function ResidentialAddressScreen() {
       setShowManual(true);
       setSearching(false);
     } catch (err) {
-      alert('Failed to fetch addresses');
+      logApiError(err);
+      Toast.show({
+        type: 'error',
+        text1: 'Postal Code Error',
+        text2: 'Postal Code Error',
+      });
       console.error(err);
       setSearching(false);
     }

@@ -1,6 +1,6 @@
 // components/BackButton.js
 import React from 'react';
-import { ActivityIndicator, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { ActivityIndicator, Text, TouchableOpacity, StyleSheet, View } from 'react-native';
 
 const BackButton = ({
   label = 'Back',
@@ -18,9 +18,13 @@ const BackButton = ({
       {loading ? (
         <ActivityIndicator color="#4B0082" size="small" />
       ) : (
-        <Text style={[styles.text, disabled && styles.disabled]}>
-          {label}
-        </Text>
+        <>
+          <View style={{flex:1, flexDirection: 'row', alignItems: 'center' ,justifyContent: 'center'}}>
+            <Text style={[styles.text, disabled && styles.disabled]}>
+              {label}
+            </Text>
+          </View>
+        </>
       )}
     </TouchableOpacity>
   );
