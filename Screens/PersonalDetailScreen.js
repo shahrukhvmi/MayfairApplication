@@ -142,25 +142,50 @@ export default function PersonalDetails() {
         {/* Pregnancy Section */}
         {gender === 'Female' && (
           <>
-            <Text style={{fontWeight: 'bold', marginBottom: 5}}>
+            <Text style={{fontWeight: 'bold', marginBottom: 10}}>
               Are you pregnant, breastfeeding, or trying to conceive?
             </Text>
-            {['yes', 'no'].map(option => (
-              <TouchableOpacity
-                key={option}
-                style={[
-                  styles.genderOption,
-                  pregnancy === option && styles.genderSelected,
-                ]}
-                onPress={() => setValue('pregnancy', option)}>
-                <Text style={styles.genderText}>{option.toUpperCase()}</Text>
-              </TouchableOpacity>
-            ))}
-            {pregnancy === 'yes' && (
-              <Text style={{color: 'red', marginBottom: 10}}>
-                This treatment is not suitable if you're pregnant, trying to get
-                pregnant or breastfeeding.
-              </Text>
+
+            <Controller
+              control={control}
+              name="pregnancy"
+              rules={{
+                required:
+                  gender === 'Female' ? 'Please select an option' : false,
+              }}
+              render={({field: {onChange, value}}) => (
+                <>
+                  {['yes', 'no'].map(option => (
+                    <TouchableOpacity
+                      key={option}
+                      style={[
+                        styles.genderOption,
+                        value === option && styles.genderSelected,
+                      ]}
+                      onPress={() => onChange(option)}>
+                      <Ionicons
+                        name={value === option ? 'checkbox' : 'square-outline'}
+                        size={20}
+                        color="#4B0082"
+                        style={{marginRight: 8}}
+                      />
+                      <Text style={styles.genderText}>
+                        {option.toUpperCase()}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                  {value === 'yes' && (
+                    <Text style={{color: 'red', marginBottom: 10}}>
+                      This treatment is not suitable if you're pregnant, trying
+                      to get pregnant or breastfeeding.
+                    </Text>
+                  )}
+                </>
+              )}
+            />
+
+            {errors?.pregnancy && (
+              <Text style={{color: 'red'}}>{errors.pregnancy.message}</Text>
             )}
           </>
         )}
@@ -188,13 +213,21 @@ export default function PersonalDetails() {
               </TouchableOpacity>
               {showPicker && (
                 <DateTimePicker
-                  value={value || new Date()}
+                  value={value || new Date(Date.UTC(1990, 0, 1))}
                   mode="date"
-                  display={Platform.OS === 'android' ? 'default' : 'spinner'}
+                  display={Platform.OS === 'android' ? 'calendar' : 'spinner'}
                   onChange={(event, selectedDate) => {
                     setShowPicker(false);
-                    if (selectedDate) onChange(selectedDate);
+                    if (selectedDate) {
+                      const normalized = new Date(
+                        selectedDate.getFullYear(),
+                        selectedDate.getMonth(),
+                        selectedDate.getDate(),
+                      );
+                      onChange(normalized);
+                    }
                   }}
+                  minimumDate={new Date(1900, 0, 1)}
                   maximumDate={new Date()}
                 />
               )}
@@ -210,7 +243,12 @@ export default function PersonalDetails() {
         <NextButton
           style={{marginTop: 30}}
           label="Next"
-          disabled={!isValid || (gender === 'Female' && pregnancy === 'yes')}
+          disabled={
+            !isValid ||
+            gender === '' ||
+            (gender === 'Female' && !watch('pregnancy')) ||
+            (gender === 'Female' && watch('pregnancy') === 'yes')
+          }
           onPress={handleSubmit(onSubmit)}
         />
 
