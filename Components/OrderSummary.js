@@ -17,12 +17,39 @@ import Toast from 'react-native-toast-message';
 import { CouponApi } from '../api/couponApi';
 import useShippingOrBillingStore from '../store/shipingOrbilling';
 import NextButton from './NextButton';
+import sendStepData from '../api/stepsDataApi';
+import usePatientInfoStore from '../store/patientInfoStore';
+import useMedicalInfoStore from '../store/medicalInfoStore';
+import useGpDetailsStore from '../store/gpDetailStore';
+import useBmiStore from '../store/bmiStore';
+import useConfirmationInfoStore from '../store/confirmationInfoStore';
+import useSignupStore from '../store/signupStore';
+import useProductId from '../store/useProductIdStore';
+import useAuthUserDetailStore from '../store/useAuthUserDetailStore';
+import useCheckoutStore from '../store/checkoutStore';
+import useMedicalQuestionsStore from '../store/medicalQuestionStore';
+import useConfirmationQuestionsStore from '../store/confirmationQuestionStore';
+import useAuthStore from '../store/authStore';
+import usePasswordReset from '../store/usePasswordReset';
+import useLastBmi from '../store/useLastBmiStore';
+import useUserDataStore from '../store/userDataStore';
+import { useMutation } from '@tanstack/react-query';
 
 const OrderSummary = ({ isNextDisabled }) => {
   const navigation = useNavigation();
 
+
+
+  /*___________________  Local state_____________________________*/
+
+  const [discountCode, setDiscountCode] = useState('');
+  const [couponLoading, setCouponLoading] = useState(false);
+  const [paymentData, setPaymentData] = useState(null);
+
   const [loading, setLoading] = useState(false);
   const [thankYou, setThankYou] = useState(false);
+
+  /*___________________  Zustand state_____________________________*/
 
   const { items, totalAmount, setCheckOut, setOrderId } = useCartStore();
   const { Coupon, setCoupon, clearCoupon } = useCouponStore();
@@ -33,9 +60,31 @@ const OrderSummary = ({ isNextDisabled }) => {
     clearShipping,
     clearBilling,
   } = useShippingOrBillingStore();
+  const { patientInfo, clearPatientInfo } = usePatientInfoStore();
+  const { medicalInfo, clearMedicalInfo } = useMedicalInfoStore();
+  const { gpdetails, clearGpDetails } = useGpDetailsStore();
+  const { bmi, clearBmi } = useBmiStore();
+  const { confirmationInfo, clearConfirmationInfo } = useConfirmationInfoStore();
+  const { email } = useSignupStore();
+  const { productId, clearProductId } = useProductId();
 
-  const [discountCode, setDiscountCode] = useState('');
-  const [couponLoading, setCouponLoading] = useState(false);
+  // store addons or dose here 🔥🔥
+
+  const { clearAuthUserDetail } = useAuthUserDetailStore();
+
+  const { clearCheckout } = useCheckoutStore();
+  const { clearMedicalQuestions } = useMedicalQuestionsStore();
+  const { clearConfirmationQuestions } = useConfirmationQuestionsStore();
+
+  const { clearToken } = useAuthStore();
+  const { setIsPasswordReset } = usePasswordReset();
+  const { clearLastBmi } = useLastBmi();
+  const { clearUserData } = useUserDataStore();
+
+  const { clearFirstName, clearLastName, clearEmail, clearConfirmationEmail } = useSignupStore();
+
+
+
 
   let discountAmount = 0;
   let shippingPrice = Number(shipping?.country_price) || 0;
@@ -79,29 +128,166 @@ const OrderSummary = ({ isNextDisabled }) => {
     }
   };
 
+
+/* ______________________ 💳 Payment API Integration ______________________ */
+
+  const checkoutMutation = useMutation(sendStepData, {
+    onSuccess: (data) => {
+      if (data) {
+        setPaymentData(data?.data?.paymentData);
+        setOrderId(data?.data?.paymentData?.order_id);
+        clearCoupon();
+      }
+    },
+    onError: (error) => {
+      console.log("Checkout Error:", error);
+
+      const response = error?.response?.data;
+      const errors = response?.original?.errors;
+      const productError = response?.errors?.Product;
+      const outOfStock = response?.errors?.OutOfStock;
+
+      if (response?.message === "Unauthenticated.") {
+        Toast.show({ type: 'error', text1: "Session Expired" });
+
+        // Clear all user and session-related data
+        clearBmi();
+        clearCheckout();
+        clearConfirmationInfo();
+        clearGpDetails();
+        clearMedicalInfo();
+        clearPatientInfo();
+        clearBilling();
+        clearShipping();
+        clearAuthUserDetail();
+        clearMedicalQuestions();
+        clearConfirmationQuestions();
+        clearToken();
+        clearProductId();
+        clearLastBmi();
+        clearUserData();
+        clearFirstName();
+        clearLastName();
+        clearEmail();
+        clearConfirmationEmail();
+
+        setIsPasswordReset(true);
+        setLoading(false);
+        navigation.navigate("Login");
+        return;
+      }
+
+      setLoading(false);
+
+      if (errors && typeof errors === "object") {
+        Object.entries(errors).forEach(([_, messages]) => {
+          if (Array.isArray(messages)) {
+            messages.forEach((msg) =>
+              Toast.show({ type: 'error', text1: msg })
+            );
+          } else {
+            Toast.show({ type: 'error', text1: messages });
+          }
+        });
+      } else if (outOfStock && typeof outOfStock === "object") {
+        Object.entries(outOfStock).forEach(([_, messages]) => {
+          if (Array.isArray(messages)) {
+            messages.forEach((msg) =>
+              Toast.show({ type: 'error', text1: msg })
+            );
+          } else {
+            Toast.show({ type: 'error', text1: messages });
+          }
+        });
+        navigation.navigate("gathering-data");
+      } else if (outOfStock && typeof outOfStock !== "object") {
+        Toast.show({ type: 'error', text1: outOfStock });
+        console.log("From single OutOfStock");
+        navigation.navigate("gathering-data");
+      } else {
+        Toast.show({ type: 'error', text1: productError || "Something went wrong" });
+      }
+    },
+  });
+
   const handleRemoveCoupon = () => {
     clearCoupon();
     Toast.show({ type: 'info', text1: 'Coupon removed' });
   };
 
   const handleSubmit = () => {
-    // if (!isChecked) {
-    //   alert('Please confirm the consent.');
-    //   return;
-    // }
-
     setLoading(true);
-    setTimeout(() => {
-      setLoading(false);
-      setThankYou(true);
+    const checkout = {
+      firstName: shipping?.first_name,
+      lastName: shipping?.last_name,
+      email: email,
+      phoneNo: patientInfo?.phoneNo,
+      shipping: {
+        postalcode: shipping?.postalcode,
+        addressone: shipping?.addressone,
+        addresstwo: shipping?.addresstwo,
+        city: shipping?.city,
+        state: shipping?.state,
+        country: shipping?.country_name,
+      },
+      terms: true,
+      sameAddress: billingSameAsShipping,
+      billing: {
+        postalcode: billing?.postalcode,
+        addressone: billing?.addressone,
+        addresstwo: billing?.addresstwo,
+        city: billing?.city,
+        state: billing?.state,
+        country: billing?.country_name,
+      },
+      discount: {
+        code: Coupon?.Data?.code ? Coupon?.Data?.code : null,
+        discount: Coupon?.Data?.discount ? Coupon?.Data?.discount : null,
+        type: Coupon?.Data?.type ? Coupon?.Data?.type : null,
+        discount_value: discountAmount ? discountAmount : null,
+      },
+      subTotal: parseFloat(totalAmount),
+      total: parseFloat(finalTotal),
+      shipment: {
+        id: shipping?.id,
+        name: shipping?.country_name,
+        price: parseFloat(shipping?.country_price),
+        status: 1,
+        taggable_type: "App\\Models\\Product",
+        taggable_id: "1",
+      },
+    };
 
-      setTimeout(() => {
-        setThankYou(false);
-        navigation.navigate('dashboard');
-      }, 1500);
-    }, 2000);
+    setCheckOut(checkout);
+
+    const formData = {
+      checkout,
+      patientInfo,
+      items: (items?.doses || []).map((d) => ({
+        ...d,
+        quantity: d.quantity || d.qty || 1,
+      })),
+      addons: (items?.addons || []).map((a) => ({
+        ...a,
+        quantity: a.quantity || a.qty || 1,
+      })),
+      pid: productId,
+      medicalInfo,
+      gpdetails,
+      bmi,
+      confirmationInfo,
+      reorder_concent: null,
+      product_id: productId,
+    };
+
+    checkoutMutation.mutate(formData);
+
+
   };
 
+
+  console.log(paymentData,"paymentData 😋😋😋");
+  
   const renderItem = (item, idx) => {
     if (item.type === 'dose') {
       return (
@@ -265,7 +451,7 @@ const OrderSummary = ({ isNextDisabled }) => {
         label="Procceed to Payment"
         style={{ marginBottom: 30 }}
         onPress={handleSubmit}
-        disabled={!isNextDisabled}
+        // disabled={!isNextDisabled}
       />
 
       {/* Loading Modal */}
