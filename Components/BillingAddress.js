@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, {useEffect, useState, useRef} from 'react';
 import {
   View,
   Text,
@@ -7,14 +7,14 @@ import {
   TouchableOpacity,
   ActivityIndicator,
 } from 'react-native';
-import { useForm, Controller } from 'react-hook-form';
+import {useForm, Controller} from 'react-hook-form';
 import TextFields from './TextFields';
 import SelectField from './SelectField';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import PostcodeSearchInput from './PostcodeSearchInput';
 import useBillingCountries from '../store/useBillingCountriesStore';
 import useShippingOrBillingStore from '../store/shipingOrbilling';
-import { useFocusEffect } from '@react-navigation/native';
+import {useFocusEffect} from '@react-navigation/native';
 import SelectFields from './SelectFields';
 
 const GETADDRESS_KEY = '_UFb05P76EyMidU1VHIQ_A42976';
@@ -46,10 +46,10 @@ const fetchAddresses = async postcode => {
   });
 };
 
-export default function BillingAddress({ sameAsShipping, setIsBillingCheck }) {
-  const { billing, setBilling, shipping, clearBilling } =
+export default function BillingAddress({sameAsShipping, setIsBillingCheck}) {
+  const {billing, setBilling, shipping, clearBilling} =
     useShippingOrBillingStore();
-  const { billingCountries } = useBillingCountries();
+  const {billingCountries} = useBillingCountries();
   const prevBillingRef = useRef({});
 
   const [manual, setManual] = useState(false);
@@ -62,13 +62,13 @@ export default function BillingAddress({ sameAsShipping, setIsBillingCheck }) {
     control,
     setValue,
     watch,
-    formState: { errors },
+    formState: {errors},
   } = useForm({
     mode: 'onChange',
     defaultValues: {
       postalcode: '',
-      address1: '',
-      address2: '',
+      addressone: '',
+      addresstwo: '',
       city: '',
       state: '',
       billingCountry: '',
@@ -103,20 +103,20 @@ export default function BillingAddress({ sameAsShipping, setIsBillingCheck }) {
       if (!isAllowed && selectedCountryObj) {
         clearBilling();
         setValue('postalcode', '');
-        setValue('address1', '');
-        setValue('address2', '');
+        setValue('addressone', '');
+        setValue('addresstwo', '');
         setValue('city', '');
         setValue('state', '');
       }
-    }, [selectedBillingCountry, billingCountries])
+    }, [selectedBillingCountry, billingCountries]),
   );
 
   useFocusEffect(
     React.useCallback(() => {
       if (shipping?.same_as_shipping) {
         setValue('postalcode', shipping.postalcode || '');
-        setValue('address1', shipping.address1 || '');
-        setValue('address2', shipping.address2 || '');
+        setValue('addressone', shipping.addressone || '');
+        setValue('addresstwo', shipping.addresstwo || '');
         setValue('city', shipping.city || '');
         setValue('state', shipping.state || '');
 
@@ -129,8 +129,8 @@ export default function BillingAddress({ sameAsShipping, setIsBillingCheck }) {
         }
       } else if (billing) {
         setValue('postalcode', billing.postalcode || '');
-        setValue('address1', billing.address1 || '');
-        setValue('address2', billing.address2 || '');
+        setValue('addressone', billing.addressone || '');
+        setValue('addresstwo', billing.addresstwo || '');
         setValue('city', billing.city || '');
         setValue('state', billing.state || '');
 
@@ -142,7 +142,7 @@ export default function BillingAddress({ sameAsShipping, setIsBillingCheck }) {
           setBillingIndex(country.id.toString());
         }
       }
-    }, [shipping, billing, billingCountries])
+    }, [shipping, billing, billingCountries]),
   );
 
   const handleSearch = async () => {
@@ -167,16 +167,17 @@ export default function BillingAddress({ sameAsShipping, setIsBillingCheck }) {
     React.useCallback(() => {
       const subscription = watch(values => {
         const selectedCountry =
-          billingCountries.find(c => c.id.toString() === values.billingCountry) ||
-          billingCountries.find(c => c.id.toString() === billingIndex);
+          billingCountries.find(
+            c => c.id.toString() === values.billingCountry,
+          ) || billingCountries.find(c => c.id.toString() === billingIndex);
 
         const updatedBilling = {
           id: selectedCountry?.id || '',
           country_name: selectedCountry?.name || '',
           country_price: selectedCountry?.price || '',
           postalcode: values.postalcode || '',
-          address1: values.address1 || '',
-          address2: values.address2 || '',
+          addressone: values.addressone || '',
+          addresstwo: values.addresstwo || '',
           city: values.city || '',
           state: values.state || '',
           same_as_shipping: false,
@@ -193,22 +194,24 @@ export default function BillingAddress({ sameAsShipping, setIsBillingCheck }) {
       });
 
       return () => subscription.unsubscribe();
-    }, [watch, billingCountries, billingIndex, setBilling]));
+    }, [watch, billingCountries, billingIndex, setBilling]),
+  );
 
   useFocusEffect(
     React.useCallback(() => {
       const fields = watch([
         'billingCountry',
         'postalcode',
-        'address1',
+        'addressone',
         'city',
       ]);
       const allFilled = fields.every(field => field && field !== '');
       setIsBillingCheck(allFilled);
     }, [
-      watch(['billingCountry', 'postalcode', 'address1', 'city']),
+      watch(['billingCountry', 'postalcode', 'addressone', 'city']),
       setIsBillingCheck,
-    ]));
+    ]),
+  );
 
   if (sameAsShipping) {
     return null; // ✅ Do not render anything if same as shipping
@@ -224,8 +227,8 @@ export default function BillingAddress({ sameAsShipping, setIsBillingCheck }) {
         <Controller
           name="billingCountry"
           control={control}
-          rules={{ required: 'Country is required' }}
-          render={({ field }) => (
+          rules={{required: 'Country is required'}}
+          render={({field}) => (
             <SelectFields
               label="Select Country"
               value={field.value}
@@ -246,8 +249,8 @@ export default function BillingAddress({ sameAsShipping, setIsBillingCheck }) {
         <Controller
           name="postalcode"
           control={control}
-          rules={{ required: 'Postcode is required' }}
-          render={({ field }) => (
+          rules={{required: 'Postcode is required'}}
+          render={({field}) => (
             <PostcodeSearchInput
               label="Post code"
               value={field.value}
@@ -263,8 +266,8 @@ export default function BillingAddress({ sameAsShipping, setIsBillingCheck }) {
           <Controller
             control={control}
             name="selectedAddress"
-            rules={{ required: 'Please select your address' }}
-            render={({ field: { onChange, value } }) => (
+            rules={{required: 'Please select your address'}}
+            render={({field: {onChange, value}}) => (
               <SelectFields
                 label="Select Your Address"
                 value={value}
@@ -273,10 +276,10 @@ export default function BillingAddress({ sameAsShipping, setIsBillingCheck }) {
                   const selected = addressOptions[idx];
                   onChange(idx);
 
-                  setValue('address1', selected.line_1 || '', {
+                  setValue('addressone', selected.line_1 || '', {
                     shouldValidate: true,
                   });
-                  setValue('address2', selected.line_2 || '', {
+                  setValue('addresstwo', selected.line_2 || '', {
                     shouldValidate: true,
                   });
                   setValue('city', selected.town_or_city || '', {
@@ -297,14 +300,13 @@ export default function BillingAddress({ sameAsShipping, setIsBillingCheck }) {
           />
         )}
         <Controller
-          name="address1"
+          name="addressone"
           control={control}
-          render={({ field }) => (
+          render={({field}) => (
             <TextFields
               label="Address"
               value={field.value}
               onChangeText={field.onChange}
-      
               required
               errors={errors}
             />
@@ -312,14 +314,13 @@ export default function BillingAddress({ sameAsShipping, setIsBillingCheck }) {
         />
 
         <Controller
-          name="address2"
+          name="addresstwo"
           control={control}
-          render={({ field }) => (
+          render={({field}) => (
             <TextFields
               label="Address 2"
               value={field.value}
               onChangeText={field.onChange}
-              
               errors={errors}
             />
           )}
@@ -328,12 +329,11 @@ export default function BillingAddress({ sameAsShipping, setIsBillingCheck }) {
         <Controller
           name="city"
           control={control}
-          render={({ field }) => (
+          render={({field}) => (
             <TextFields
               label="Town / City"
               value={field.value}
               onChangeText={field.onChange}
-           
               required
               errors={errors}
             />
@@ -343,12 +343,11 @@ export default function BillingAddress({ sameAsShipping, setIsBillingCheck }) {
         <Controller
           name="state"
           control={control}
-          render={({ field }) => (
+          render={({field}) => (
             <TextFields
               label="State / County"
               value={field.value}
               onChangeText={field.onChange}
-             
               errors={errors}
             />
           )}
@@ -359,7 +358,7 @@ export default function BillingAddress({ sameAsShipping, setIsBillingCheck }) {
 }
 
 const styles = StyleSheet.create({
-  container: { paddingBottom: 0 },
+  container: {paddingBottom: 0},
   card: {
     backgroundColor: '#fff',
     padding: 20,
@@ -368,7 +367,7 @@ const styles = StyleSheet.create({
     shadowColor: '#000',
     shadowOpacity: 0.05,
     shadowRadius: 4,
-    shadowOffset: { width: 0, height: 2 },
+    shadowOffset: {width: 0, height: 2},
     elevation: 2,
   },
   title: {
