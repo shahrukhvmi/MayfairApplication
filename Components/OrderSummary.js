@@ -68,6 +68,8 @@ const OrderSummary = ({isNextDisabled}) => {
   const {email} = useSignupStore();
   const {productId, clearProductId} = useProductId();
 
+  console.log(email, 'email from OrderSummary');
+
   // store addons or dose here 🔥🔥
 
   const {clearAuthUserDetail} = useAuthUserDetailStore();
@@ -299,6 +301,7 @@ const OrderSummary = ({isNextDisabled}) => {
     };
 
     checkoutMutation.mutate(formData);
+    // console.log(JSON.stringify(formData, null, 2), 'Form Data for Checkout');
   };
 
   console.log(paymentData, 'paymentData 😋😋😋');

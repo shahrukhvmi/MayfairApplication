@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, {useState} from 'react';
 import {
   View,
   Text,
@@ -15,18 +15,19 @@ import {
   Alert,
 } from 'react-native';
 
-import { useForm, Controller } from 'react-hook-form';
-import { useNavigation } from '@react-navigation/native';
+import {useForm, Controller} from 'react-hook-form';
+import {useNavigation} from '@react-navigation/native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import { useMutation } from '@tanstack/react-query';
+import {useMutation} from '@tanstack/react-query';
 import Fetcher from '../library/Fetcher';
 import RegisterApi from '../api/RegisterApi';
 import useAuthUserDetailStore from '../store/useAuthUserDetailStore';
 import usePasswordReset from '../store/usePasswordReset';
 import useAuthStore from '../store/authStore';
 import useUserDataStore from '../store/userDataStore';
-import { logApiError, logApiSuccess } from '../utils/logApiDebug';
+import {logApiError, logApiSuccess} from '../utils/logApiDebug';
 import Toast from 'react-native-toast-message';
+import useSignupStore from '../store/signupStore';
 
 const RegisterScreen = () => {
   const navigation = useNavigation();
@@ -34,17 +35,18 @@ const RegisterScreen = () => {
     control,
     handleSubmit,
     watch,
-    formState: { errors },
+    formState: {errors},
   } = useForm();
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [already, setAlready] = useState(false);
 
-  const { setAuthUserDetail } = useAuthUserDetailStore();
-  const { setIsPasswordReset } = usePasswordReset();
-  const { setToken } = useAuthStore();
-  const { setUserData } = useUserDataStore();
+  const {setAuthUserDetail} = useAuthUserDetailStore();
+  const {setIsPasswordReset} = usePasswordReset();
+  const {setToken} = useAuthStore();
+  const {setUserData} = useUserDataStore();
+  const {setEmail} = useSignupStore();
 
   const registerMutation = useMutation(RegisterApi, {
     onSuccess: data => {
@@ -57,7 +59,7 @@ const RegisterScreen = () => {
         setToken(user?.token);
         setIsPasswordReset(true);
         Fetcher.axiosSetup.defaults.headers.common.Authorization = `Bearer ${user?.token}`;
-        navigation.navigate("dashboard");
+        navigation.navigate('dashboard');
       }
 
       setLoading(false);
@@ -79,6 +81,8 @@ const RegisterScreen = () => {
   });
 
   const onSubmit = data => {
+    setEmail(data?.email);
+
     const formData = {
       email: data.email,
       email_confirmation: data.confirmationEmail,
@@ -104,10 +108,10 @@ const RegisterScreen = () => {
 
   return (
     <KeyboardAvoidingView
-      style={{ flex: 1 }}
+      style={{flex: 1}}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
       <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-        <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
+        <ScrollView contentContainerStyle={{flexGrow: 1}}>
           <View style={styles.container}>
             <View style={styles.logoContainer}>
               <Image
@@ -130,7 +134,7 @@ const RegisterScreen = () => {
                     message: 'Invalid email format',
                   },
                 }}
-                render={({ field: { onChange, value } }) => (
+                render={({field: {onChange, value}}) => (
                   <TextInput
                     style={styles.nameInput}
                     placeholder="Email"
@@ -155,7 +159,7 @@ const RegisterScreen = () => {
                   required: 'Confirm Email is required',
                   validate: value => value === email || 'Emails do not match',
                 }}
-                render={({ field: { onChange, value } }) => (
+                render={({field: {onChange, value}}) => (
                   <TextInput
                     style={styles.nameInput}
                     placeholder="Confirm Email"
@@ -181,9 +185,9 @@ const RegisterScreen = () => {
                   name="password"
                   rules={{
                     required: 'Password is required',
-                    minLength: { value: 6, message: 'Minimum 6 characters' },
+                    minLength: {value: 6, message: 'Minimum 6 characters'},
                   }}
-                  render={({ field: { onChange, value } }) => (
+                  render={({field: {onChange, value}}) => (
                     <TextInput
                       style={styles.passwordInput}
                       placeholder="Password"
@@ -218,7 +222,7 @@ const RegisterScreen = () => {
                     validate: val =>
                       val === password || "Passwords don't match",
                   }}
-                  render={({ field: { onChange, value } }) => (
+                  render={({field: {onChange, value}}) => (
                     <TextInput
                       style={styles.passwordInput}
                       placeholder="Confirm Password"
@@ -322,7 +326,7 @@ const styles = StyleSheet.create({
     width: '85%',
     textAlign: 'start',
     fontSize: 16,
-    color:'#000'
+    color: '#000',
   },
   btn: {
     marginTop: 20,
