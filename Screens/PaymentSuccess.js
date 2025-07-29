@@ -1,15 +1,18 @@
-import {View, Text, StyleSheet} from 'react-native';
+import { View, Text, StyleSheet } from 'react-native';
 import React from 'react';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import Header from '../Layout/header';
 
 export default function PaymentSuccess() {
-  return (
+  return (<>
+    <Header />
     <SafeAreaView style={styles.container}>
-      <Header />
 
       <View>
         <Text style={styles.thankYouText}>Thank You!</Text>
       </View>
     </SafeAreaView>
+  </>
   );
 }
 

@@ -1,5 +1,7 @@
 import {View, Text, StyleSheet} from 'react-native';
 import React from 'react';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import Header from '../Layout/header';
 
 export default function PaymentFailed() {
   return (
