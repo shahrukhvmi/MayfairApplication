@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, {useState} from 'react';
 import {
   View,
   Text,
@@ -7,14 +7,16 @@ import {
   TextInput,
   Modal,
   ActivityIndicator,
+  Linking,
+  Alert,
 } from 'react-native';
 import Feather from 'react-native-vector-icons/Feather';
 import Entypo from 'react-native-vector-icons/Entypo';
-import { useNavigation } from '@react-navigation/native';
+import {useNavigation} from '@react-navigation/native';
 import useCartStore from '../store/useCartStore';
 import useCouponStore from '../store/couponStore';
 import Toast from 'react-native-toast-message';
-import { CouponApi } from '../api/couponApi';
+import {CouponApi} from '../api/couponApi';
 import useShippingOrBillingStore from '../store/shipingOrbilling';
 import NextButton from './NextButton';
 import sendStepData from '../api/stepsDataApi';
@@ -33,12 +35,10 @@ import useAuthStore from '../store/authStore';
 import usePasswordReset from '../store/usePasswordReset';
 import useLastBmi from '../store/useLastBmiStore';
 import useUserDataStore from '../store/userDataStore';
-import { useMutation } from '@tanstack/react-query';
+import {useMutation} from '@tanstack/react-query';
 
-const OrderSummary = ({ isNextDisabled }) => {
+const OrderSummary = ({isNextDisabled}) => {
   const navigation = useNavigation();
-
-
 
   /*___________________  Local state_____________________________*/
 
@@ -51,8 +51,8 @@ const OrderSummary = ({ isNextDisabled }) => {
 
   /*___________________  Zustand state_____________________________*/
 
-  const { items, totalAmount, setCheckOut, setOrderId } = useCartStore();
-  const { Coupon, setCoupon, clearCoupon } = useCouponStore();
+  const {items, totalAmount, setCheckOut, setOrderId} = useCartStore();
+  const {Coupon, setCoupon, clearCoupon} = useCouponStore();
   const {
     shipping,
     billing,
@@ -60,31 +60,29 @@ const OrderSummary = ({ isNextDisabled }) => {
     clearShipping,
     clearBilling,
   } = useShippingOrBillingStore();
-  const { patientInfo, clearPatientInfo } = usePatientInfoStore();
-  const { medicalInfo, clearMedicalInfo } = useMedicalInfoStore();
-  const { gpdetails, clearGpDetails } = useGpDetailsStore();
-  const { bmi, clearBmi } = useBmiStore();
-  const { confirmationInfo, clearConfirmationInfo } = useConfirmationInfoStore();
-  const { email } = useSignupStore();
-  const { productId, clearProductId } = useProductId();
+  const {patientInfo, clearPatientInfo} = usePatientInfoStore();
+  const {medicalInfo, clearMedicalInfo} = useMedicalInfoStore();
+  const {gpdetails, clearGpDetails} = useGpDetailsStore();
+  const {bmi, clearBmi} = useBmiStore();
+  const {confirmationInfo, clearConfirmationInfo} = useConfirmationInfoStore();
+  const {email} = useSignupStore();
+  const {productId, clearProductId} = useProductId();
 
   // store addons or dose here 🔥🔥
 
-  const { clearAuthUserDetail } = useAuthUserDetailStore();
+  const {clearAuthUserDetail} = useAuthUserDetailStore();
 
-  const { clearCheckout } = useCheckoutStore();
-  const { clearMedicalQuestions } = useMedicalQuestionsStore();
-  const { clearConfirmationQuestions } = useConfirmationQuestionsStore();
+  const {clearCheckout} = useCheckoutStore();
+  const {clearMedicalQuestions} = useMedicalQuestionsStore();
+  const {clearConfirmationQuestions} = useConfirmationQuestionsStore();
 
-  const { clearToken } = useAuthStore();
-  const { setIsPasswordReset } = usePasswordReset();
-  const { clearLastBmi } = useLastBmi();
-  const { clearUserData } = useUserDataStore();
+  const {clearToken} = useAuthStore();
+  const {setIsPasswordReset} = usePasswordReset();
+  const {clearLastBmi} = useLastBmi();
+  const {clearUserData} = useUserDataStore();
 
-  const { clearFirstName, clearLastName, clearEmail, clearConfirmationEmail } = useSignupStore();
-
-
-
+  const {clearFirstName, clearLastName, clearEmail, clearConfirmationEmail} =
+    useSignupStore();
 
   let discountAmount = 0;
   let shippingPrice = Number(shipping?.country_price) || 0;
@@ -109,46 +107,67 @@ const OrderSummary = ({ isNextDisabled }) => {
   const handleApplyCoupon = async () => {
     setCouponLoading(true);
     try {
-      const res = await CouponApi({ coupon_code: discountCode });
+      const res = await CouponApi({coupon_code: discountCode});
       if (res?.data?.status === true) {
-        Toast.show({ type: 'success', text1: 'Coupon applied successfully!' });
+        Toast.show({type: 'success', text1: 'Coupon applied successfully!'});
         setCoupon(res.data);
         setDiscountCode('');
       }
     } catch (error) {
       const err = error?.response?.data?.errors?.Coupon;
       if (err) {
-        Toast.show({ type: 'error', text1: err });
+        Toast.show({type: 'error', text1: err});
         clearCoupon();
       } else {
-        Toast.show({ type: 'error', text1: 'Something went wrong' });
+        Toast.show({type: 'error', text1: 'Something went wrong'});
       }
     } finally {
       setCouponLoading(false);
     }
   };
 
-
-/* ______________________ 💳 Payment API Integration ______________________ */
+  /* ______________________ 💳 Payment API Integration ______________________ */
 
   const checkoutMutation = useMutation(sendStepData, {
-    onSuccess: (data) => {
+    onSuccess: data => {
       if (data) {
         setPaymentData(data?.data?.paymentData);
         setOrderId(data?.data?.paymentData?.order_id);
         clearCoupon();
+        setLoading(false);
+        setTimeout(() => {
+          Alert.alert(
+            'Leave App?',
+            'You will be redirected to a secure external payment page.',
+            [
+              {
+                text: 'Cancel',
+                style: 'cancel',
+              },
+              {
+                text: 'Continue',
+                onPress: () =>
+                  Linking.openURL(
+                    'https://mayfair-revamp.netlify.app/payment/?order_id=' +
+                      data?.data?.paymentData?.order_token,
+                  ).catch(err => console.warn('Failed to open browser:', err)),
+              },
+            ],
+            {cancelable: true},
+          );
+        }, 300);
       }
     },
-    onError: (error) => {
-      console.log("Checkout Error:", error);
+    onError: error => {
+      console.log('Checkout Error:', error);
 
       const response = error?.response?.data;
       const errors = response?.original?.errors;
       const productError = response?.errors?.Product;
       const outOfStock = response?.errors?.OutOfStock;
 
-      if (response?.message === "Unauthenticated.") {
-        Toast.show({ type: 'error', text1: "Session Expired" });
+      if (response?.message === 'Unauthenticated.') {
+        Toast.show({type: 'error', text1: 'Session Expired'});
 
         // Clear all user and session-related data
         clearBmi();
@@ -173,46 +192,45 @@ const OrderSummary = ({ isNextDisabled }) => {
 
         setIsPasswordReset(true);
         setLoading(false);
-        navigation.navigate("Login");
+        navigation.navigate('Login');
         return;
       }
 
       setLoading(false);
 
-      if (errors && typeof errors === "object") {
+      if (errors && typeof errors === 'object') {
         Object.entries(errors).forEach(([_, messages]) => {
           if (Array.isArray(messages)) {
-            messages.forEach((msg) =>
-              Toast.show({ type: 'error', text1: msg })
-            );
+            messages.forEach(msg => Toast.show({type: 'error', text1: msg}));
           } else {
-            Toast.show({ type: 'error', text1: messages });
+            Toast.show({type: 'error', text1: messages});
           }
         });
-      } else if (outOfStock && typeof outOfStock === "object") {
+      } else if (outOfStock && typeof outOfStock === 'object') {
         Object.entries(outOfStock).forEach(([_, messages]) => {
           if (Array.isArray(messages)) {
-            messages.forEach((msg) =>
-              Toast.show({ type: 'error', text1: msg })
-            );
+            messages.forEach(msg => Toast.show({type: 'error', text1: msg}));
           } else {
-            Toast.show({ type: 'error', text1: messages });
+            Toast.show({type: 'error', text1: messages});
           }
         });
-        navigation.navigate("gathering-data");
-      } else if (outOfStock && typeof outOfStock !== "object") {
-        Toast.show({ type: 'error', text1: outOfStock });
-        console.log("From single OutOfStock");
-        navigation.navigate("gathering-data");
+        navigation.navigate('gathering-data');
+      } else if (outOfStock && typeof outOfStock !== 'object') {
+        Toast.show({type: 'error', text1: outOfStock});
+        console.log('From single OutOfStock');
+        navigation.navigate('gathering-data');
       } else {
-        Toast.show({ type: 'error', text1: productError || "Something went wrong" });
+        Toast.show({
+          type: 'error',
+          text1: productError || 'Something went wrong',
+        });
       }
     },
   });
 
   const handleRemoveCoupon = () => {
     clearCoupon();
-    Toast.show({ type: 'info', text1: 'Coupon removed' });
+    Toast.show({type: 'info', text1: 'Coupon removed'});
   };
 
   const handleSubmit = () => {
@@ -253,8 +271,8 @@ const OrderSummary = ({ isNextDisabled }) => {
         name: shipping?.country_name,
         price: parseFloat(shipping?.country_price),
         status: 1,
-        taggable_type: "App\\Models\\Product",
-        taggable_id: "1",
+        taggable_type: 'App\\Models\\Product',
+        taggable_id: '1',
       },
     };
 
@@ -263,11 +281,11 @@ const OrderSummary = ({ isNextDisabled }) => {
     const formData = {
       checkout,
       patientInfo,
-      items: (items?.doses || []).map((d) => ({
+      items: (items?.doses || []).map(d => ({
         ...d,
         quantity: d.quantity || d.qty || 1,
       })),
-      addons: (items?.addons || []).map((a) => ({
+      addons: (items?.addons || []).map(a => ({
         ...a,
         quantity: a.quantity || a.qty || 1,
       })),
@@ -281,13 +299,10 @@ const OrderSummary = ({ isNextDisabled }) => {
     };
 
     checkoutMutation.mutate(formData);
-
-
   };
 
+  console.log(paymentData, 'paymentData 😋😋😋');
 
-  console.log(paymentData,"paymentData 😋😋😋");
-  
   const renderItem = (item, idx) => {
     if (item.type === 'dose') {
       return (
@@ -307,7 +322,6 @@ const OrderSummary = ({ isNextDisabled }) => {
               <View style={styles.itemDetails}>
                 <Text style={styles.itemTitle}>Pack of 5 Needles</Text>
                 <Text style={styles.itemQuantity}>Qty: x{item.qty}</Text>
-
               </View>
               <View style={styles.priceBadge}>
                 <Text style={styles.priceText}>£0.00</Text>
@@ -372,10 +386,10 @@ const OrderSummary = ({ isNextDisabled }) => {
 
             {Coupon && (
               <View style={styles.summaryRow}>
-                <Text style={[styles.summaryLabel, { color: '#47317c' }]}>
+                <Text style={[styles.summaryLabel, {color: '#47317c'}]}>
                   Discount
                 </Text>
-                <Text style={[styles.summaryValue, { color: '#47317c' }]}>
+                <Text style={[styles.summaryValue, {color: '#47317c'}]}>
                   -£{discountAmount.toFixed(2)}
                 </Text>
               </View>
@@ -433,7 +447,7 @@ const OrderSummary = ({ isNextDisabled }) => {
                 <TouchableOpacity
                   style={[
                     styles.applyCouponButton,
-                    { backgroundColor: isApplyEnabled ? '#4B0082' : '#ccc' },
+                    {backgroundColor: isApplyEnabled ? '#4B0082' : '#ccc'},
                   ]}
                   onPress={handleApplyCoupon}
                   disabled={!isApplyEnabled}>
@@ -449,7 +463,7 @@ const OrderSummary = ({ isNextDisabled }) => {
 
       <NextButton
         label="Procceed to Payment"
-        style={{ marginBottom: 30 }}
+        style={{marginBottom: 30}}
         onPress={handleSubmit}
         // disabled={!isNextDisabled}
       />
@@ -459,7 +473,7 @@ const OrderSummary = ({ isNextDisabled }) => {
         <View style={styles.modalOverlay}>
           <View style={styles.modalBox}>
             <ActivityIndicator size="large" color="#4B0082" />
-            <Text style={{ marginTop: 12 }}>Processing payment...</Text>
+            <Text style={{marginTop: 12}}>Processing payment...</Text>
           </View>
         </View>
       </Modal>
@@ -497,7 +511,7 @@ const styles = StyleSheet.create({
     shadowColor: '#000',
     shadowOpacity: 0.05,
     shadowRadius: 4,
-    shadowOffset: { width: 0, height: 2 },
+    shadowOffset: {width: 0, height: 2},
     elevation: 2,
   },
   sectionTitle: {
@@ -607,7 +621,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#f0f0f0',
     borderRadius: 12,
     color: '#000',
-    position: 'relative'
+    position: 'relative',
   },
   applyCouponButton: {
     padding: 8,
@@ -619,7 +633,6 @@ const styles = StyleSheet.create({
     position: 'absolute',
     right: 10,
     top: 10,
-
   },
   applyCouponButtonText: {
     color: '#fff',
@@ -658,15 +671,13 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
 
-
-
   priceBadge: {
     backgroundColor: '#fff',
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 20,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
+    shadowOffset: {width: 0, height: 2},
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 3,
@@ -678,8 +689,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#333',
   },
-
-
 });
 
 export default OrderSummary;

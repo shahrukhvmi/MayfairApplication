@@ -30,6 +30,15 @@
             android:scheme="https"
             android:host="mayfair-revamp.netlify.app"
             android:pathPrefix="/reset-password" />
+          <data
+            android:scheme="https"
+            android:host="mayfair-revamp.netlify.app"
+            android:pathPrefix="/payment-success" />
+
+          <data
+            android:scheme="https"
+            android:host="mayfair-revamp.netlify.app"
+            android:pathPrefix="/payment-failed" />
         </intent-filter>
       </activity>
     </application>
