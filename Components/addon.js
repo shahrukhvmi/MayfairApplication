@@ -59,7 +59,7 @@ const Addon = ({ addon, onAdd, onIncrement, onDecrement, isSelected, quantity, t
 
   const handleDelete = () => {
     setShowModal(false);
-    removeItemCompletely(addon?.id, 'doses');
+    removeItemCompletely(addon?.id, 'addon');
   };
 
 
