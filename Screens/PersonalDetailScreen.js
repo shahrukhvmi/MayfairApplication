@@ -80,13 +80,14 @@ export default function PersonalDetails() {
     }
   }, [patientInfo, patientInfo?.gender]);
 
-useEffect(() => {
-  if (gender === 'Male') {
-    setValue('pregnancy', '');
-  } else if (gender === 'Female') {
-    trigger('pregnancy'); // 🔥 Force validation
-  }
-}, [gender]);
+  useEffect(() => {
+    if (gender === 'Male') {
+      setValue('pregnancy', '');
+      trigger();
+    } else if (gender === 'Female') {
+      trigger('pregnancy');
+    }
+  }, [gender]);
 
 
   const formatDate = date => {
