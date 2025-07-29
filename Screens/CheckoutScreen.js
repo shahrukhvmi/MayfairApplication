@@ -1,5 +1,5 @@
-import { useNavigation } from '@react-navigation/native';
-import { useRef, useState } from 'react';
+import {useNavigation} from '@react-navigation/native';
+import {useEffect, useRef, useState} from 'react';
 import {
   View,
   Text,
@@ -18,6 +18,7 @@ import ProductConsent from '../Components/ProductConsent';
 import useShippingOrBillingStore from '../store/shipingOrbilling';
 import ShippingAddress from '../Components/ShippingAddress';
 import NextButton from '../Components/NextButton';
+import Toast from 'react-native-toast-message';
 
 export default function CheckoutSteps() {
   const scrollRef = useRef();
@@ -26,7 +27,7 @@ export default function CheckoutSteps() {
   const [isShippingCheck, setIsShippingCheck] = useState(false);
   const [isBillingCheck, setIsBillingCheck] = useState(false);
   const [isConcentCheck, setIsConcentCheck] = useState(false);
-  const { billingSameAsShipping } = useShippingOrBillingStore();
+  const {billingSameAsShipping} = useShippingOrBillingStore();
 
   const [loading, setLoading] = useState(false);
   const [thankYou, setThankYou] = useState(false);
@@ -44,8 +45,9 @@ export default function CheckoutSteps() {
     <>
       <Header />
       <ScrollView style={styles.container} ref={scrollRef}>
-        <Text style={styles.heading}>Checkout to kick-start your weight loss journey</Text>
-
+        <Text style={styles.heading}>
+          Checkout to kick-start your weight loss journey
+        </Text>
 
         <>
           {/* Step 2: Shipping */}
@@ -78,7 +80,7 @@ export default function CheckoutSteps() {
           <View style={styles.modalOverlay}>
             <View style={styles.modalBox}>
               <ActivityIndicator size="large" color="#4B0082" />
-              <Text style={{ marginTop: 12 }}>Processing payment...</Text>
+              <Text style={{marginTop: 12}}>Processing payment...</Text>
             </View>
           </View>
         </Modal>
@@ -93,6 +95,8 @@ export default function CheckoutSteps() {
           </View>
         </Modal>
       </ScrollView>
+
+      <Toast />
     </>
   );
 }
@@ -125,7 +129,7 @@ const styles = StyleSheet.create({
     shadowColor: '#000',
     shadowOpacity: 0.05,
     shadowRadius: 4,
-    shadowOffset: { width: 0, height: 2 },
+    shadowOffset: {width: 0, height: 2},
     elevation: 2,
   },
   paragraphExplain: {

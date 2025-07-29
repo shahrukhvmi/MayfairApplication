@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from 'react';
-import { useFocusEffect, useNavigation } from '@react-navigation/native';
+import React, {useEffect, useState} from 'react';
+import {useFocusEffect, useNavigation} from '@react-navigation/native';
 import {
   ActivityIndicator,
   ScrollView,
@@ -9,7 +9,7 @@ import {
   View,
 } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import { useForm, Controller } from 'react-hook-form';
+import {useForm, Controller} from 'react-hook-form';
 
 import Header from '../Layout/header';
 import TextField from '../Components/TextFields';
@@ -19,6 +19,7 @@ import BackButton from '../Components/BackButton';
 import usePatientInfoStore from '../store/patientInfoStore';
 import SelectFields from '../Components/SelectFields';
 import TextFields from '../Components/TextFields';
+import Toast from 'react-native-toast-message';
 
 // --- GETADDRESS.IO HELPER ---
 const GETADDRESS_KEY = '_UFb05P76EyMidU1VHIQ_A42976';
@@ -52,8 +53,7 @@ const fetchAddresses = async postcode => {
 
 export default function ResidentialAddressScreen() {
   const navigation = useNavigation();
-  const { patientInfo, setPatientInfo } = usePatientInfoStore();
-
+  const {patientInfo, setPatientInfo} = usePatientInfoStore();
 
   const [addressOptions, setAddressOptions] = useState([]);
   const [selectedIndex, setSelectedIndex] = useState(null);
@@ -64,7 +64,7 @@ export default function ResidentialAddressScreen() {
     handleSubmit,
     setValue,
     watch,
-    formState: { errors },
+    formState: {errors},
   } = useForm({
     mode: 'onChange',
     defaultValues: {
@@ -100,9 +100,7 @@ export default function ResidentialAddressScreen() {
       //   setShowManual(true);
       // }
     }
-  }, [patientInfo])
-
-
+  }, [patientInfo]);
 
   const onSubmit = data => {
     const fullAddress = {
@@ -114,10 +112,9 @@ export default function ResidentialAddressScreen() {
       country: data.country,
     };
 
-    setPatientInfo({ ...patientInfo, address: fullAddress });
+    setPatientInfo({...patientInfo, address: fullAddress});
     navigation.navigate('preferred-phone-number');
   };
-
 
   const handleSearch = async () => {
     if (!postcode || postcode.trim().length === 0) {
@@ -179,26 +176,21 @@ export default function ResidentialAddressScreen() {
           <Controller
             control={control}
             name="postcode"
-            render={({ field: { onChange, value } }) => (
+            render={({field: {onChange, value}}) => (
               <TextFields
-                label={"Postcode"}
+                label={'Postcode'}
                 required
                 value={value}
                 onChangeText={onChange}
-                style={{ position: 'relative' }}
-
+                style={{position: 'relative'}}
               />
             )}
           />
 
           <TouchableOpacity
-            style={[
-              styles.insideSearchButton,
-              searching && { opacity: 0.6 },
-            ]}
+            style={[styles.insideSearchButton, searching && {opacity: 0.6}]}
             onPress={handleSearch}
-            disabled={searching}
-          >
+            disabled={searching}>
             {searching ? (
               <ActivityIndicator size="small" color="#fff" />
             ) : (
@@ -207,14 +199,13 @@ export default function ResidentialAddressScreen() {
           </TouchableOpacity>
         </View>
 
-
         {/* Address dropdown */}
         {addressOptions.length > 0 && (
           <Controller
             control={control}
             name="selectedAddress"
-            rules={{ required: 'Please select your address' }}
-            render={({ field: { onChange, value } }) => (
+            rules={{required: 'Please select your address'}}
+            render={({field: {onChange, value}}) => (
               <SelectFields
                 label="Select Your Address"
                 value={value}
@@ -247,16 +238,14 @@ export default function ResidentialAddressScreen() {
           />
         )}
 
-
-
         {/* Manual Address Fields */}
 
         <Controller
           control={control}
           name="address1"
-          render={({ field: { onChange, value } }) => (
+          render={({field: {onChange, value}}) => (
             <TextFields
-              label={"Address"}
+              label={'Address'}
               required
               value={value}
               onChangeText={onChange}
@@ -266,10 +255,9 @@ export default function ResidentialAddressScreen() {
         <Controller
           control={control}
           name="address2"
-          render={({ field: { onChange, value } }) => (
+          render={({field: {onChange, value}}) => (
             <TextFields
-              label={"Address 2"}
-
+              label={'Address 2'}
               value={value}
               onChangeText={onChange}
             />
@@ -278,10 +266,10 @@ export default function ResidentialAddressScreen() {
         <Controller
           control={control}
           name="city"
-          render={({ field: { onChange, value } }) => (
+          render={({field: {onChange, value}}) => (
             <TextFields
               required
-              label={"City"}
+              label={'City'}
               value={value}
               onChangeText={onChange}
             />
@@ -290,17 +278,15 @@ export default function ResidentialAddressScreen() {
         <Controller
           control={control}
           name="country"
-          render={({ field: { onChange, value } }) => (
+          render={({field: {onChange, value}}) => (
             <TextFields
-              label={"Country"}
+              label={'Country'}
               required
               value={value}
               onChangeText={onChange}
             />
           )}
         />
-
-
 
         <NextButton
           label="Next"
@@ -309,6 +295,8 @@ export default function ResidentialAddressScreen() {
         />
         <BackButton label="Back" onPress={() => navigation.goBack()} />
       </ScrollView>
+
+      <Toast />
     </>
   );
 }

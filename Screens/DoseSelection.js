@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, {useEffect, useState} from 'react';
 import {
   View,
   Text,
@@ -9,9 +9,9 @@ import {
   TouchableOpacity,
 } from 'react-native';
 import Modal from 'react-native-modal';
-import { Controller, useForm } from 'react-hook-form';
+import {Controller, useForm} from 'react-hook-form';
 import Toast from 'react-native-toast-message';
-import { useMutation } from '@tanstack/react-query';
+import {useMutation} from '@tanstack/react-query';
 import useCartStore from '../store/useCartStore';
 import useVariationStore from '../store/useVariationStore';
 import useReorder from '../store/useReorderStore';
@@ -20,28 +20,27 @@ import Header from '../Layout/header';
 import Dose from '../Components/Dose';
 import Addon from '../Components/addon';
 import NextButton from '../Components/NextButton';
-import { abandonCart } from '../api/abandonCartApi';
+import {abandonCart} from '../api/abandonCartApi';
 import useProductId from '../store/useProductIdStore';
 import CustomCheckbox from '../Components/CustomCheckbox';
-import { useFocusEffect } from '@react-navigation/native';
+import {useFocusEffect} from '@react-navigation/native';
 
-export default function DoseSelection({ navigation }) {
+export default function DoseSelection({navigation}) {
   const {
     control,
     handleSubmit,
     clearErrors,
     setValue,
-    formState: { isValid, errors },
+    formState: {isValid, errors},
   } = useForm({
-    mode: "onChange",
+    mode: 'onChange',
     defaultValues: {
       terms: false,
     },
-
   });
 
   /* _________________Zustand state here ______________*/
-  const { variation } = useVariationStore();
+  const {variation} = useVariationStore();
 
   const [isExpiryRequired, setIsExpiryRequired] = useState(false);
 
@@ -52,18 +51,19 @@ export default function DoseSelection({ navigation }) {
         setIsExpiryRequired(true);
         setTimeout(() => {
           // Force validation to kick in
-          setValue("terms", false, { shouldValidate: true });
+          setValue('terms', false, {shouldValidate: true});
         }, 0);
       } else {
         setIsExpiryRequired(false);
-        clearErrors("terms");
-        setValue("terms", false);
+        clearErrors('terms');
+        setValue('terms', false);
       }
-    }, [variation?.show_expiry, clearErrors, setValue]));
-  const { addToCart, increaseQuantity, decreaseQuantity, items, totalAmount } =
+    }, [variation?.show_expiry, clearErrors, setValue]),
+  );
+  const {addToCart, increaseQuantity, decreaseQuantity, items, totalAmount} =
     useCartStore();
-  const { reorder } = useReorder();
-  const { productId } = useProductId();
+  const {reorder} = useReorder();
+  const {productId} = useProductId();
 
   /* _________________Local State here ______________*/
   const [shownDoseIds, setShownDoseIds] = useState([]);
@@ -82,7 +82,7 @@ export default function DoseSelection({ navigation }) {
   });
   /*________ Abandon Cart API hit here ________*/
   const onSubmit = () => {
-    const payload = items.doses.map(d => ({ eid: d.id, pid: productId }));
+    const payload = items.doses.map(d => ({eid: d.id, pid: productId}));
     abandonMutation.mutate(payload);
   };
 
@@ -129,7 +129,7 @@ export default function DoseSelection({ navigation }) {
     if (!(isFirstDose || reorder)) {
       product_concent = generateProductConcent(variation.variations, dose.name);
       if (!shownDoseIds.includes(dose.id)) {
-        setSelectedDose({ ...dose, product_concent });
+        setSelectedDose({...dose, product_concent});
         setShowDoseModal(true);
         setShownDoseIds(prev => [...prev, dose.id]);
       }
@@ -175,168 +175,180 @@ export default function DoseSelection({ navigation }) {
       <ActivityIndicator
         size="large"
         color="#4B0082"
-        style={{ flex: 1, justifyContent: 'center' }}
+        style={{flex: 1, justifyContent: 'center'}}
       />
     );
   }
 
   return (
-    <View style={styles.screen}>
-      <Header />
-      <ScrollView contentContainerStyle={styles.container}>
-        <View style={styles.header}>
-          <Image source={{ uri: variation.img }} style={styles.image} />
-        </View>
-        <Text style={styles.title}>{variation.name}</Text>
-        <Text style={styles.price}>From £{variation.price}</Text>
-
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Choose your Dosage</Text>
-          {variation?.variations
-            ?.sort((a, b) => {
-              const aOutOfStock = a?.stock?.status === 0;
-              const bOutOfStock = b?.stock?.status === 0;
-              const qOutOfStock = b?.stock?.quantity === 0;
-              const qaOutOfStock = a?.stock?.quantity === 0;
-
-              // Out of stock ko neeche le jao
-              if (qaOutOfStock && !qOutOfStock) return 1;
-              if (!qaOutOfStock && qOutOfStock) return -1;
-              if (aOutOfStock && !bOutOfStock) return 1;
-              if (!aOutOfStock && bOutOfStock) return -1;
-              return 0;
-            })
-            .map((dose, index) => {
-              const cartDose = items.doses.find(item => item.id === dose.id);
-              const cartQty = cartDose?.qty || 0;
-              return (
-                <Dose
-                  key={dose.id}
-                  doseData={dose}
-                  qty={cartQty}
-                  isSelected={cartQty > 0}
-                  onAdd={() => handleAddDose(dose)}
-                  onIncrement={() => increaseQuantity(dose.id, 'dose')}
-                  onDecrement={() => decreaseQuantity(dose.id, 'dose')}
-                  totalSelectedQty={currentQty}
-                  allow={variation.allowed}
-                />
-              );
-            })}
-        </View>
-        {variation?.show_expiry === 1 && (
-          <View>
-            <Controller
-              control={control}
-              name="terms"
-              defaultValue={false}
-              rules={{
-                required: isExpiryRequired
-                  ? 'Please confirm that you have read and acknowledged the expiry information.'
-                  : false,
-              }}
-              render={({ field: { onChange, value } }) => (
-                <CustomCheckbox
-                  label="Please confirm that you have reviewed the expiry dates of the selected doses."
-                  value={value}
-                  onChange={onChange}
-                />
-              )}
-            />
-            {errors.terms && (
-              <Text style={{ color: 'red', fontSize: 12, marginTop: -4 }}>
-                {errors.terms.message}
-              </Text>
-            )}
+    <>
+      <View style={styles.screen}>
+        <Header />
+        <ScrollView contentContainerStyle={styles.container}>
+          <View style={styles.header}>
+            <Image source={{uri: variation.img}} style={styles.image} />
           </View>
-        )}
+          <Text style={styles.title}>{variation.name}</Text>
+          <Text style={styles.price}>From £{variation.price}</Text>
 
-        {variation.addons?.length > 0 && (
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Select Add‑ons</Text>
-            {variation?.addons
-              .slice()
-              .sort((a, b) => {
-                const aOutOfStock =
-                  a?.stock?.status === 0 || a?.stock?.quantity === 0 ? 1 : 0;
-                const bOutOfStock =
-                  b?.stock?.status === 0 || b?.stock?.quantity === 0 ? 1 : 0;
+            <Text style={styles.sectionTitle}>Choose your Dosage</Text>
+            {variation?.variations
+              ?.sort((a, b) => {
+                const aOutOfStock = a?.stock?.status === 0;
+                const bOutOfStock = b?.stock?.status === 0;
+                const qOutOfStock = b?.stock?.quantity === 0;
+                const qaOutOfStock = a?.stock?.quantity === 0;
 
-                return aOutOfStock - bOutOfStock;
+                // Out of stock ko neeche le jao
+                if (qaOutOfStock && !qOutOfStock) return 1;
+                if (!qaOutOfStock && qOutOfStock) return -1;
+                if (aOutOfStock && !bOutOfStock) return 1;
+                if (!aOutOfStock && bOutOfStock) return -1;
+                return 0;
               })
-              .map(addon => {
-                const cartAddon = items.addons.find(
-                  item => item.id === addon.id,
-                );
-                const cartQty = cartAddon?.qty || 0;
+              .map((dose, index) => {
+                const cartDose = items.doses.find(item => item.id === dose.id);
+                const cartQty = cartDose?.qty || 0;
                 return (
-                  <Addon
-                    key={addon.id}
-                    addon={addon}
-                    quantity={cartQty}
+                  <Dose
+                    key={dose.id}
+                    doseData={dose}
+                    qty={cartQty}
                     isSelected={cartQty > 0}
-                    onAdd={() => handleAddAddon(addon)}
-                    onIncrement={() => increaseQuantity(addon.id, 'addon')}
-                    onDecrement={() => decreaseQuantity(addon.id, 'addon')}
+                    onAdd={() => handleAddDose(dose)}
+                    onIncrement={() => increaseQuantity(dose.id, 'dose')}
+                    onDecrement={() => decreaseQuantity(dose.id, 'dose')}
+                    totalSelectedQty={currentQty}
+                    allow={variation.allowed}
                   />
                 );
               })}
           </View>
-        )}
+          {variation?.show_expiry === 1 && (
+            <View>
+              <Controller
+                control={control}
+                name="terms"
+                defaultValue={false}
+                rules={{
+                  required: isExpiryRequired
+                    ? 'Please confirm that you have read and acknowledged the expiry information.'
+                    : false,
+                }}
+                render={({field: {onChange, value}}) => (
+                  <CustomCheckbox
+                    label="Please confirm that you have reviewed the expiry dates of the selected doses."
+                    value={value}
+                    onChange={onChange}
+                  />
+                )}
+              />
+              {errors.terms && (
+                <Text style={{color: 'red', fontSize: 12, marginTop: -4}}>
+                  {errors.terms.message}
+                </Text>
+              )}
+            </View>
+          )}
 
-        <View style={styles.footerRight}>
-          <NextButton
-            style={{ width: '100%' }}
-            label={
-              abandonMutation.isLoading
-                ? 'Processing...'
-                : 'Proceed to Checkout'
-            }
-            onPress={handleSubmit(onSubmit)}
-            disabled={!isValid || totalSelectedQty() === 0 || abandonMutation.isLoading}
-          />
-          <BackButton
-            label="Back"
-            onPress={() => navigation.navigate('confirmation-summary')}
-          />
-        </View>
-      </ScrollView>
+          {variation.addons?.length > 0 && (
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>Select Add‑ons</Text>
+              {variation?.addons
+                .slice()
+                .sort((a, b) => {
+                  const aOutOfStock =
+                    a?.stock?.status === 0 || a?.stock?.quantity === 0 ? 1 : 0;
+                  const bOutOfStock =
+                    b?.stock?.status === 0 || b?.stock?.quantity === 0 ? 1 : 0;
 
-      <View style={styles.footer}>
-        <View style={styles.footerContent}>
-          <Image source={{ uri: variation.img }} style={styles.footerImg} />
-          <View style={styles.footerDetails}>
-            <Text style={styles.footerName} numberOfLines={1}>
-              {variation.name}
-            </Text>
-            <Text style={styles.footerTotal}>
-              Order total <Text style={styles.amount}>£{parseFloat(totalAmount).toFixed(2)}</Text>
-            </Text>
+                  return aOutOfStock - bOutOfStock;
+                })
+                .map(addon => {
+                  const cartAddon = items.addons.find(
+                    item => item.id === addon.id,
+                  );
+                  const cartQty = cartAddon?.qty || 0;
+                  return (
+                    <Addon
+                      key={addon.id}
+                      addon={addon}
+                      quantity={cartQty}
+                      isSelected={cartQty > 0}
+                      onAdd={() => handleAddAddon(addon)}
+                      onIncrement={() => increaseQuantity(addon.id, 'addon')}
+                      onDecrement={() => decreaseQuantity(addon.id, 'addon')}
+                    />
+                  );
+                })}
+            </View>
+          )}
+
+          <View style={styles.footerRight}>
+            <NextButton
+              style={{width: '100%'}}
+              label={
+                abandonMutation.isLoading
+                  ? 'Processing...'
+                  : 'Proceed to Checkout'
+              }
+              onPress={handleSubmit(onSubmit)}
+              disabled={
+                !isValid ||
+                totalSelectedQty() === 0 ||
+                abandonMutation.isLoading
+              }
+            />
+            <BackButton
+              label="Back"
+              onPress={() => navigation.navigate('confirmation-summary')}
+            />
+          </View>
+        </ScrollView>
+
+        <View style={styles.footer}>
+          <View style={styles.footerContent}>
+            <Image source={{uri: variation.img}} style={styles.footerImg} />
+            <View style={styles.footerDetails}>
+              <Text style={styles.footerName} numberOfLines={1}>
+                {variation.name}
+              </Text>
+              <Text style={styles.footerTotal}>
+                Order total{' '}
+                <Text style={styles.amount}>
+                  £{parseFloat(totalAmount).toFixed(2)}
+                </Text>
+              </Text>
+            </View>
           </View>
         </View>
+
+        <Modal
+          isVisible={showDoseModal}
+          onBackdropPress={() => setShowDoseModal(false)}
+          style={styles.modal}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Dosage Confirmation</Text>
+            <Text style={styles.modalText}>
+              {selectedDose?.product_concent}
+            </Text>
+            <NextButton
+              label="I Confirm"
+              onPress={() => setShowDoseModal(false)}
+            />
+          </View>
+        </Modal>
       </View>
 
-
-      <Modal
-        isVisible={showDoseModal}
-        onBackdropPress={() => setShowDoseModal(false)}
-        style={styles.modal}>
-        <View style={styles.modalContent}>
-          <Text style={styles.modalTitle}>Dosage Confirmation</Text>
-          <Text style={styles.modalText}>{selectedDose?.product_concent}</Text>
-          <NextButton
-            label="I Confirm"
-            onPress={() => setShowDoseModal(false)}
-          />
-        </View>
-      </Modal>
-    </View>
+      <Toast />
+    </>
   );
 }
 
 const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: '#F2EEFF' },
-  container: { padding: 18 },
+  screen: {flex: 1, backgroundColor: '#F2EEFF'},
+  container: {padding: 18},
   header: {
     width: '100%',
     backgroundColor: 'white',
@@ -347,8 +359,8 @@ const styles = StyleSheet.create({
     height: 200,
     resizeMode: 'contain',
   },
-  title: { fontSize: 22, fontWeight: 'bold', marginVertical: 10 },
-  price: { fontSize: 18, marginBottom: 16 },
+  title: {fontSize: 22, fontWeight: 'bold', marginVertical: 10},
+  price: {fontSize: 18, marginBottom: 16},
   section: {
     backgroundColor: '#fff',
     marginVertical: 12,
@@ -356,9 +368,9 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     paddingBottom: 30,
   },
-  sectionTitle: { fontSize: 18, fontWeight: '600', padding: 10 },
+  sectionTitle: {fontSize: 18, fontWeight: '600', padding: 10},
 
-  modal: { justifyContent: 'center', margin: 0 },
+  modal: {justifyContent: 'center', margin: 0},
   modalContent: {
     backgroundColor: '#fff',
     padding: 20,
@@ -371,7 +383,7 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     textAlign: 'center',
   },
-  modalText: { fontSize: 16, marginBottom: 20, textAlign: 'center' },
+  modalText: {fontSize: 16, marginBottom: 20, textAlign: 'center'},
   footer: {
     position: 'absolute',
     bottom: 0,
@@ -382,7 +394,7 @@ const styles = StyleSheet.create({
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: -3 },
+    shadowOffset: {width: 0, height: -3},
     shadowOpacity: 0.1,
     shadowRadius: 8,
     elevation: 10,
@@ -428,8 +440,4 @@ const styles = StyleSheet.create({
     flexGrow: 1, // 💥 let the button expand as needed
     maxWidth: 200, // optional minimum width
   },
-
-
-
-
 });

@@ -112,7 +112,6 @@ const App = () => {
   return (
     <>
       {/* _________________All Routes here ______________*/}
-
       <NavigationContainer linking={linking} ref={navigationRef}>
         <Stack.Navigator initialRouteName="Splash">
           <Stack.Screen
@@ -280,7 +279,6 @@ const App = () => {
       </NavigationContainer>
 
       {/* _________________Toast here ______________ */}
-
       <Toast />
     </>
   );

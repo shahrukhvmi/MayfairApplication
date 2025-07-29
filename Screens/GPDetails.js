@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, {useState, useEffect} from 'react';
 import {
   View,
   Text,
@@ -7,27 +7,27 @@ import {
   StyleSheet,
   ScrollView,
 } from 'react-native';
-import { Controller, useForm } from 'react-hook-form';
+import {Controller, useForm} from 'react-hook-form';
 import axios from 'axios';
-import { useFocusEffect, useNavigation } from '@react-navigation/native';
+import {useFocusEffect, useNavigation} from '@react-navigation/native';
 import useGpDetailsStore from '../store/gpDetailStore';
 import Header from '../Layout/header';
 import SelectField from '../Components/SelectField';
-import { logApiError, logApiSuccess } from '../utils/logApiDebug';
+import {logApiError, logApiSuccess} from '../utils/logApiDebug';
 import TextFields from '../Components/TextFields';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import NextButton from '../Components/NextButton';
 import BackButton from '../Components/BackButton';
 import Toast from 'react-native-toast-message';
 import SelectFields from '../Components/SelectFields';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import {SafeAreaView} from 'react-native-safe-area-context';
 import PostcodeSearchInput from '../Components/PostcodeSearchInput';
 export default function GpDetail() {
   const [searchLoading, setSearchLoading] = useState(false);
   const [addressOptions, setAddressOptions] = useState([]);
   const [selectedIndex, setSelectedIndex] = useState('');
 
-  const { gpdetails, setGpDetails } = useGpDetailsStore();
+  const {gpdetails, setGpDetails} = useGpDetailsStore();
   const navigation = useNavigation();
 
   const {
@@ -36,7 +36,7 @@ export default function GpDetail() {
     setValue,
     trigger,
     control,
-    formState: { errors, isValid },
+    formState: {errors, isValid},
   } = useForm({
     mode: 'onChange',
     defaultValues: {
@@ -76,7 +76,8 @@ export default function GpDetail() {
         // }
       }
       trigger();
-    }, [gpdetails, trigger, setValue]));
+    }, [gpdetails, trigger, setValue]),
+  );
 
   const handleAddressFetch = async () => {
     if (!postalCode) return;
@@ -125,8 +126,6 @@ export default function GpDetail() {
       } else if (err.message) {
         message = err.message;
       }
-
-
 
       setAddressOptions([]);
     } finally {
@@ -237,7 +236,7 @@ export default function GpDetail() {
               </Text>
               <View style={styles.checkboxGroupColumn}>
                 {[
-                  { value: 'yes', label: 'Yes – Please inform my GP' },
+                  {value: 'yes', label: 'Yes – Please inform my GP'},
                   {
                     value: 'no',
                     label: `No – I will inform my GP prior to starting \ntreatment`,
@@ -279,19 +278,19 @@ export default function GpDetail() {
                 Email <Text style={styles.optionalNote}>(optional)</Text>
               </Text> */}
               <TextFields
-                label={"Email"}
-                style={{ marginTop: 22 }}
+                label={'Email'}
+                style={{marginTop: 22}}
                 value={watch('email')}
                 onChangeText={text => setValue('email', text)}
               />
 
-              <View style={{ marginBottom: 4 }}>
-                <View >
+              <View style={{marginBottom: 4}}>
+                <View>
                   <Controller
                     name="postalCode"
                     control={control}
-                    rules={{ required: 'Postcode is required' }}
-                    render={({ field }) => (
+                    rules={{required: 'Postcode is required'}}
+                    render={({field}) => (
                       <PostcodeSearchInput
                         label="Post code"
                         value={field.value}
@@ -344,7 +343,6 @@ export default function GpDetail() {
             <>
               <TextFields
                 required
-
                 label="GP Name"
                 value={watch('gpName')}
                 onChangeText={text => setValue('gpName', text)}
@@ -352,20 +350,17 @@ export default function GpDetail() {
               <TextFields
                 required
                 label="Address"
-
                 value={watch('addressLine1')}
                 onChangeText={text => setValue('addressLine1', text)}
               />
               <TextFields
                 label="Address 2"
-
                 valueTextField={watch('addressLine2')}
                 onChangeText={text => setValue('addressLine2', text)}
               />
               <TextFields
                 required
                 label="Town / City"
-
                 value={watch('city')}
                 onChangeText={text => setValue('city', text)}
               />
@@ -373,7 +368,7 @@ export default function GpDetail() {
           )}
 
           <NextButton
-            style={{ width: '100%' }}
+            style={{width: '100%'}}
             label="Next"
             onPress={handleSubmit(onSubmit)}
             disabled={!isNextValid}
@@ -385,6 +380,8 @@ export default function GpDetail() {
           />
         </ScrollView>
       </SafeAreaView>
+
+      <Toast />
     </>
   );
 }
@@ -435,7 +432,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     backgroundColor: '#fff',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
+    shadowOffset: {width: 0, height: 1},
     shadowOpacity: 0.08,
     shadowRadius: 2,
     elevation: 1,
