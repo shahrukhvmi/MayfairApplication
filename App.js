@@ -30,8 +30,11 @@ import CalculateBmi from './Screens/CalculateBmi';
 import GatheringData from './Screens/GatheringData';
 import ReOrder from './Screens/ReOrder';
 import ReviewAnswers from './Screens/ReviewAnswers';
-import {BackHandler} from 'react-native';
+import {BackHandler, Linking} from 'react-native';
 import usePlayerStore from './store/usePlayerStore';
+import PaymentSuccess from './Screens/PaymentSuccess';
+import PaymentFailed from './Screens/PaymentFailed';
+import {navigationRef} from './Components/navigationRef';
 
 const Stack = createNativeStackNavigator();
 
@@ -49,6 +52,8 @@ const App = () => {
             email: email => decodeURIComponent(email),
           },
         },
+        PaymentSuccess: 'payment-success',
+        PaymentFailed: 'payment-failed',
       },
     },
   };
@@ -56,25 +61,6 @@ const App = () => {
   const {setPlayerId} = usePlayerStore();
 
   /* _________________One Signal Notification here ______________*/
-
-  // useEffect(() => {
-  //   OneSignal.Debug.setLogLevel(LogLevel.Verbose);
-  //   OneSignal.initialize('64ed9644-07f9-4a7a-ad45-767c0809d731');
-  //   OneSignal.Notifications.requestPermission(true);
-
-  //   // Get the current player ID asynchronously
-  //   OneSignal.User.pushSubscription.getIdAsync().then(playerId => {
-  //     if (playerId) {
-  //       console.log('✅ Player ID:', playerId);
-  //       // Send playerId to your backend here
-  //     } else {
-  //       console.log('Player ID not available yet');
-  //     }
-  //   });
-
-  // }, []);
-
-  // OneSignal setup & hardware back button block
 
   useEffect(() => {
     // const {setPlayerId} = usePlayerStore.getState(); // direct access
@@ -94,6 +80,26 @@ const App = () => {
   }, []);
 
   useEffect(() => {
+    const handleDeepLink = ({url}) => {
+      if (!url) return;
+      const path = url.replace('https://mayfair-revamp.netlify.app/', '');
+
+      if (path === 'payment-success') {
+        navigationRef.reset({index: 0, routes: [{name: 'PaymentSuccess'}]});
+      } else if (path === 'payment-failed') {
+        navigationRef.reset({index: 0, routes: [{name: 'PaymentFailed'}]});
+      }
+    };
+
+    Linking.getInitialURL().then(url => {
+      if (url) handleDeepLink({url});
+    });
+
+    const linkingListener = Linking.addEventListener('url', handleDeepLink);
+    return () => linkingListener.remove();
+  }, []);
+
+  useEffect(() => {
     const backAction = () => true;
     const backHandler = BackHandler.addEventListener(
       'hardwareBackPress',
@@ -107,7 +113,7 @@ const App = () => {
     <>
       {/* _________________All Routes here ______________*/}
 
-      <NavigationContainer linking={linking}>
+      <NavigationContainer linking={linking} ref={navigationRef}>
         <Stack.Navigator initialRouteName="Splash">
           <Stack.Screen
             name="Splash"
@@ -258,6 +264,16 @@ const App = () => {
           <Stack.Screen
             name="re-order"
             component={ReOrder}
+            options={{headerShown: false}}
+          />
+          <Stack.Screen
+            name="PaymentSuccess"
+            component={PaymentSuccess}
+            options={{headerShown: false}}
+          />
+          <Stack.Screen
+            name="PaymentFailed"
+            component={PaymentFailed}
             options={{headerShown: false}}
           />
         </Stack.Navigator>
