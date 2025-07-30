@@ -115,7 +115,7 @@ const Addon = ({ addon, onAdd, onIncrement, onDecrement, isSelected, quantity, t
               <View style={styles.actionRow}>
                 <View style={styles.qtyBox}>
                   <TouchableOpacity style={styles.qtyBtn} onPress={handleDecrement}>
-                    <FontAwesome5 name="minus" size={10} />
+                    <FontAwesome5 name="minus" size={12} />
                   </TouchableOpacity>
                   <Text style={styles.qtyTxt}>{quantity}</Text>
                   <TouchableOpacity
@@ -123,7 +123,7 @@ const Addon = ({ addon, onAdd, onIncrement, onDecrement, isSelected, quantity, t
                     disabled={quantity >= allowed}
                     onPress={handleIncrement}
                   >
-                    <FontAwesome5 name="plus" size={10} />
+                    <FontAwesome5 name="plus" size={12} />
                   </TouchableOpacity>
                 </View>
 

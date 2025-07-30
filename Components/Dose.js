@@ -159,7 +159,7 @@ const Dose = ({ doseData, onAdd, onIncrement, onDecrement, isSelected, qty, allo
               <View style={styles.actionRow}>
                 <View style={styles.qtyBox}>
                   <TouchableOpacity style={styles.qtyBtn} onPress={handleDecrement}>
-                    <FontAwesome5 name="minus" size={10} />
+                    <FontAwesome5 name="minus" size={12} />
                   </TouchableOpacity>
                   <Text style={styles.qtyTxt}>{qty}</Text>
                   <TouchableOpacity
@@ -167,7 +167,7 @@ const Dose = ({ doseData, onAdd, onIncrement, onDecrement, isSelected, qty, allo
                     disabled={qty >= allowed}
                     onPress={handleIncrement}
                   >
-                    <FontAwesome5 name="plus" size={10} />
+                    <FontAwesome5 name="plus" size={12} />
                   </TouchableOpacity>
                 </View>
 
