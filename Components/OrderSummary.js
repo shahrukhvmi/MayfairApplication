@@ -569,10 +569,13 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     marginBottom: 8,
+    flexWrap: 'wrap',
   },
   summaryLabel: {
     fontSize: 16,
     color: '#000',
+    flex: 1,
+    marginRight: 8,
   },
   summaryValue: {
     fontSize: 16,
