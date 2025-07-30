@@ -468,7 +468,7 @@ const OrderSummary = ({isNextDisabled}) => {
         label="Procceed to Payment"
         style={{marginBottom: 30}}
         onPress={handleSubmit}
-        // disabled={!isNextDisabled}
+        disabled={!isNextDisabled}
       />
 
       {/* Loading Modal */}
