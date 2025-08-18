@@ -1,6 +1,6 @@
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import DateTimePicker from '@react-native-community/datetimepicker';
-import { useState, useEffect } from 'react';
+import {useState, useEffect} from 'react';
 import {
   Platform,
   ScrollView,
@@ -9,9 +9,9 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
-import { useForm, Controller } from 'react-hook-form';
-import { differenceInYears, parse, format } from 'date-fns';
+import {useNavigation} from '@react-navigation/native';
+import {useForm, Controller} from 'react-hook-form';
+import {differenceInYears, parse, format} from 'date-fns';
 
 import usePatientInfoStore from '../store/patientInfoStore'; // <-- import your Zustand store
 import useProductId from '../store/useProductIdStore';
@@ -24,8 +24,8 @@ export default function PersonalDetails() {
   const navigation = useNavigation();
 
   // Zustand store
-  const { patientInfo, setPatientInfo } = usePatientInfoStore();
-  const { productId } = useProductId();
+  const {patientInfo, setPatientInfo} = usePatientInfoStore();
+  const {productId} = useProductId();
 
   const {
     control,
@@ -33,7 +33,7 @@ export default function PersonalDetails() {
     watch,
     handleSubmit,
     trigger,
-    formState: { errors, isValid },
+    formState: {errors, isValid},
   } = useForm({
     mode: 'onChange',
     defaultValues: {
@@ -64,7 +64,7 @@ export default function PersonalDetails() {
       const parsedDate = parse(patientInfo.dob, 'dd-MM-yyyy', new Date());
       const fixedGender = patientInfo?.gender
         ? patientInfo.gender.charAt(0).toUpperCase() +
-        patientInfo.gender.slice(1).toLowerCase()
+          patientInfo.gender.slice(1).toLowerCase()
         : '';
 
       setValue('dob', parsedDate);
@@ -88,7 +88,6 @@ export default function PersonalDetails() {
       trigger('pregnancy');
     }
   }, [gender]);
-
 
   const formatDate = date => {
     return date.toLocaleDateString('en-GB');
@@ -125,7 +124,7 @@ export default function PersonalDetails() {
         </Text>
 
         {/* Gender Options */}
-        <View style={{ flexDirection: 'row', gap: 10 }}>
+        <View style={{flexDirection: 'row', gap: 10}}>
           {['Male', 'Female'].map(option => (
             <TouchableOpacity
               key={option}
@@ -133,25 +132,22 @@ export default function PersonalDetails() {
                 styles.optionButton,
                 gender === option && styles.optionButtonSelected,
               ]}
-              onPress={() => setValue('gender', option)}
-            >
+              onPress={() => setValue('gender', option)}>
               <Ionicons
                 name={gender === option ? 'checkbox' : 'square-outline'}
                 size={20}
                 color="#4B0082"
-                style={{ marginRight: 8 }}
+                style={{marginRight: 8}}
               />
               <Text style={styles.optionText}>{option}</Text>
             </TouchableOpacity>
           ))}
         </View>
 
-
-
         {/* Pregnancy Section */}
         {gender === 'Female' && (
           <>
-            <Text style={{ fontWeight: 'bold', marginVertical: 16 }}>
+            <Text style={{fontWeight: 'bold', marginVertical: 16}}>
               Are you pregnant, breastfeeding, or trying to conceive?
             </Text>
 
@@ -159,11 +155,12 @@ export default function PersonalDetails() {
               control={control}
               name="pregnancy"
               rules={{
-                required: gender === 'Female' ? 'Please select an option' : false,
+                required:
+                  gender === 'Female' ? 'Please select an option' : false,
               }}
-              render={({ field: { onChange, value } }) => (
+              render={({field: {onChange, value}}) => (
                 <>
-                  <View style={{ flexDirection: 'row', gap: 10 }}>
+                  <View style={{flexDirection: 'row', gap: 10}}>
                     {['Yes', 'No'].map(option => {
                       const isDisabled = gender !== 'Female';
                       return (
@@ -172,18 +169,19 @@ export default function PersonalDetails() {
                           style={[
                             styles.optionButton,
                             value === option && styles.optionButtonSelected,
-                            isDisabled && { opacity: 0.5 },
+                            isDisabled && {opacity: 0.5},
                           ]}
                           onPress={() => {
                             if (!isDisabled) onChange(option);
                           }}
-                          disabled={isDisabled}
-                        >
+                          disabled={isDisabled}>
                           <Ionicons
-                            name={value === option ? 'checkbox' : 'square-outline'}
+                            name={
+                              value === option ? 'checkbox' : 'square-outline'
+                            }
                             size={20}
                             color="#4B0082"
-                            style={{ marginRight: 8 }}
+                            style={{marginRight: 8}}
                           />
                           <Text style={styles.optionText}>{option}</Text>
                         </TouchableOpacity>
@@ -192,18 +190,17 @@ export default function PersonalDetails() {
                   </View>
 
                   {value === 'Yes' && gender === 'Female' && (
-                    <Text style={{ color: 'red', marginTop: 10 }}>
-                      This treatment is not suitable if you're pregnant, trying to get
-                      pregnant or breastfeeding.
+                    <Text style={{color: 'red', marginTop: 10}}>
+                      This treatment is not suitable if you're pregnant, trying
+                      to get pregnant or breastfeeding.
                     </Text>
                   )}
                 </>
               )}
             />
 
-
             {errors?.pregnancy && (
-              <Text style={{ color: 'red' }}>{errors.pregnancy.message}</Text>
+              <Text style={{color: 'red'}}>{errors.pregnancy.message}</Text>
             )}
           </>
         )}
@@ -214,8 +211,8 @@ export default function PersonalDetails() {
         <Controller
           control={control}
           name="dob"
-          rules={{ validate: validateAge }}
-          render={({ field: { value, onChange } }) => (
+          rules={{validate: validateAge}}
+          render={({field: {value, onChange}}) => (
             <>
               <TouchableOpacity
                 style={styles.dobInput}
@@ -254,12 +251,12 @@ export default function PersonalDetails() {
         />
 
         {errors?.dob && (
-          <Text style={{ color: 'red', marginTop: 1 }}>{errors.dob.message}</Text>
+          <Text style={{color: 'red', marginTop: 1}}>{errors.dob.message}</Text>
         )}
 
         {/* Buttons */}
         <NextButton
-          style={{ marginTop: 30 }}
+          style={{marginTop: 30}}
           label="Next"
           disabled={
             !isValid ||
@@ -377,5 +374,4 @@ const styles = StyleSheet.create({
     color: '#000',
     fontWeight: '700',
   },
-
 });

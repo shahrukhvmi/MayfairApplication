@@ -1,7 +1,7 @@
 import Ionicons from 'react-native-vector-icons/Ionicons';
 
-import { useState } from 'react';
-import { useNavigation } from '@react-navigation/native';
+import {useState} from 'react';
+import {useNavigation} from '@react-navigation/native';
 
 import {
   ScrollView,
@@ -32,20 +32,38 @@ export default function AcknowledgmentScreen() {
 
         {/* Question 1 */}
         <Text style={styles.question}>
-          Are you purchasing this medication for yourself, of your own free will and the medicine is for your personal use only?
+          Are you purchasing this medication for yourself, of your own free will
+          and the medicine is for your personal use only?
         </Text>
         <View style={styles.optionRow}>
-          <Option label="Yes" selected={q1 === true} onPress={() => setQ1(true)} />
-          <Option label="No" selected={q1 === false} onPress={() => setQ1(false)} />
+          <Option
+            label="Yes"
+            selected={q1 === true}
+            onPress={() => setQ1(true)}
+          />
+          <Option
+            label="No"
+            selected={q1 === false}
+            onPress={() => setQ1(false)}
+          />
         </View>
 
         {/* Question 2 */}
         <Text style={styles.question}>
-          Do you believe you have the ability to make healthcare decisions for yourself?
+          Do you believe you have the ability to make healthcare decisions for
+          yourself?
         </Text>
         <View style={styles.optionRow}>
-          <Option label="Yes" selected={q2 === true} onPress={() => setQ2(true)} />
-          <Option label="No" selected={q2 === false} onPress={() => setQ2(false)} />
+          <Option
+            label="Yes"
+            selected={q2 === true}
+            onPress={() => setQ2(true)}
+          />
+          <Option
+            label="No"
+            selected={q2 === false}
+            onPress={() => setQ2(false)}
+          />
         </View>
 
         {/* Confirmation Section */}
@@ -53,13 +71,12 @@ export default function AcknowledgmentScreen() {
           <View style={styles.confirmBox}>
             <TouchableOpacity
               style={styles.confirmHeader}
-              onPress={() => setConfirmChecked(!confirmChecked)}
-            >
+              onPress={() => setConfirmChecked(!confirmChecked)}>
               <Ionicons
                 name={confirmChecked ? 'checkbox' : 'square-outline'}
                 size={20}
                 color={confirmChecked ? '#4B0082' : '#999'}
-                style={{ marginRight: 8 }}
+                style={{marginRight: 8}}
               />
               <Text style={styles.confirmTitle}>Do you confirm that:</Text>
             </TouchableOpacity>
@@ -91,7 +108,7 @@ export default function AcknowledgmentScreen() {
   );
 }
 
-const Option = ({ label, selected, onPress }) => {
+const Option = ({label, selected, onPress}) => {
   const isNo = label.toLowerCase() === 'no';
   const showWarning = selected && isNo;
 
@@ -104,15 +121,15 @@ const Option = ({ label, selected, onPress }) => {
           borderColor: isNo ? '#D30000' : '#4B0082',
           backgroundColor: isNo ? '#ffe6e6' : '#f2e9ff',
         },
-      ]}
-    >
+      ]}>
       <Ionicons
         name={selected ? 'checkbox' : 'square-outline'}
         size={20}
         color={showWarning ? '#D30000' : selected ? '#4B0082' : '#888'}
-        style={{ marginRight: 8 }}
+        style={{marginRight: 8}}
       />
-      <Text style={{ fontWeight: 'bold', color: showWarning ? '#D30000' : '#333' }}>
+      <Text
+        style={{fontWeight: 'bold', color: showWarning ? '#D30000' : '#333'}}>
         {label}
       </Text>
     </TouchableOpacity>
@@ -216,5 +233,3 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
 });
-
-

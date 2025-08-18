@@ -107,11 +107,11 @@ const styles = StyleSheet.create({
     elevation: 5,
     paddingVertical: 8,
     width: 160,
-    zIndex: 999,
   },
   menuItem: {
     paddingVertical: 10,
     paddingHorizontal: 16,
+    zIndex: 1000,
   },
   menuText: {
     fontSize: 14,

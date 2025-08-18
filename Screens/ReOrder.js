@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, {useEffect, useState} from 'react';
 import {
   View,
   Text,
@@ -6,8 +6,8 @@ import {
   StyleSheet,
   ScrollView,
 } from 'react-native';
-import { useForm, Controller } from 'react-hook-form';
-import { useFocusEffect, useNavigation } from '@react-navigation/native';
+import {useForm, Controller} from 'react-hook-form';
+import {useFocusEffect, useNavigation} from '@react-navigation/native';
 // import {FiCheck} from 'react-icons/fi'; // Only valid in Web; for React Native use react-native-vector-icons
 import Icon from 'react-native-vector-icons/Feather';
 
@@ -22,9 +22,9 @@ import useReorderButtonStore from '../store/useReorderButton';
 
 export default function ReOrder() {
   const navigation = useNavigation();
-  const { setReorderStatus } = useReorder();
-  const { setIsFromReorder } = useReorderButtonStore();
-  const { setReorderBackProcess } = useReorderBackProcessStore();
+  const {setReorderStatus} = useReorder();
+  const {setIsFromReorder} = useReorderButtonStore();
+  const {setReorderBackProcess} = useReorderBackProcessStore();
 
   const [showLoader, setShowLoader] = useState(false);
 
@@ -32,7 +32,7 @@ export default function ReOrder() {
     control,
     handleSubmit,
     watch,
-    formState: { isValid },
+    formState: {isValid},
   } = useForm({
     mode: 'onChange',
     defaultValues: {
@@ -45,7 +45,8 @@ export default function ReOrder() {
   useFocusEffect(
     React.useCallback(() => {
       setReorderBackProcess(false);
-    }, []));
+    }, []),
+  );
 
   const onSubmit = async data => {
     setIsFromReorder(false);
@@ -74,12 +75,11 @@ export default function ReOrder() {
               styles.optionBox,
               isSelected ? styles.optionSelected : styles.optionUnselected,
             ]}>
-            <View style={[styles.iconWrapper, isSelected && styles.iconSelected]}>
-              {isSelected && (
-                <Icon name="check" size={14} color="#fff" />
-              )}
+            <View
+              style={[styles.iconWrapper, isSelected && styles.iconSelected]}>
+              {isSelected && <Icon name="check" size={14} color="#fff" />}
             </View>
-            <Text style={[styles.optionText, isSelected && { color: '#4B0082' }]}>
+            <Text style={[styles.optionText, isSelected && {color: '#4B0082'}]}>
               {option.charAt(0).toUpperCase() + option.slice(1)}
             </Text>
           </TouchableOpacity>
@@ -87,7 +87,6 @@ export default function ReOrder() {
       })}
     </View>
   );
-
 
   return (
     <>
@@ -101,14 +100,14 @@ export default function ReOrder() {
         <Controller
           control={control}
           name="personalUse"
-          rules={{ required: true }}
-          render={({ field: { value, onChange } }) =>
+          rules={{required: true}}
+          render={({field: {value, onChange}}) =>
             renderYesNo('personalUse', value, onChange)
           }
         />
 
         <NextButton
-          style={{ marginTop: 30 }}
+          style={{marginTop: 30}}
           disabled={!isValid}
           label="I Confirm"
           onPress={handleSubmit(onSubmit)}
@@ -225,7 +224,6 @@ const styles = StyleSheet.create({
     borderColor: '#4B0082',
   },
 
-
   inlineOptionText: {
     fontSize: 16,
     fontWeight: '600',
@@ -281,5 +279,4 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     textTransform: 'capitalize',
   },
-
 });

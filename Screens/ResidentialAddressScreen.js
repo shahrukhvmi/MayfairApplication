@@ -20,6 +20,7 @@ import usePatientInfoStore from '../store/patientInfoStore';
 import SelectFields from '../Components/SelectFields';
 import TextFields from '../Components/TextFields';
 import Toast from 'react-native-toast-message';
+import PostcodeSearchInput from '../Components/PostcodeSearchInput';
 
 // --- GETADDRESS.IO HELPER ---
 const GETADDRESS_KEY = '_UFb05P76EyMidU1VHIQ_A42976';
@@ -172,7 +173,7 @@ export default function ResidentialAddressScreen() {
 
         {/* Postcode with button */}
 
-        <View style={styles.relativeContainer}>
+        {/* <View style={styles.relativeContainer}>
           <Controller
             control={control}
             name="postcode"
@@ -197,6 +198,28 @@ export default function ResidentialAddressScreen() {
               <Ionicons name="search" size={18} color="#fff" />
             )}
           </TouchableOpacity>
+        </View> */}
+
+        <View>
+          <Controller
+            name="postcode"
+            control={control}
+            rules={{required: 'Postcode is required'}}
+            render={({field}) => (
+              <PostcodeSearchInput
+                label="Post code"
+                value={field.value}
+                onChangeText={text => {
+                  field.onChange(text);
+                  setAddressOptions([]);
+                  setSelectedIndex('');
+                }}
+                handleSearch={handleSearch}
+                addressSearchLoading={searching}
+                errors={errors?.postcode?.message}
+              />
+            )}
+          />
         </View>
 
         {/* Address dropdown */}
@@ -293,7 +316,10 @@ export default function ResidentialAddressScreen() {
           disabled={!isNextEnabled}
           onPress={handleSubmit(onSubmit)}
         />
-        <BackButton label="Back" onPress={() => navigation.goBack()} />
+        <BackButton
+          label="Back"
+          onPress={() => navigation.navigate('personal-details')}
+        />
       </ScrollView>
 
       <Toast />
