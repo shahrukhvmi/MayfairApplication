@@ -1,17 +1,17 @@
-import React, { useEffect, useState } from 'react';
-import {
-  View,
-  Text,
-  FlatList,
-  StyleSheet,
-  RefreshControl,
-} from 'react-native';
-import { useMutation } from '@tanstack/react-query';
+import React, {useEffect, useState} from 'react';
+import {View, Text, FlatList, StyleSheet, RefreshControl} from 'react-native';
+import {useMutation} from '@tanstack/react-query';
 import Toast from 'react-native-toast-message';
 
 import GetProductsApi from '../api/getProductsApi';
 import ProductCard from '../Components/ProductCard';
 import Header from '../Layout/header';
+import GetImageIsUplaod from '../api/GetImageIsUplaod';
+import {GetIdVerification} from '../api/IdVerificationApi';
+import useReorder from '../store/useReorderStore';
+import useImageUploadStore from '../store/useImageUploadStore';
+import useIdVerificationUploadStore from '../store/useIdVerificationUploadStore';
+import UploadTopPrompt from '../Components/UploadTopPrompt';
 
 const DashboardHome = () => {
   /* ───────────────────────────────────────── state */
@@ -19,15 +19,20 @@ const DashboardHome = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
+  const {reorder} = useReorder();
+  const {imageUploaded, setImageUploaded} = useImageUploadStore();
+  const {idVerificationUpload, setIdVerificationUpload} =
+    useIdVerificationUploadStore();
+
   /* ───────────────────────────────────────── API */
   const getProducts = useMutation({
     mutationFn: GetProductsApi,
-    onSuccess: (res) => {
+    onSuccess: res => {
       setProductData(res?.data?.data || {});
       setIsLoading(false);
       setRefreshing(false);
     },
-    onError: (err) => {
+    onError: err => {
       Toast.show({
         type: 'error',
         text1: err?.response?.data?.errors || 'Something went wrong',
@@ -39,17 +44,45 @@ const DashboardHome = () => {
 
   const fetchData = () => {
     setIsLoading(true);
-    getProducts.mutate({ data: {} });
+    getProducts.mutate({data: {}});
   };
 
   const onRefresh = () => {
     setRefreshing(true);
-    getProducts.mutate({ data: {} });
+    getProducts.mutate({data: {}});
   };
 
   useEffect(() => {
     fetchData();
   }, []);
+
+  useEffect(() => {
+    const fetchImageStatus = async () => {
+      try {
+        const res = await GetImageIsUplaod({reorder});
+        console.log('Image Upload Response', res);
+        setImageUploaded(res?.data?.status);
+      } catch (error) {
+        console.error('Failed to fetch image status:', error);
+      }
+    };
+
+    fetchImageStatus();
+  }, [reorder]);
+
+  useEffect(() => {
+    const fetchImageStatus = async () => {
+      try {
+        const res = await GetIdVerification({reorder});
+        console.log('Verification Image Status', res);
+        setIdVerificationUpload(res?.data?.status);
+      } catch (error) {
+        console.error('Failed to fetch image status:', error);
+      }
+    };
+
+    fetchImageStatus();
+  }, [reorder]);
 
   /* ───────────────────────────────────────── render */
   const renderLoaderSkeleton = () => (
@@ -60,18 +93,16 @@ const DashboardHome = () => {
     </View>
   );
 
-  const renderProductCard = ({ item, index }) => (
-
-      <ProductCard
-        id={item.id}
-        title={item.name}
-        image={item.img}
-        price={item.price || 'N/A'}
-        status={item.inventories?.[0]?.status}
-        buttonText="Start Consultation"
-        reorder={false}
-      />
-
+  const renderProductCard = ({item, index}) => (
+    <ProductCard
+      id={item.id}
+      title={item.name}
+      image={item.img}
+      price={item.price || 'N/A'}
+      status={item.inventories?.[0]?.status}
+      buttonText="Start Consultation"
+      reorder={false}
+    />
   );
 
   const products = productData?.products ?? [];
@@ -79,6 +110,8 @@ const DashboardHome = () => {
   const renderHeader = () => (
     <>
       <Header />
+
+      {(!imageUploaded || !idVerificationUpload) && <UploadTopPrompt />}
 
       {productData?.reorder ? (
         <View style={styles.section}>
@@ -88,18 +121,16 @@ const DashboardHome = () => {
               ? productData.reorder
               : [productData.reorder]
             ).map((item, idx) => (
-       
-                <ProductCard
-                  id={item.id}
-                  title={item.name}
-                  image={item.img}
-                  price={item.price || 'N/A'}
-                  status={item.inventories?.[0]?.status}
-                  lastOrderDate={item.lastOrderDate}
-                  buttonText="Reorder Treatment"
-                  reorder
-                />
-            
+              <ProductCard
+                id={item.id}
+                title={item.name}
+                image={item.img}
+                price={item.price || 'N/A'}
+                status={item.inventories?.[0]?.status}
+                lastOrderDate={item.lastOrderDate}
+                buttonText="Reorder Treatment"
+                reorder
+              />
             ))}
           </View>
         </View>
@@ -132,7 +163,7 @@ const DashboardHome = () => {
       <FlatList
         data={products.sort((a, b) => (a.sequence || 0) - (b.sequence || 0))}
         renderItem={renderProductCard}
-        keyExtractor={(item) => `${item.id}`}
+        keyExtractor={item => `${item.id}`}
         ListHeaderComponent={renderHeader}
         ListEmptyComponent={
           <Text style={styles.emptyText}>

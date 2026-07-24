@@ -137,6 +137,7 @@ const OrderSummary = ({isNextDisabled}) => {
         setOrderId(data?.data?.paymentData?.order_id);
         clearCoupon();
         setLoading(false);
+        // console.log('dataaaaaaaaaaaaa', data);
         setTimeout(() => {
           Alert.alert(
             'Leave App?',
@@ -161,8 +162,6 @@ const OrderSummary = ({isNextDisabled}) => {
       }
     },
     onError: error => {
-      console.log('Checkout Error:', error);
-
       const response = error?.response?.data;
       const errors = response?.original?.errors;
       const productError = response?.errors?.Product;
@@ -298,10 +297,10 @@ const OrderSummary = ({isNextDisabled}) => {
       confirmationInfo,
       reorder_concent: null,
       product_id: productId,
+      client_type: 'mobile',
     };
 
     checkoutMutation.mutate(formData);
-    // console.log(JSON.stringify(formData, null, 2), 'Form Data for Checkout');
   };
 
   console.log(paymentData, 'paymentData 😋😋😋');

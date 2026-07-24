@@ -1,32 +1,40 @@
 // store/useConfirmationInfoStore.js
-
-import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
+import {create} from 'zustand';
+import {persist} from 'zustand/middleware';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const useConfirmationInfoStore = create(
   persist(
-    (set) => ({
+    set => ({
       confirmationInfo: [],
-      setConfirmationInfo: (confirmationInfo) => set({ confirmationInfo }),
-      clearConfirmationInfo: () => set({ confirmationInfo: [] }),
+      setConfirmationInfo: confirmationInfo => set({confirmationInfo}),
+      clearConfirmationInfo: () => set({confirmationInfo: []}),
     }),
     {
-      name: 'confirmation-info-storage', // Key used in AsyncStorage
+      name: 'confirmation-info-storage', // AsyncStorage key
       storage: {
-        getItem: async (key) => {
+        getItem: async key => {
           const value = await AsyncStorage.getItem(key);
-          return value;
+          return value ? JSON.parse(value) : null;
         },
         setItem: async (key, value) => {
-          await AsyncStorage.setItem(key, value);
+          await AsyncStorage.setItem(key, JSON.stringify(value));
         },
-        removeItem: async (key) => {
+        removeItem: async key => {
           await AsyncStorage.removeItem(key);
         },
       },
-    }
-  )
+      // Optional: version + migrate to normalize any old/string data
+      version: 1,
+      migrate: (persisted, _version) => {
+        const state = persisted?.state ?? {};
+        if (!Array.isArray(state?.confirmationInfo)) {
+          state.confirmationInfo = [];
+        }
+        return {...persisted, state};
+      },
+    },
+  ),
 );
 
 export default useConfirmationInfoStore;

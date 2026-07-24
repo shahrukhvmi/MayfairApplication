@@ -1,32 +1,42 @@
 // store/useUserDataStore.js
-
-import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
+import {create} from 'zustand';
+import {persist} from 'zustand/middleware';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const useUserDataStore = create(
   persist(
-    (set) => ({
+    set => ({
       userData: null,
-      setUserData: (userData) => set({ userData }),
-      clearUserData: () => set({ userData: null }),
+      setUserData: userData => set({userData}),
+      clearUserData: () => set({userData: null}),
     }),
     {
-      name: 'user-data-storage', // storage key
+      name: 'user-data-storage',
       storage: {
-        getItem: async (name) => {
-          const value = await AsyncStorage.getItem(name);
-          return value;
+        getItem: async key => {
+          const value = await AsyncStorage.getItem(key);
+          return value ? JSON.parse(value) : null;
         },
-        setItem: async (name, value) => {
-          await AsyncStorage.setItem(name, value);
+        setItem: async (key, value) => {
+          await AsyncStorage.setItem(key, JSON.stringify(value));
         },
-        removeItem: async (name) => {
-          await AsyncStorage.removeItem(name);
+        removeItem: async key => {
+          await AsyncStorage.removeItem(key);
         },
       },
-    }
-  )
+      version: 1,
+      migrate: (state, fromVersion) => {
+        if (fromVersion < 1 && typeof state?.userData === 'string') {
+          try {
+            state.userData = JSON.parse(state.userData);
+          } catch {
+            state.userData = null;
+          }
+        }
+        return state;
+      },
+    },
+  ),
 );
 
 export default useUserDataStore;

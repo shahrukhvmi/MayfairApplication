@@ -1,4 +1,4 @@
-import {useEffect, useRef, useState} from 'react';
+import {useEffect, useState} from 'react';
 import {useNavigation} from '@react-navigation/native';
 import {
   KeyboardAvoidingView,
@@ -9,7 +9,7 @@ import {
   View,
 } from 'react-native';
 
-import PhoneInput from 'react-native-phone-number-input';
+import PhoneInput from 'react-native-international-phone-number';
 import {useForm, Controller} from 'react-hook-form';
 
 import Header from '../Layout/header';
@@ -18,8 +18,7 @@ import useReturning from '../store/useReturningPatient';
 
 export default function PreferredPhoneNumber() {
   const navigation = useNavigation();
-  const phoneInput = useRef(null);
-  const [countryCode, setCountryCode] = useState('GB');
+  const [selectedCountry, setSelectedCountry] = useState(null);
   const {isReturningPatient} = useReturning();
   const {patientInfo, setPatientInfo} = usePatientInfoStore();
 
@@ -28,18 +27,17 @@ export default function PreferredPhoneNumber() {
     handleSubmit,
     setValue,
     formState: {errors, isValid},
-    watch,
   } = useForm({
     mode: 'onChange',
     defaultValues: {
-      phoneNo: patientInfo?.phoneNo,
+      phoneNo: patientInfo?.phoneNo || '',
     },
   });
 
-  const phoneNo = watch('phoneNo');
-
   useEffect(() => {
-    setValue('phoneNo', patientInfo?.phoneNo);
+    if (patientInfo?.phoneNo) {
+      setValue('phoneNo', patientInfo.phoneNo);
+    }
   }, [patientInfo]);
 
   const onSubmit = data => {
@@ -53,16 +51,6 @@ export default function PreferredPhoneNumber() {
     } else {
       navigation.navigate('ethnicity');
     }
-  };
-
-  const getMaxDigitsForCountry = countryCode => {
-    const limits = {
-      GB: 14, // UK standard
-      US: 14,
-      IN: 14,
-      // add more as needed
-    };
-    return limits[countryCode] || 14; // fallback default
   };
 
   return (
@@ -92,38 +80,29 @@ export default function PreferredPhoneNumber() {
             required: 'Phone number is required',
             validate: value => {
               const onlyDigits = value?.replace(/\D/g, '');
-              const limit = getMaxDigitsForCountry(countryCode);
-
               if (!onlyDigits || onlyDigits.length < 6)
                 return 'Enter a valid phone number';
-
-              if (onlyDigits.length > limit)
-                return `Phone number can't exceed ${limit} digits`;
-
+              if (onlyDigits.length > 15)
+                return "Phone number can't exceed 15 digits";
               return true;
             },
           }}
           render={({field: {onChange, value}}) => (
             <>
               <PhoneInput
-                ref={phoneInput}
-                defaultCode="GB"
-                layout="first"
+                defaultCountry="GB"
                 value={value}
-                onChangeFormattedText={text => {
-                  onChange(text);
-                }}
-                onChangeCountry={country => setCountryCode(country.cca2)}
+                onChangePhoneNumber={text => onChange(text)}
+                selectedCountry={selectedCountry}
+                onChangeSelectedCountry={country =>
+                  setSelectedCountry(country)
+                }
                 containerStyle={styles.phoneContainer}
-                textContainerStyle={styles.textInput}
-                withDarkTheme={false}
-                withShadow={false}
+                inputStyle={styles.textInput}
                 autoFocus
               />
               {errors.phoneNo && (
-                <Text style={{color: 'red', marginTop: 4}}>
-                  {errors.phoneNo.message}
-                </Text>
+                <Text style={styles.errorText}>{errors.phoneNo.message}</Text>
               )}
             </>
           )}
@@ -194,10 +173,12 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
   },
   textInput: {
-    paddingVertical: 0,
     backgroundColor: '#fff',
-    borderTopRightRadius: 10,
-    borderBottomRightRadius: 10,
+  },
+  errorText: {
+    color: 'red',
+    marginTop: 4,
+    fontSize: 13,
   },
   nextButton: {
     backgroundColor: '#4B0082',

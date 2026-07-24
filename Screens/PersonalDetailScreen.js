@@ -106,6 +106,13 @@ export default function PersonalDetails() {
     navigation.navigate('residential-address');
   };
 
+  const toTitleCase = str => {
+    return str.replace(
+      /\w\S*/g,
+      txt => txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase(),
+    );
+  };
+
   return (
     <>
       <Header />
@@ -161,7 +168,7 @@ export default function PersonalDetails() {
               render={({field: {onChange, value}}) => (
                 <>
                   <View style={{flexDirection: 'row', gap: 10}}>
-                    {['Yes', 'No'].map(option => {
+                    {['yes', 'no'].map(option => {
                       const isDisabled = gender !== 'Female';
                       return (
                         <TouchableOpacity
@@ -183,7 +190,9 @@ export default function PersonalDetails() {
                             color="#4B0082"
                             style={{marginRight: 8}}
                           />
-                          <Text style={styles.optionText}>{option}</Text>
+                          <Text style={styles.optionText}>
+                            {toTitleCase(option)}
+                          </Text>
                         </TouchableOpacity>
                       );
                     })}
@@ -373,5 +382,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#000',
     fontWeight: '700',
+    textTransform: 'capitalize',
   },
 });

@@ -35,6 +35,8 @@ import usePlayerStore from './store/usePlayerStore';
 import PaymentSuccess from './Screens/PaymentSuccess';
 import PaymentFailed from './Screens/PaymentFailed';
 import {navigationRef} from './Components/navigationRef';
+import PhotoUpload from './Screens/PhotoUpload';
+import IdVerification from './Screens/IdVerification';
 
 const Stack = createNativeStackNavigator();
 
@@ -273,6 +275,16 @@ const App = () => {
           <Stack.Screen
             name="PaymentFailed"
             component={PaymentFailed}
+            options={{headerShown: false}}
+          />
+          <Stack.Screen
+            name="photo-upload"
+            component={PhotoUpload}
+            options={{headerShown: false}}
+          />
+          <Stack.Screen
+            name="id-verification"
+            component={IdVerification}
             options={{headerShown: false}}
           />
         </Stack.Navigator>

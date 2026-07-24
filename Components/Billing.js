@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, {useEffect, useState} from 'react';
 import {
   View,
   Text,
@@ -7,15 +7,15 @@ import {
   TouchableOpacity,
   ActivityIndicator,
 } from 'react-native';
-import { useForm, Controller } from 'react-hook-form';
-import { useMutation } from '@tanstack/react-query';
+import {useForm, Controller} from 'react-hook-form';
+import {useMutation} from '@tanstack/react-query';
 
 import TextFields from './TextFields';
 import SelectField from './SelectField';
-import { getProfileData, sendProfileData } from '../api/myProfileApi';
+import {getProfileData, sendProfileData} from '../api/myProfileApi';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import PostcodeSearchInput from './PostcodeSearchInput';
-import { useFocusEffect } from '@react-navigation/native';
+import {useFocusEffect} from '@react-navigation/native';
 import NextButton from './NextButton';
 import SelectFields from './SelectFields';
 
@@ -45,7 +45,7 @@ const fetchAddresses = async postcode => {
   });
 };
 
-export default function Billing({ billingCountries }) {
+export default function Billing({billingCountries}) {
   const [showLoader, setShowLoader] = useState(false);
   const [manual, setManual] = useState(false);
   const [addressOptions, setAddressOptions] = useState([]);
@@ -61,13 +61,13 @@ export default function Billing({ billingCountries }) {
     setValue,
     watch,
     control,
-    formState: { errors, isValid },
+    formState: {errors, isValid},
   } = useForm({
     mode: 'onChange',
     defaultValues: {
       postalcode: '',
-      address1: '',
-      address2: '',
+      addressone: '',
+      addresstwo: '',
       city: '',
       state: '',
       billingCountry: '',
@@ -101,16 +101,17 @@ export default function Billing({ billingCountries }) {
       if (billingCountries?.length) {
         getProfileDataMutation.mutate();
       }
-    }, [billingCountries])
+    }, [billingCountries]),
   );
 
   useFocusEffect(
     React.useCallback(() => {
-      if (!billing || !billingCountries?.length || countryChangedManually) return;
+      if (!billing || !billingCountries?.length || countryChangedManually)
+        return;
 
       setValue('postalcode', billing.postalcode || '');
-      setValue('address1', billing.address1 || '');
-      setValue('address2', billing.address2 || '');
+      setValue('addressone', billing.addressone || '');
+      setValue('addresstwo', billing.addresstwo || '');
       setValue('city', billing.city || '');
       setValue('state', billing.state || '');
 
@@ -118,10 +119,12 @@ export default function Billing({ billingCountries }) {
         c => c.name === billing.country_name || c.name === billing.country,
       );
       if (country) {
-        setValue('billingCountry', country.id.toString(), { shouldValidate: true });
+        setValue('billingCountry', country.id.toString(), {
+          shouldValidate: true,
+        });
         setBillingIndex(country.id.toString());
       }
-    }, [billing, billingCountries])
+    }, [billing, billingCountries]),
   );
 
   const handleSearch = async () => {
@@ -162,8 +165,8 @@ export default function Billing({ billingCountries }) {
       billing: true,
       country_name: selectedCountry?.name || '',
       postalcode: data.postalcode,
-      address1: data.address1,
-      address2: data.address2,
+      addressone: data.addressone,
+      addresstwo: data.addresstwo,
       city: data.city,
       state: data.state,
     };
@@ -178,13 +181,13 @@ export default function Billing({ billingCountries }) {
         Update your billing details — changes will apply to future orders only.
       </Text>
 
-      <View style={{ marginTop: 24 }}>
+      <View style={{marginTop: 24}}>
         {/* Country Dropdown */}
         <Controller
           name="billingCountry"
           control={control}
-          rules={{ required: 'Country is required' }}
-          render={({ field }) => (
+          rules={{required: 'Country is required'}}
+          render={({field}) => (
             <SelectFields
               label="Select Country"
               value={field.value}
@@ -196,8 +199,8 @@ export default function Billing({ billingCountries }) {
                 // ✅ Clear form fields
                 [
                   'postalcode',
-                  'address1',
-                  'address2',
+                  'addressone',
+                  'addresstwo',
                   'city',
                   'state',
                 ].forEach(k => setValue(k, ''));
@@ -222,8 +225,8 @@ export default function Billing({ billingCountries }) {
           <Controller
             name="postalcode"
             control={control}
-            rules={{ required: 'Postcode is required' }}
-            render={({ field }) => (
+            rules={{required: 'Postcode is required'}}
+            render={({field}) => (
               <PostcodeSearchInput
                 label="Post code"
                 value={field.value}
@@ -248,10 +251,10 @@ export default function Billing({ billingCountries }) {
               onChange={idx => {
                 const selected = addressOptions[idx];
                 setSelectedIndex(idx);
-                setValue('address1', selected.line_1 || '', {
+                setValue('addressone', selected.line_1 || '', {
                   shouldValidate: true,
                 });
-                setValue('address2', selected.line_2 || '', {
+                setValue('addresstwo', selected.line_2 || '', {
                   shouldValidate: true,
                 });
                 setValue('city', selected.town_or_city || '', {
@@ -271,28 +274,26 @@ export default function Billing({ billingCountries }) {
 
         {/* Address fields */}
         <Controller
-          name="address1"
+          name="addressone"
           control={control}
-          render={({ field }) => (
+          render={({field}) => (
             <TextFields
               label="Address"
               value={field.value}
               onChangeText={field.onChange}
-              
               required
               errors={errors}
             />
           )}
         />
         <Controller
-          name="address2"
+          name="addresstwo"
           control={control}
-          render={({ field }) => (
+          render={({field}) => (
             <TextFields
               label="Address 2"
               value={field.value}
               onChangeText={field.onChange}
-              
               errors={errors}
             />
           )}
@@ -300,12 +301,11 @@ export default function Billing({ billingCountries }) {
         <Controller
           name="city"
           control={control}
-          render={({ field }) => (
+          render={({field}) => (
             <TextFields
               label="Town / City"
               value={field.value}
               onChangeText={field.onChange}
-        
               required
               errors={errors}
             />
@@ -314,25 +314,28 @@ export default function Billing({ billingCountries }) {
         <Controller
           name="state"
           control={control}
-          render={({ field }) => (
+          render={({field}) => (
             <TextFields
               label="State / County"
               value={field.value}
               onChangeText={field.onChange}
-  
               errors={errors}
             />
           )}
         />
-        <NextButton disabled={!isValid} label='Update' onPress={handleSubmit(onSubmit)} loading={showLoader} />
-       
+        <NextButton
+          disabled={!isValid}
+          label="Update"
+          onPress={handleSubmit(onSubmit)}
+          loading={showLoader}
+        />
       </View>
     </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { paddingBottom: 60 },
+  container: {paddingBottom: 60},
   title: {
     fontSize: 20,
     fontWeight: '700',

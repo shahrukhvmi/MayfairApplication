@@ -1,21 +1,21 @@
-// store/useProductId.js
+// store/useImageUploadStore.js
+
 import {create} from 'zustand';
 import {persist} from 'zustand/middleware';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const useProductId = create(
+const useImageUploadStore = create(
   persist(
     set => ({
-      productId: null,
-      setProductId: productId => set({productId}),
-      clearProductId: () => set({productId: null}),
+      imageUploaded: false,
+      setImageUploaded: status => set({imageUploaded: status}),
     }),
     {
-      name: 'product-id', // Key for AsyncStorage
+      name: 'image-upload-storage', // Key in AsyncStorage
       storage: {
         getItem: async key => {
-          const value = await AsyncStorage.getItem(key);
-          return value ? JSON.parse(value) : null;
+          const val = await AsyncStorage.getItem(key);
+          return val ? JSON.parse(val) : null;
         },
         setItem: async (key, value) => {
           await AsyncStorage.setItem(key, JSON.stringify(value));
@@ -24,8 +24,9 @@ const useProductId = create(
           await AsyncStorage.removeItem(key);
         },
       },
+      partialize: state => ({imageUploaded: state.imageUploaded}), // Persist only this field
     },
   ),
 );
 
-export default useProductId;
+export default useImageUploadStore;
