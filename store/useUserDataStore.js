@@ -10,8 +10,19 @@ const useUserDataStore = create(
       clearUserData: () => set({ userData: null }),
     }),
     {
-      name: "user-data-storage", // unique storage key
-      getStorage: () => AsyncStorage, // use AsyncStorage in React Native
+      name: "user-data-storage",
+      storage: {
+        getItem: async (key) => {
+          const value = await AsyncStorage.getItem(key);
+          return value ? JSON.parse(value) : null;
+        },
+        setItem: async (key, value) => {
+          await AsyncStorage.setItem(key, JSON.stringify(value));
+        },
+        removeItem: async (key) => {
+          await AsyncStorage.removeItem(key);
+        },
+      },
     }
   )
 );
