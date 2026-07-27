@@ -1,8 +1,7 @@
-import Fetcher from "../library/Fetcher";
+import Fetcher from '../library/Fetcher';
 
-
-export const getMedicalQuestions = async (data) => {
-  return Fetcher.get("/GetQuestions");
+export const getMedicalQuestions = async data => {
+  return Fetcher.post('/GetQuestions', data);
 };
 
-export default { getMedicalQuestions };
+export default {getMedicalQuestions};

@@ -11,7 +11,6 @@ import {
 import Modal from 'react-native-modal';
 import {Controller, useForm} from 'react-hook-form';
 import Toast from 'react-native-toast-message';
-import {useMutation} from '@tanstack/react-query';
 import useCartStore from '../store/useCartStore';
 import useVariationStore from '../store/useVariationStore';
 import useReorder from '../store/useReorderStore';
@@ -20,8 +19,8 @@ import Header from '../Layout/header';
 import Dose from '../Components/Dose';
 import Addon from '../Components/addon';
 import NextButton from '../Components/NextButton';
-import {abandonCart} from '../api/abandonCartApi';
 import useProductId from '../store/useProductIdStore';
+import {abandonCart} from '../api/abandonCartApi';
 import CustomCheckbox from '../Components/CustomCheckbox';
 import {useFocusEffect} from '@react-navigation/native';
 
@@ -41,6 +40,12 @@ export default function DoseSelection({navigation}) {
 
   /* _________________Zustand state here ______________*/
   const {variation} = useVariationStore();
+  const [loadTimeout, setLoadTimeout] = useState(false);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setLoadTimeout(true), 8000);
+    return () => clearTimeout(timer);
+  }, []);
 
   const [isExpiryRequired, setIsExpiryRequired] = useState(false);
 
@@ -75,15 +80,13 @@ export default function DoseSelection({navigation}) {
 
   const currentQty = totalSelectedQty();
 
-  /*________ Abandon Cart API hit here ________*/
-  const abandonMutation = useMutation(abandonCart, {
-    onSuccess: () => navigation.navigate('checkout'),
-    onError: () => navigation.navigate('checkout'),
-  });
-  /*________ Abandon Cart API hit here ________*/
-  const onSubmit = () => {
-    const payload = items.doses.map(d => ({eid: d.id, pid: productId}));
-    abandonMutation.mutate(payload);
+  const onSubmit = async () => {
+    try {
+      await Promise.all(
+        items.doses.map(d => abandonCart({eid: d.id, pid: productId})),
+      );
+    } catch (_) {}
+    navigation.navigate('checkout');
   };
 
   const generateProductConcent = (vars, selectedName) => {
@@ -171,12 +174,24 @@ export default function DoseSelection({navigation}) {
   /*______________________  loader   _______________ */
 
   if (!variation?.variations) {
+    if (loadTimeout) {
+      return (
+        <View style={{flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#F2EEFF', padding: 24}}>
+          <Text style={{fontSize: 16, color: '#333', textAlign: 'center', marginBottom: 20}}>
+            Something went wrong loading dose options.
+          </Text>
+          <TouchableOpacity
+            onPress={() => navigation.navigate('gathering-data')}
+            style={{backgroundColor: '#4B0082', borderRadius: 30, paddingVertical: 12, paddingHorizontal: 32}}>
+            <Text style={{color: '#fff', fontWeight: 'bold', fontSize: 15}}>Retry</Text>
+          </TouchableOpacity>
+        </View>
+      );
+    }
     return (
-      <ActivityIndicator
-        size="large"
-        color="#4B0082"
-        style={{flex: 1, justifyContent: 'center'}}
-      />
+      <View style={{flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#F2EEFF'}}>
+        <ActivityIndicator size="large" color="#4B0082" />
+      </View>
     );
   }
 
@@ -288,17 +303,9 @@ export default function DoseSelection({navigation}) {
           <View style={styles.footerRight}>
             <NextButton
               style={{width: '100%'}}
-              label={
-                abandonMutation.isLoading
-                  ? 'Processing...'
-                  : 'Proceed to Checkout'
-              }
+              label="Proceed to Checkout"
               onPress={handleSubmit(onSubmit)}
-              disabled={
-                !isValid ||
-                totalSelectedQty() === 0 ||
-                abandonMutation.isLoading
-              }
+              disabled={!isValid || totalSelectedQty() === 0}
             />
             <BackButton
               label="Back"

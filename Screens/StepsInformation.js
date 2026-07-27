@@ -1,7 +1,7 @@
-import React, { useEffect, useState } from 'react';
-import { View, StyleSheet, Dimensions, ActivityIndicator } from 'react-native';
-import { useFocusEffect, useNavigation } from '@react-navigation/native';
-import { useMutation } from '@tanstack/react-query';
+import React, {useEffect, useState} from 'react';
+import {View, StyleSheet, Dimensions, ActivityIndicator} from 'react-native';
+import {useFocusEffect, useNavigation} from '@react-navigation/native';
+import {useMutation} from '@tanstack/react-query';
 import Toast from 'react-native-toast-message';
 
 // 🧱 Components
@@ -24,27 +24,27 @@ import useUserDataStore from '../store/useUserDataStore';
 import useSignupStore from '../store/signupStore';
 
 // 📦 API
-import { getMedicalQuestions } from '../api/getQuestions';
+import {getMedicalQuestions} from '../api/getQuestions';
 import useLastBmi from '../store/useLastBmiStore';
-import { userConsultationApi } from '../api/userConsultationApi';
+import {userConsultationApi} from '../api/userConsultationApi';
 import AnimatedLogoLoader from '../Components/AnimatedLogoLoader';
 
 const StepsInformation = () => {
   const [showLoader, setShowLoader] = useState(false);
   const navigation = useNavigation();
 
-  const { setBmi, clearBmi } = useBmiStore();
-  const { setCheckout, clearCheckout } = useCheckoutStore();
-  const { setConfirmationInfo, clearConfirmationInfo } =
+  const {setBmi, clearBmi} = useBmiStore();
+  const {setCheckout, clearCheckout} = useCheckoutStore();
+  const {setConfirmationInfo, clearConfirmationInfo} =
     useConfirmationInfoStore();
-  const { setGpDetails, clearGpDetails } = useGpDetailsStore();
-  const { setMedicalInfo, clearMedicalInfo } = useMedicalInfoStore();
-  const { setPatientInfo, clearPatientInfo } = usePatientInfoStore();
-  const { setMedicalQuestions, clearMedicalQuestions } =
+  const {setGpDetails, clearGpDetails} = useGpDetailsStore();
+  const {setMedicalInfo, clearMedicalInfo} = useMedicalInfoStore();
+  const {setPatientInfo, clearPatientInfo} = usePatientInfoStore();
+  const {setMedicalQuestions, clearMedicalQuestions} =
     useMedicalQuestionsStore();
-  const { setConfirmationQuestions, clearConfirmationQuestions } =
+  const {setConfirmationQuestions, clearConfirmationQuestions} =
     useConfirmationQuestionsStore();
-  const { setAuthUserDetail, clearAuthUserDetail } = useAuthUserDetailStore();
+  const {setAuthUserDetail, clearAuthUserDetail} = useAuthUserDetailStore();
   const {
     billing,
     setBilling,
@@ -53,12 +53,12 @@ const StepsInformation = () => {
     clearBilling,
     clearShipping,
   } = useShippingOrBillingStore();
-  const { clearToken } = useAuthStore();
-  const { setIsPasswordReset } = usePasswordReset();
-  const { productId, clearProductId } = useProductId();
-  const { setLastBmi, clearLastBmi } = useLastBmi();
-  const { clearUserData } = useUserDataStore();
-  const { clearFirstName, clearLastName, clearEmail, clearConfirmationEmail } =
+  const {clearToken} = useAuthStore();
+  const {setIsPasswordReset} = usePasswordReset();
+  const {productId, clearProductId} = useProductId();
+  const {setLastBmi, clearLastBmi} = useLastBmi();
+  const {clearUserData} = useUserDataStore();
+  const {clearFirstName, clearLastName, clearEmail, clearConfirmationEmail} =
     useSignupStore();
 
   const consultationMutation = useMutation(userConsultationApi, {
@@ -94,7 +94,7 @@ const StepsInformation = () => {
     onError: error => {
       const msg = error?.response?.data?.message;
       if (msg === 'Unauthenticated.') {
-        Toast.show({ type: 'error', text1: 'Session Expired' });
+        Toast.show({type: 'error', text1: 'Session Expired'});
         clearBmi();
         clearCheckout();
         clearConfirmationInfo();
@@ -142,18 +142,16 @@ const StepsInformation = () => {
       };
 
       consultationMutation.mutate(formData);
-      medicalQuestionsMutation.mutate();
+      medicalQuestionsMutation.mutate(formData);
 
       return () => {
         // Optional cleanup
         setShowLoader(false);
       };
-    }, [productId])
+    }, [productId]),
   );
-  console.log(showLoader, "showLoader")
+  console.log(showLoader, 'showLoader');
   return (
-
-
     // <View style={styles.container}>
     //   {showLoader && (
     //     <View style={styles.loaderOverlay}>
@@ -162,7 +160,6 @@ const StepsInformation = () => {
     //   )}
     // </View>
 
-
     <View style={styles.container}>
       {showLoader && (
         <View style={styles.loaderOverlay}>
@@ -170,17 +167,14 @@ const StepsInformation = () => {
         </View>
       )}
     </View>
-
-
   );
 };
 
 export default StepsInformation;
 
-const { width, height } = Dimensions.get('window');
+const {width, height} = Dimensions.get('window');
 
 const styles = StyleSheet.create({
-
   loaderOverlay: {
     position: 'absolute',
     top: 0,
@@ -195,13 +189,13 @@ const styles = StyleSheet.create({
 
   container: {
     flex: 1,
-    backgroundColor: "#fff",
+    backgroundColor: '#fff',
   },
   loaderOverlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: "rgba(255,255,255,0.7)",
-    justifyContent: "center",
-    alignItems: "center",
+    backgroundColor: 'rgba(255,255,255,0.7)',
+    justifyContent: 'center',
+    alignItems: 'center',
     zIndex: 10,
   },
 });
