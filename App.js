@@ -44,7 +44,7 @@ const App = () => {
   /* _________________Deep Linking here ______________*/
 
   const linking = {
-    prefixes: ['https://mayfair-staging.netlify.app'],
+    prefixes: ['https://mayfair-staging.netlify.app', 'mayfairapp://'],
     config: {
       screens: {
         ResetPassword: {
@@ -65,26 +65,53 @@ const App = () => {
   /* _________________One Signal Notification here ______________*/
 
   useEffect(() => {
-    // const {setPlayerId} = usePlayerStore.getState(); // direct access
-
     OneSignal.Debug.setLogLevel(LogLevel.Verbose);
     OneSignal.initialize('64ed9644-07f9-4a7a-ad45-767c0809d731');
-    OneSignal.Notifications.requestPermission(true);
 
-    OneSignal.User.pushSubscription.getIdAsync().then(playerId => {
-      if (playerId) {
-        console.log('✅ Player ID:', playerId);
-        setPlayerId(playerId); // Save to Zustand
-      } else {
-        console.log('Player ID not available yet');
+    const handleSubscriptionChange = event => {
+      const id = event?.current?.id;
+      if (id) {
+        console.log('✅ Player ID (subscription change):', id);
+        setPlayerId(id);
       }
-    });
+    };
+
+    OneSignal.User.pushSubscription.addEventListener(
+      'change',
+      handleSubscriptionChange,
+    );
+
+    const fetchWithRetry = async () => {
+      await OneSignal.Notifications.requestPermission(true);
+      for (let i = 0; i < 5; i++) {
+        const id = await OneSignal.User.pushSubscription.getIdAsync();
+        if (id) {
+          console.log(`✅ Player ID (attempt ${i + 1}):`, id);
+          setPlayerId(id);
+          return;
+        }
+        console.log(`⏳ Player ID not ready, attempt ${i + 1}/5...`);
+        await new Promise(resolve => setTimeout(resolve, 2000));
+      }
+      console.log('❌ Player ID unavailable after all attempts');
+    };
+
+    fetchWithRetry();
+
+    return () => {
+      OneSignal.User.pushSubscription.removeEventListener(
+        'change',
+        handleSubscriptionChange,
+      );
+    };
   }, []);
 
   useEffect(() => {
     const handleDeepLink = ({url}) => {
       if (!url) return;
-      const path = url.replace('https://mayfair-staging.netlify.app/', '');
+      const path = url
+        .replace('https://mayfair-staging.netlify.app/', '')
+        .replace('mayfairapp://', '');
 
       if (path === 'payment-success') {
         navigationRef.reset({index: 0, routes: [{name: 'PaymentSuccess'}]});
