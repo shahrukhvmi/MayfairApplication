@@ -44,7 +44,7 @@ const App = () => {
   /* _________________Deep Linking here ______________*/
 
   const linking = {
-    prefixes: ['https://mayfair-staging.netlify.app', 'mayfairapp://'],
+    prefixes: ['https://mayfair-staging.netlify.app'],
     config: {
       screens: {
         ResetPassword: {
@@ -67,11 +67,12 @@ const App = () => {
   useEffect(() => {
     OneSignal.Debug.setLogLevel(LogLevel.Verbose);
     OneSignal.initialize('64ed9644-07f9-4a7a-ad45-767c0809d731');
+    OneSignal.Notifications.requestPermission(true);
 
-    const handleSubscriptionChange = event => {
-      const id = event?.current?.id;
+    const handleSubscriptionChange = subscription => {
+      const id = subscription?.current?.id;
       if (id) {
-        console.log('✅ Player ID (subscription change):', id);
+        console.log('Player ID (change):', id);
         setPlayerId(id);
       }
     };
@@ -81,37 +82,12 @@ const App = () => {
       handleSubscriptionChange,
     );
 
-    const fetchWithRetry = async () => {
-      // Delay so navigation settles before permission dialog appears
-      await new Promise(resolve => setTimeout(resolve, 4000));
-
-      console.log('🔵 OneSignal: requesting permission...');
-      const granted = await OneSignal.Notifications.requestPermission(true);
-      console.log('🔵 OneSignal: permission granted?', granted);
-
-      const optedIn = await OneSignal.User.pushSubscription.getOptedInAsync();
-      console.log('🔵 OneSignal: optedIn:', optedIn);
-
-      const fcmToken = await OneSignal.User.pushSubscription.getTokenAsync();
-      console.log('🔵 OneSignal: FCM token:', fcmToken);
-
-      for (let i = 0; i < 5; i++) {
-        const id = await OneSignal.User.pushSubscription.getIdAsync();
-        console.log(`🔵 OneSignal attempt ${i + 1}/5 — id:`, id);
-        if (id) {
-          console.log(`✅ Player ID (attempt ${i + 1}):`, id);
-          setPlayerId(id);
-          return;
-        }
-        await new Promise(resolve => setTimeout(resolve, 2000));
+    OneSignal.User.pushSubscription.getIdAsync().then(id => {
+      if (id) {
+        console.log('Player ID (existing):', id);
+        setPlayerId(id);
       }
-
-      const finalToken = await OneSignal.User.pushSubscription.getTokenAsync();
-      console.log('🔴 Final FCM token after all attempts:', finalToken);
-      console.log('❌ Player ID unavailable after all attempts');
-    };
-
-    fetchWithRetry();
+    });
 
     return () => {
       OneSignal.User.pushSubscription.removeEventListener(
@@ -124,9 +100,7 @@ const App = () => {
   useEffect(() => {
     const handleDeepLink = ({url}) => {
       if (!url) return;
-      const path = url
-        .replace('https://mayfair-staging.netlify.app/', '')
-        .replace('mayfairapp://', '');
+      const path = url.replace('https://mayfair-staging.netlify.app/', '');
 
       if (path === 'payment-success') {
         navigationRef.reset({index: 0, routes: [{name: 'PaymentSuccess'}]});
