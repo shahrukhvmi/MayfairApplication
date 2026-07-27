@@ -82,6 +82,9 @@ const App = () => {
     );
 
     const fetchWithRetry = async () => {
+      // Delay so navigation settles before permission dialog appears
+      await new Promise(resolve => setTimeout(resolve, 4000));
+
       console.log('🔵 OneSignal: requesting permission...');
       const granted = await OneSignal.Notifications.requestPermission(true);
       console.log('🔵 OneSignal: permission granted?', granted);
