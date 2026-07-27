@@ -82,17 +82,29 @@ const App = () => {
     );
 
     const fetchWithRetry = async () => {
-      await OneSignal.Notifications.requestPermission(true);
+      console.log('🔵 OneSignal: requesting permission...');
+      const granted = await OneSignal.Notifications.requestPermission(true);
+      console.log('🔵 OneSignal: permission granted?', granted);
+
+      const optedIn = await OneSignal.User.pushSubscription.getOptedInAsync();
+      console.log('🔵 OneSignal: optedIn:', optedIn);
+
+      const fcmToken = await OneSignal.User.pushSubscription.getTokenAsync();
+      console.log('🔵 OneSignal: FCM token:', fcmToken);
+
       for (let i = 0; i < 5; i++) {
         const id = await OneSignal.User.pushSubscription.getIdAsync();
+        console.log(`🔵 OneSignal attempt ${i + 1}/5 — id:`, id);
         if (id) {
           console.log(`✅ Player ID (attempt ${i + 1}):`, id);
           setPlayerId(id);
           return;
         }
-        console.log(`⏳ Player ID not ready, attempt ${i + 1}/5...`);
         await new Promise(resolve => setTimeout(resolve, 2000));
       }
+
+      const finalToken = await OneSignal.User.pushSubscription.getTokenAsync();
+      console.log('🔴 Final FCM token after all attempts:', finalToken);
       console.log('❌ Player ID unavailable after all attempts');
     };
 
