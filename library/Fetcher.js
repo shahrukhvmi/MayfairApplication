@@ -1,5 +1,6 @@
 // library/Fetcher.js
 import axios from 'axios';
+import {Platform} from 'react-native';
 import {app_url} from '../config/constants';
 import useAuthStore from '../store/authStore';
 import {logApiError, logApiSuccess} from '../utils/logApiDebug';
@@ -15,6 +16,7 @@ class Fetcher {
         'Content-Type': 'application/json',
         'Company-Id': 1,
         isMobileLogin: true,
+        'device-type': Platform.OS,
       },
     });
 
