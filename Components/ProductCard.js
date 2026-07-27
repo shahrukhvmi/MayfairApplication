@@ -144,7 +144,7 @@ const ProductCard = ({
       )}
 
       {/* Price ribbon */}
-      {price && (
+      {!!price && (
         <View style={[styles.ribbon, styles.ribbonRight]}>
           <Text style={styles.ribbonText}>{`From £${price}`}</Text>
         </View>

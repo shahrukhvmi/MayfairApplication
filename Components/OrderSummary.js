@@ -151,7 +151,7 @@ const OrderSummary = ({isNextDisabled}) => {
                 text: 'Continue',
                 onPress: () =>
                   Linking.openURL(
-                    'https://mayfair-revamp.netlify.app/payment/?order_id=' +
+                    'https://mayfair-staging.netlify.app/payment/?order_id=' +
                       data?.data?.paymentData?.order_token,
                   ).catch(err => console.warn('Failed to open browser:', err)),
               },

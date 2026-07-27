@@ -5,6 +5,7 @@ import {
   StyleSheet,
   ScrollView,
   ActivityIndicator,
+  Modal,
 } from 'react-native';
 import {useNavigation} from '@react-navigation/native';
 import Header from '../Layout/header';
@@ -75,6 +76,7 @@ export default function ConfirmationSummary() {
         setPatientInfo(fields?.patientInfo);
         setLastBmi(fields?.bmi);
       }
+      setShowLoader(false);
       navigation.navigate('gathering-data');
     },
     onError: error => {
@@ -230,13 +232,13 @@ export default function ConfirmationSummary() {
         <NextButton label="Confirm and proceed" onPress={hanldeConfirm} />
         <BackButton label="Review all answers" onPress={reviewAll} />
         <BackButton label="Back" onPress={back} />
-
-        {showLoader && (
-          <View style={styles.loaderOverlay}>
-            <ActivityIndicator size="large" color="#4B0082" />
-          </View>
-        )}
       </ScrollView>
+
+      <Modal visible={showLoader} transparent animationType="none">
+        <View style={styles.loaderOverlay}>
+          <ActivityIndicator size="large" color="#4B0082" />
+        </View>
+      </Modal>
     </>
   );
 }
@@ -294,8 +296,8 @@ const styles = StyleSheet.create({
     color: '#333',
   },
   loaderOverlay: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(255,255,255,0.6)',
+    flex: 1,
+    backgroundColor: 'rgba(255,255,255,0.7)',
     justifyContent: 'center',
     alignItems: 'center',
   },

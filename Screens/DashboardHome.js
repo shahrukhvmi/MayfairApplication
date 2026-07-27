@@ -35,7 +35,7 @@ const DashboardHome = () => {
     onError: err => {
       Toast.show({
         type: 'error',
-        text1: err?.response?.data?.errors || 'Something went wrong',
+        text1: typeof err?.response?.data?.errors === 'string' ? err?.response?.data?.errors : 'Something went wrong',
       });
       setIsLoading(false);
       setRefreshing(false);
@@ -109,8 +109,6 @@ const DashboardHome = () => {
 
   const renderHeader = () => (
     <>
-      <Header />
-
       {(!imageUploaded || !idVerificationUpload) && <UploadTopPrompt />}
 
       {productData?.reorder ? (
@@ -122,6 +120,7 @@ const DashboardHome = () => {
               : [productData.reorder]
             ).map((item, idx) => (
               <ProductCard
+                key={item.id ?? idx}
                 id={item.id}
                 title={item.name}
                 image={item.img}
@@ -160,6 +159,7 @@ const DashboardHome = () => {
 
   return (
     <>
+      <Header />
       <FlatList
         data={products.sort((a, b) => (a.sequence || 0) - (b.sequence || 0))}
         renderItem={renderProductCard}

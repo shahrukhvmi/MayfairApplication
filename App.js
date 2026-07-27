@@ -44,7 +44,7 @@ const App = () => {
   /* _________________Deep Linking here ______________*/
 
   const linking = {
-    prefixes: ['https://mayfair-revamp.netlify.app'],
+    prefixes: ['https://mayfair-staging.netlify.app'],
     config: {
       screens: {
         ResetPassword: {
@@ -84,7 +84,7 @@ const App = () => {
   useEffect(() => {
     const handleDeepLink = ({url}) => {
       if (!url) return;
-      const path = url.replace('https://mayfair-revamp.netlify.app/', '');
+      const path = url.replace('https://mayfair-staging.netlify.app/', '');
 
       if (path === 'payment-success') {
         navigationRef.reset({index: 0, routes: [{name: 'PaymentSuccess'}]});

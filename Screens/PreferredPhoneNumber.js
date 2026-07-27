@@ -1,4 +1,4 @@
-import {useEffect, useState} from 'react';
+import {useEffect, useRef, useState} from 'react';
 import {useNavigation} from '@react-navigation/native';
 import {
   KeyboardAvoidingView,
@@ -9,7 +9,8 @@ import {
   View,
 } from 'react-native';
 
-import PhoneInput from 'react-native-international-phone-number';
+import PhoneInput from 'react-native-phone-number-input';
+import {Flag} from 'react-native-country-picker-modal';
 import {useForm, Controller} from 'react-hook-form';
 
 import Header from '../Layout/header';
@@ -18,7 +19,10 @@ import useReturning from '../store/useReturningPatient';
 
 export default function PreferredPhoneNumber() {
   const navigation = useNavigation();
-  const [selectedCountry, setSelectedCountry] = useState(null);
+  const phoneInputRef = useRef(null);
+  const phoneNumberRef = useRef('');
+  const countryCodeRef = useRef('GB');
+
   const {isReturningPatient} = useReturning();
   const {patientInfo, setPatientInfo} = usePatientInfoStore();
 
@@ -26,6 +30,7 @@ export default function PreferredPhoneNumber() {
     control,
     handleSubmit,
     setValue,
+    trigger,
     formState: {errors, isValid},
   } = useForm({
     mode: 'onChange',
@@ -53,6 +58,15 @@ export default function PreferredPhoneNumber() {
     }
   };
 
+  const renderImageFlag = ({countryCode: cc}) => (
+    <Flag
+      countryCode={cc}
+      flagSize={22}
+      withEmoji={false}
+      withFlagButton={true}
+    />
+  );
+
   return (
     <>
       <Header />
@@ -78,27 +92,40 @@ export default function PreferredPhoneNumber() {
           name="phoneNo"
           rules={{
             required: 'Phone number is required',
-            validate: value => {
-              const onlyDigits = value?.replace(/\D/g, '');
-              if (!onlyDigits || onlyDigits.length < 6)
-                return 'Enter a valid phone number';
-              if (onlyDigits.length > 15)
-                return "Phone number can't exceed 15 digits";
+            validate: () => {
+              const digits = phoneNumberRef.current.replace(/\D/g, '');
+              if (digits.length < 6) return 'Phone number is too short';
+              if (digits.length > 15) return 'Phone number cannot exceed 15 digits';
               return true;
             },
           }}
-          render={({field: {onChange, value}}) => (
+          render={({field: {onChange}}) => (
             <>
               <PhoneInput
-                defaultCountry="GB"
-                value={value}
-                onChangePhoneNumber={text => onChange(text)}
-                selectedCountry={selectedCountry}
-                onChangeSelectedCountry={country =>
-                  setSelectedCountry(country)
-                }
+                ref={phoneInputRef}
+                defaultCode="GB"
+                onChangeText={text => {
+                  phoneNumberRef.current = text;
+                }}
+                onChangeFormattedText={text => {
+                  onChange(text);
+                  trigger('phoneNo');
+                }}
+                onChangeCountry={country => {
+                  countryCodeRef.current = country.cca2;
+                  trigger('phoneNo');
+                }}
+                countryPickerProps={{
+                  withEmoji: false,
+                  renderFlagButton: renderImageFlag,
+                }}
                 containerStyle={styles.phoneContainer}
-                inputStyle={styles.textInput}
+                textContainerStyle={styles.textContainer}
+                textInputStyle={styles.textInput}
+                textInputProps={{
+                  placeholder: 'Enter phone number',
+                  placeholderTextColor: '#999',
+                }}
                 autoFocus
               />
               {errors.phoneNo && (
@@ -107,6 +134,9 @@ export default function PreferredPhoneNumber() {
             </>
           )}
         />
+
+        {/* Spacer */}
+        <View style={styles.spacer} />
 
         {/* Next Button */}
         <TouchableOpacity
@@ -118,6 +148,7 @@ export default function PreferredPhoneNumber() {
 
         {/* Back */}
         <TouchableOpacity
+          style={styles.backBtn}
           onPress={() => navigation.navigate('residential-address')}>
           <Text style={styles.backText}>Back</Text>
         </TouchableOpacity>
@@ -165,27 +196,34 @@ const styles = StyleSheet.create({
   },
   phoneContainer: {
     width: '100%',
-    height: 60,
     borderRadius: 10,
     borderWidth: 1,
     borderColor: '#ccc',
-    marginBottom: 10,
     backgroundColor: '#fff',
+    marginBottom: 8,
+  },
+  textContainer: {
+    backgroundColor: '#fff',
+    borderRadius: 10,
   },
   textInput: {
-    backgroundColor: '#fff',
+    fontSize: 15,
+    color: '#111',
   },
   errorText: {
     color: 'red',
-    marginTop: 4,
+    marginBottom: 8,
     fontSize: 13,
+  },
+  spacer: {
+    flex: 1,
   },
   nextButton: {
     backgroundColor: '#4B0082',
     borderRadius: 30,
     paddingVertical: 14,
     alignItems: 'center',
-    marginBottom: 20,
+    marginBottom: 16,
   },
   disabledBtn: {
     backgroundColor: '#ccc',
@@ -195,8 +233,11 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     fontSize: 16,
   },
+  backBtn: {
+    alignItems: 'center',
+    paddingBottom: 8,
+  },
   backText: {
-    textAlign: 'center',
     color: '#4B0082',
     textDecorationLine: 'underline',
     fontSize: 14,
