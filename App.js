@@ -44,7 +44,7 @@ const App = () => {
   /* _________________Deep Linking here ______________*/
 
   const linking = {
-    prefixes: ['https://mayfair-staging.netlify.app'],
+    prefixes: ['https://mayfair-staging.netlify.app', 'mayfairapp://'],
     config: {
       screens: {
         ResetPassword: {
@@ -100,11 +100,11 @@ const App = () => {
   useEffect(() => {
     const handleDeepLink = ({url}) => {
       if (!url) return;
-      const path = url.replace('https://mayfair-staging.netlify.app/', '');
 
-      if (path === 'payment-success') {
+      // Handles both https App Links (Android) and mayfairapp:// custom scheme (iOS)
+      if (url.includes('payment-success')) {
         navigationRef.reset({index: 0, routes: [{name: 'PaymentSuccess'}]});
-      } else if (path === 'payment-failed') {
+      } else if (url.includes('payment-failed')) {
         navigationRef.reset({index: 0, routes: [{name: 'PaymentFailed'}]});
       }
     };
