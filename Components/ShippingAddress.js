@@ -113,6 +113,36 @@ export default function ShippingAddress({setIsShippingCheck}) {
     }, []),
   );
 
+  // ✅ Reconcile price (web mayfair-revamp jaisa):
+  // Backend ke saved address mein country_price nahi hota — country ko NAAM se
+  // shipmentCountries mein match karke sahi price store mein inject karo.
+  useEffect(() => {
+    if (!shipping || !shipmentCountries?.length) return;
+
+    const country = shipmentCountries.find(
+      c => c.name === (shipping.country_name || shipping.country),
+    );
+    if (!country) return;
+
+    const idStr = country.id.toString();
+    if (getValues('shippingCountry') !== idStr) {
+      setValue('shippingCountry', idStr, {shouldValidate: true});
+      setShippingIndex(idStr);
+    }
+
+    // Sirf tab update jab price/name alag ho → infinite loop se bachne ke liye
+    if (
+      shipping.country_price !== country.price ||
+      shipping.country_name !== country.name
+    ) {
+      setShipping({
+        ...shipping,
+        country_name: country.name,
+        country_price: country.price,
+      });
+    }
+  }, [shipping?.country_name, shipping?.country, shipmentCountries]);
+
   // 3️⃣ Auto-save to Zustand on any field change
   useFocusEffect(
     React.useCallback(() => {
