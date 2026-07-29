@@ -1,12 +1,12 @@
-import React, { useRef, useState } from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {
   View,
-  Dimensions,
   TouchableOpacity,
   StyleSheet,
   Animated,
   useWindowDimensions,
 } from 'react-native';
+import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 
 import DashboardHome from './DashboardHome';
@@ -15,10 +15,26 @@ import AddressBookScreen from './AddressBookScreen';
 import ChangePasswordScreen from './ChangePasswordScreen';
 
 const TABS = [
-  { icon: 'home-outline', label: 'Dashboard' },
-  { icon: 'list-outline', label: 'Orders' },
-  { icon: 'location-outline', label: 'Address Book' },
-  { icon: 'key-outline', label: 'Change Password' },
+  {
+    icon: 'home-outline',
+    activeIcon: 'home',
+    label: 'Dashboard',
+  },
+  {
+    icon: 'list-outline',
+    activeIcon: 'list',
+    label: 'Orders',
+  },
+  {
+    icon: 'location-outline',
+    activeIcon: 'location',
+    label: 'Address Book',
+  },
+  {
+    icon: 'key-outline',
+    activeIcon: 'key',
+    label: 'Change Password',
+  },
 ];
 
 const SCREENS = [
@@ -28,72 +44,132 @@ const SCREENS = [
   ChangePasswordScreen,
 ];
 
-const WIDTH = Dimensions.get('window').width;
+const TAB_BAR_MARGIN = 12;
+const TAB_BAR_HEIGHT = 62;
+const ACTIVE_CIRCLE_SIZE = 48;
 
 const Dashboard = () => {
-  const translateX = useRef(new Animated.Value(0)).current;
-  const sliderX = useRef(new Animated.Value(0)).current;
-  const [activeIndex, setActiveIndex] = useState(0);
-  const { width } = useWindowDimensions();
-  const tabWidth = width / TABS.length;
+  const {width} = useWindowDimensions();
+  const insets = useSafeAreaInsets();
 
-  const handleTabPress = (index) => {
+  const [activeIndex, setActiveIndex] = useState(0);
+  const activeIndexRef = useRef(0);
+
+  const screenTranslateX = useRef(new Animated.Value(0)).current;
+  const sliderTranslateX = useRef(new Animated.Value(0)).current;
+
+  /*
+   * The tab width must be calculated from the actual tab-bar width,
+   * not from the complete screen width.
+   */
+  const tabBarWidth = Math.max(width - TAB_BAR_MARGIN * 2, 0);
+  const tabWidth = tabBarWidth / TABS.length;
+
+  const handleTabPress = index => {
+    if (index === activeIndexRef.current) {
+      return;
+    }
+
+    activeIndexRef.current = index;
     setActiveIndex(index);
+
     Animated.parallel([
-      Animated.timing(translateX, {
-        toValue: -WIDTH * index,
-        duration: 300,
+      Animated.timing(screenTranslateX, {
+        toValue: -width * index,
+        duration: 280,
         useNativeDriver: true,
       }),
-      Animated.spring(sliderX, {
+
+      Animated.spring(sliderTranslateX, {
         toValue: tabWidth * index,
+        speed: 18,
+        bounciness: 5,
         useNativeDriver: true,
       }),
     ]).start();
   };
 
-  return (
-    <View style={{ flex: 1, backgroundColor: '#f2f2f2' }}>
-      {/* Swipeable Screens */}
-      <Animated.View
-        style={{
-          flexDirection: 'row',
-          width: WIDTH * SCREENS.length,
-          flex: 1,
-          transform: [{ translateX }],
-        }}>
-        {SCREENS.map((Component, index) => (
-          <View key={index} style={{ width: WIDTH }}>
-            <Component />
-          </View>
-        ))}
-      </Animated.View>
+  /*
+   * Keep the selected screen and slider aligned when the screen
+   * width changes, for example after device rotation.
+   */
+  useEffect(() => {
+    const currentIndex = activeIndexRef.current;
 
-      {/* Rounded Modern Tab Bar */}
-      <View style={styles.tabBarWrapper}>
-        <View style={[styles.tabBar, { width: width - 16 }]}>
-          {/* Animated Sliding Pill */}
+    screenTranslateX.setValue(-width * currentIndex);
+    sliderTranslateX.setValue(tabWidth * currentIndex);
+  }, [width, tabWidth, screenTranslateX, sliderTranslateX]);
+
+  return (
+    <View style={styles.container}>
+      {/* Screens container */}
+      <View style={styles.screensViewport}>
+        <Animated.View
+          style={[
+            styles.screensRow,
+            {
+              width: width * SCREENS.length,
+              transform: [{translateX: screenTranslateX}],
+            },
+          ]}>
+          {SCREENS.map((Component, index) => (
+            <View
+              key={TABS[index].label}
+              style={[
+                styles.screen,
+                {
+                  width,
+                },
+              ]}>
+              <Component />
+            </View>
+          ))}
+        </Animated.View>
+      </View>
+
+      {/* Bottom navigation safe area */}
+      <View
+        style={[
+          styles.bottomNavigationArea,
+          {
+            paddingBottom: Math.max(insets.bottom, 10),
+          },
+        ]}>
+        <View
+          style={[
+            styles.tabBar,
+            {
+              width: tabBarWidth,
+            },
+          ]}>
+          {/* Animated active circle */}
           <Animated.View
+            pointerEvents="none"
             style={[
-              styles.slider,
+              styles.activeSlider,
               {
-                transform: [{ translateX: sliderX }],
-                left: (tabWidth - 44) / 2, // perfectly center inside tab
+                left: (tabWidth - ACTIVE_CIRCLE_SIZE) / 2,
+                transform: [{translateX: sliderTranslateX}],
               },
             ]}
           />
 
           {TABS.map((item, index) => {
             const isActive = activeIndex === index;
+
             return (
               <TouchableOpacity
-                key={index}
+                key={item.label}
+                activeOpacity={0.75}
+                accessibilityRole="button"
+                accessibilityLabel={item.label}
+                accessibilityState={{selected: isActive}}
                 onPress={() => handleTabPress(index)}
-                style={[styles.tab, { width: tabWidth }]}>
+                style={styles.tab}>
                 <Ionicons
-                  name={item.icon}
-                  size={20}
-                  color={isActive ? '#fff' : '#4B0082'}
+                  name={isActive ? item.activeIcon : item.icon}
+                  size={isActive ? 23 : 22}
+                  color={isActive ? '#FFFFFF' : '#5B347D'}
                 />
               </TouchableOpacity>
             );
@@ -105,46 +181,88 @@ const Dashboard = () => {
 };
 
 const styles = StyleSheet.create({
-  tabBarWrapper: {
-    padding: 12,
-    backgroundColor: 'transparent',
-    alignItems: 'center',
-    justifyContent: 'center',
+  container: {
+    flex: 1,
+    backgroundColor: '#FFFFFF',
   },
-  tabBar: {
+
+  screensViewport: {
+    flex: 1,
+    overflow: 'hidden',
+    backgroundColor: '#FFFFFF',
+  },
+
+  screensRow: {
+    flex: 1,
     flexDirection: 'row',
-    height: 50,
-    backgroundColor: 'transparent',
-    borderRadius: 30,
+  },
+
+  screen: {
+    flex: 1,
+    backgroundColor: '#FFFFFF',
+  },
+
+  bottomNavigationArea: {
+    paddingTop: 10,
+    paddingHorizontal: TAB_BAR_MARGIN,
+    backgroundColor: '#FFFFFF',
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: '#E9E6ED',
+  },
+
+  tabBar: {
+    alignSelf: 'center',
+    flexDirection: 'row',
+    height: TAB_BAR_HEIGHT,
     position: 'relative',
     overflow: 'hidden',
-    shadowOffset: { width: 0, height: 3 },
+
+    backgroundColor: '#FFFFFF',
+    borderRadius: 22,
+    borderWidth: 1,
+    borderColor: '#EBE7EF',
+
+    shadowColor: '#24003D',
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    shadowOpacity: 0.12,
+    shadowRadius: 10,
+
+    elevation: 7,
   },
+
   tab: {
-    justifyContent: 'center',
+    flex: 1,
+    zIndex: 2,
     alignItems: 'center',
-    zIndex: 10,
+    justifyContent: 'center',
   },
-  activeCircle: {
-    backgroundColor: '#dcdcdc',
-    padding: 10,
-    borderRadius: 100,
+
+  activeSlider: {
+    position: 'absolute',
+    top: (TAB_BAR_HEIGHT - ACTIVE_CIRCLE_SIZE) / 2,
+    width: ACTIVE_CIRCLE_SIZE,
+    height: ACTIVE_CIRCLE_SIZE,
+    zIndex: 1,
+
+    alignItems: 'center',
+    justifyContent: 'center',
+
+    borderRadius: ACTIVE_CIRCLE_SIZE / 2,
+    backgroundColor: '#4B006E',
+
+    shadowColor: '#4B006E',
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    shadowOpacity: 0.28,
+    shadowRadius: 7,
+
+    elevation: 6,
   },
-slider: {
-  position: 'absolute',
-  height: 44,
-  width: 44, // make it square for perfect circle
-  backgroundColor: '#4B0082',
-  borderRadius: 999,
-  top: 4, // center it vertically inside 56 height
-  zIndex: 1,
-  shadowColor: '#4B0082',
-  shadowOffset: { width: 0, height: 2 },
-  shadowOpacity: 0.25,
-  shadowRadius: 5,
-},
-
-
 });
 
 export default Dashboard;

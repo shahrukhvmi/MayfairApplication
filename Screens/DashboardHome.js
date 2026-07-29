@@ -35,7 +35,10 @@ const DashboardHome = () => {
     onError: err => {
       Toast.show({
         type: 'error',
-        text1: typeof err?.response?.data?.errors === 'string' ? err?.response?.data?.errors : 'Something went wrong',
+        text1:
+          typeof err?.response?.data?.errors === 'string'
+            ? err?.response?.data?.errors
+            : 'Something went wrong',
       });
       setIsLoading(false);
       setRefreshing(false);
@@ -161,7 +164,10 @@ const DashboardHome = () => {
     <>
       <Header />
       <FlatList
-        data={products.sort((a, b) => (a.sequence || 0) - (b.sequence || 0))}
+        style={styles.list}
+        data={[...products].sort(
+          (a, b) => (a.sequence || 0) - (b.sequence || 0),
+        )}
         renderItem={renderProductCard}
         keyExtractor={item => `${item.id}`}
         ListHeaderComponent={renderHeader}
