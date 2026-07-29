@@ -7,6 +7,7 @@ import {
   StyleSheet,
 } from 'react-native';
 import {useNavigation} from '@react-navigation/native';
+import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import useCartStore from '../store/useCartStore';
 import GetImageIsUplaod from '../api/GetImageIsUplaod';
@@ -16,6 +17,7 @@ import useImageUploadStore from '../store/useImageUploadStore';
 const PaymentSuccess = () => {
   const {items, orderId, checkOut} = useCartStore();
   const navigation = useNavigation();
+  const insets = useSafeAreaInsets();
   const {imageUploaded, setImageUploaded} = useImageUploadStore();
 
   useEffect(() => {
@@ -51,7 +53,12 @@ const PaymentSuccess = () => {
   };
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+    <ScrollView
+      style={styles.container}
+      contentContainerStyle={[
+        styles.content,
+        {paddingTop: insets.top + 16, paddingBottom: insets.bottom + 24},
+      ]}>
       <View style={styles.card}>
         {/* Header */}
         <View style={styles.header}>
@@ -219,17 +226,21 @@ const styles = StyleSheet.create({
   },
   header: {
     alignItems: 'center',
-    marginBottom: 20,
+    marginBottom: 24,
   },
   title: {
-    fontSize: 28,
+    fontSize: 26,
     fontWeight: 'bold',
     color: '#1F2937',
+    textAlign: 'center',
+    marginTop: 16,
   },
   subtitle: {
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: '600',
-    color: '#1F2937',
+    color: '#6B7280',
+    textAlign: 'center',
+    marginTop: 8,
   },
   section: {
     marginVertical: 16,
