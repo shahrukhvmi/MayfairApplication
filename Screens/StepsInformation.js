@@ -24,7 +24,7 @@ import useUserDataStore from '../store/useUserDataStore';
 import useSignupStore from '../store/signupStore';
 
 // 📦 API
-import {getMedicalQuestions} from '../api/getQuestions';
+import {postMedicalQuestions} from '../api/getQuestions';
 import useLastBmi from '../store/useLastBmiStore';
 import {userConsultationApi} from '../api/userConsultationApi';
 import AnimatedLogoLoader from '../Components/AnimatedLogoLoader';
@@ -120,7 +120,7 @@ const StepsInformation = () => {
     },
   });
 
-  const medicalQuestionsMutation = useMutation(getMedicalQuestions, {
+  const medicalQuestionsMutation = useMutation(postMedicalQuestions, {
     onSuccess: data => {
       setMedicalQuestions(data?.data?.data?.medical_question);
       setConfirmationQuestions(data?.data?.data?.confirmation_question);
@@ -134,15 +134,22 @@ const StepsInformation = () => {
     React.useCallback(() => {
       if (!productId) return;
 
-      setShowLoader(true);
-
       const formData = {
         clinic_id: 1,
         product_id: productId,
       };
+      setShowLoader(true);
 
-      consultationMutation.mutate(formData);
-      medicalQuestionsMutation.mutate(formData);
+      if (productId != null) {
+        consultationMutation.mutate(formData);
+        if (productId == 11) {
+          medicalQuestionsMutation.mutate(formData);
+        } else {
+          medicalQuestionsMutation.mutate();
+        }
+      }
+      // consultationMutation.mutate(formData);
+      // medicalQuestionsMutation.mutate(formData);
 
       return () => {
         // Optional cleanup

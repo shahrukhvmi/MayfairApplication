@@ -134,7 +134,7 @@ export default function PhotoUpload() {
 
       const res = await ImageUplaodApi(payload);
 
-      if (res?.status === 200) {
+      if (res?.status == 200) {
         setOpen(true);
         if (!idVerificationUpload) {
           setButtonLabel('Upload ID verification photo');
