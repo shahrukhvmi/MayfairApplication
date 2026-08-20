@@ -10,6 +10,7 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import Header from '../Layout/header';
+import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import TextFields from '../Components/TextFields';
 import OrderSummary from '../Components/OrderSummary';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
@@ -37,6 +38,7 @@ export default function CheckoutSteps() {
   console.log(isShippingCheck, 'isShippingCheck');
   console.log(isBillingCheck, 'isBillingCheck');
 
+  const insets = useSafeAreaInsets();
   const isNextDisabled = isShippingCheck && isBillingCheck && isConcentCheck;
 
   console.log(isNextDisabled, 'isNextDisabled');
@@ -44,7 +46,10 @@ export default function CheckoutSteps() {
   return (
     <>
       <Header />
-      <ScrollView style={styles.container} ref={scrollRef}>
+      <ScrollView
+        style={styles.container}
+        ref={scrollRef}
+        contentContainerStyle={{paddingBottom: insets.bottom + 40}}>
         <Text style={styles.heading}>
           Checkout to kick-start your weight loss journey
         </Text>

@@ -19,9 +19,11 @@ import Header from '../Layout/header';
 import NextButton from '../Components/NextButton';
 import PageLoader from '../Components/PageLoader';
 import useReorderButtonStore from '../store/useReorderButton';
+import {useSafeAreaInsets} from 'react-native-safe-area-context';
 
 export default function ReOrder() {
   const navigation = useNavigation();
+  const insets = useSafeAreaInsets();
   const {setReorderStatus} = useReorder();
   const {setIsFromReorder} = useReorderButtonStore();
   const {setReorderBackProcess} = useReorderBackProcessStore();
@@ -91,7 +93,7 @@ export default function ReOrder() {
   return (
     <>
       <Header />
-      <ScrollView contentContainerStyle={styles.container}>
+      <ScrollView contentContainerStyle={[styles.container, {paddingBottom: insets.bottom + 16}]}>
         <Text style={styles.heading}>Reorder Confirmation</Text>
         <Text style={styles.paragraph}>
           Has anything changed since your last order?

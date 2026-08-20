@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {
   View,
   Text,
@@ -13,10 +13,13 @@ import {Controller, useForm} from 'react-hook-form';
 import Toast from 'react-native-toast-message';
 import useCartStore from '../store/useCartStore';
 import useVariationStore from '../store/useVariationStore';
+import useAbandonCardStore from '../store/useAbandonCardStore';
 import useReorder from '../store/useReorderStore';
 import BackButton from '../Components/BackButton';
 import Header from '../Layout/header';
 import Dose from '../Components/Dose';
+import Ionicons from 'react-native-vector-icons/Ionicons';
+import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import Addon from '../Components/addon';
 import NextButton from '../Components/NextButton';
 import useProductId from '../store/useProductIdStore';
@@ -69,6 +72,11 @@ export default function DoseSelection({navigation}) {
     useCartStore();
   const {reorder} = useReorder();
   const {productId} = useProductId();
+  const insets = useSafeAreaInsets();
+  // Wegovy Pill (tablets): local backend id 11, production id 7 — dono handle
+  const isWegovyPill = Number(productId) === 7 || Number(productId) === 11;
+  const {abandonCard, extra, clearAbandonCard} = useAbandonCardStore();
+  const abandonAddedRef = useRef(false);
 
   /* _________________Local State here ______________*/
   const [shownDoseIds, setShownDoseIds] = useState([]);
@@ -90,6 +98,11 @@ export default function DoseSelection({navigation}) {
   };
 
   const generateProductConcent = (vars, selectedName) => {
+    // Wegovy Pill (tablets) — special confirmation text
+    if (isWegovyPill) {
+      return `If this is your first time taking Wegovy Tablets, you should start with the 1.5mg dose. Starting on a higher dose may increase the risk of side effects.\n\nPlease confirm that you are currently taking Wegovy Tablets from another provider, or have previously used, or currently use, a GLP-1 treatment such as Wegovy or Mounjaro.`;
+    }
+
     if (!Array.isArray(vars) || vars.length === 0) {
       return 'Product details are unavailable at the moment.';
     }
@@ -153,6 +166,16 @@ export default function DoseSelection({navigation}) {
       isSelected: true,
     });
   };
+  // Abandoned-cart restore: gathering-data se aayi hui `extra` dose auto-add karo
+  useEffect(() => {
+    if (abandonAddedRef.current) return;
+    if (abandonCard?.type !== 'abandoned-cart') return;
+    if (!extra || !variation?.variations) return;
+    abandonAddedRef.current = true;
+    handleAddDose(extra);
+    clearAbandonCard();
+  }, [abandonCard?.type, extra, variation?.variations]);
+
   /*______________________ AddtoCart here Addons  _______________ */
 
   const handleAddAddon = addon => {
@@ -199,7 +222,7 @@ export default function DoseSelection({navigation}) {
     <>
       <View style={styles.screen}>
         <Header />
-        <ScrollView contentContainerStyle={styles.container}>
+        <ScrollView contentContainerStyle={[styles.container, {paddingBottom: insets.bottom + 30}]}>
           <View style={styles.header}>
             <Image source={{uri: variation.img}} style={styles.image} />
           </View>
@@ -225,18 +248,43 @@ export default function DoseSelection({navigation}) {
               .map((dose, index) => {
                 const cartDose = items.doses.find(item => item.id === dose.id);
                 const cartQty = cartDose?.qty || 0;
+                // Wegovy injection (productId 1) ke 7.2mg dose pe pack info banner
+                const is72mgSelected =
+                  dose?.name === '7.2mg' &&
+                  Number(productId) === 1 &&
+                  cartQty > 0;
                 return (
-                  <Dose
-                    key={dose.id}
-                    doseData={dose}
-                    qty={cartQty}
-                    isSelected={cartQty > 0}
-                    onAdd={() => handleAddDose(dose)}
-                    onIncrement={() => increaseQuantity(dose.id, 'dose')}
-                    onDecrement={() => decreaseQuantity(dose.id, 'dose')}
-                    totalSelectedQty={currentQty}
-                    allow={variation.allowed}
-                  />
+                  <React.Fragment key={dose.id}>
+                    <Dose
+                      doseData={dose}
+                      qty={cartQty}
+                      isSelected={cartQty > 0}
+                      onAdd={() => handleAddDose(dose)}
+                      onIncrement={() => increaseQuantity(dose.id, 'dose')}
+                      onDecrement={() => decreaseQuantity(dose.id, 'dose')}
+                      totalSelectedQty={currentQty}
+                      allow={variation.allowed}
+                    />
+                    {is72mgSelected && (
+                      <View style={styles.pack72Banner}>
+                        <Ionicons
+                          name="information-circle-outline"
+                          size={20}
+                          color="#D97706"
+                          style={{marginTop: 2}}
+                        />
+                        <View style={{flex: 1, marginLeft: 8}}>
+                          <Text style={styles.pack72Title}>
+                            7.2mg Pack Information
+                          </Text>
+                          <Text style={styles.pack72Text}>
+                            Includes 4 single-dose pens. Other strengths are
+                            supplied as 1 pen containing 4 doses.
+                          </Text>
+                        </View>
+                      </View>
+                    )}
+                  </React.Fragment>
                 );
               })}
           </View>
@@ -314,7 +362,7 @@ export default function DoseSelection({navigation}) {
           </View>
         </ScrollView>
 
-        <View style={styles.footer}>
+        <View style={[styles.footer, {paddingBottom: insets.bottom + 8}]}>
           <View style={styles.footerContent}>
             <Image source={{uri: variation.img}} style={styles.footerImg} />
             <View style={styles.footerDetails}>
@@ -341,7 +389,7 @@ export default function DoseSelection({navigation}) {
               {selectedDose?.product_concent}
             </Text>
             <NextButton
-              label="I Confirm"
+              label={isWegovyPill ? 'I confirm this dose' : 'I Confirm'}
               onPress={() => setShowDoseModal(false)}
             />
           </View>
@@ -390,7 +438,31 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     textAlign: 'center',
   },
-  modalText: {fontSize: 16, marginBottom: 20, textAlign: 'center'},
+  modalText: {
+    fontSize: 16,
+    marginBottom: 20,
+    textAlign: 'center',
+    lineHeight: 22,
+    color: '#374151',
+  },
+  pack72Banner: {
+    flexDirection: 'row',
+    backgroundColor: '#FFF7ED',
+    borderRadius: 12,
+    padding: 12,
+    marginTop: 10,
+    marginBottom: 4,
+  },
+  pack72Title: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#111827',
+  },
+  pack72Text: {
+    fontSize: 13,
+    color: '#4B5563',
+    marginTop: 2,
+  },
   footer: {
     position: 'absolute',
     bottom: 0,

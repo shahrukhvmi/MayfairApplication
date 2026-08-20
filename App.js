@@ -1,6 +1,7 @@
-import React, {useEffect} from 'react';
+import React, {useEffect, useRef} from 'react';
 import {OneSignal, LogLevel} from 'react-native-onesignal';
 import {NavigationContainer} from '@react-navigation/native';
+import {SafeAreaProvider} from 'react-native-safe-area-context';
 import {createNativeStackNavigator} from '@react-navigation/native-stack';
 import SplashScreen from './Screens/SplashScreen';
 import InitialScreen from './Screens/InitialScreen';
@@ -32,11 +33,15 @@ import ReOrder from './Screens/ReOrder';
 import ReviewAnswers from './Screens/ReviewAnswers';
 import {BackHandler, Linking} from 'react-native';
 import usePlayerStore from './store/usePlayerStore';
+import useAbandonCardStore from './store/useAbandonCardStore';
+import useProductId from './store/useProductIdStore';
 import PaymentSuccess from './Screens/PaymentSuccess';
 import PaymentFailed from './Screens/PaymentFailed';
 import {navigationRef} from './Components/navigationRef';
 import PhotoUpload from './Screens/PhotoUpload';
 import IdVerification from './Screens/IdVerification';
+import ReviewScreen from './Screens/ReviewScreen';
+import useReviewStore from './store/useReviewStore';
 
 const Stack = createNativeStackNavigator();
 
@@ -61,6 +66,37 @@ const App = () => {
   };
 
   const {setPlayerId} = usePlayerStore();
+  const {setAbandonCard} = useAbandonCardStore();
+  const {setProductId} = useProductId();
+  const {setReview, setOrderId} = useReviewStore();
+
+  // URL ke query params parse karne ka helper
+  const parseParams = url => {
+    const query = (url || '').split('?')[1];
+    if (!query) return {};
+    return query.split('&').reduce((acc, pair) => {
+      const [k, v] = pair.split('=');
+      if (k) acc[decodeURIComponent(k)] = decodeURIComponent(v || '');
+      return acc;
+    }, {});
+  };
+
+  // Email deep link aur push notification — dono isko call karenge (shared)
+  const handleAbandonedCart = params => {
+    const productId = params?.product_id ? Number(params.product_id) : null;
+    const eid = params?.eid ? Number(params.eid) : null;
+    if (params?.type !== 'abandoned-cart' || !productId) return false;
+
+    setProductId(productId);
+    setAbandonCard({
+      productId,
+      fromEmail: params.fromemail,
+      type: params.type,
+      eid,
+    });
+    navigationRef.reset({index: 0, routes: [{name: 'Login'}]});
+    return true;
+  };
 
   /* _________________One Signal Notification here ______________*/
 
@@ -82,6 +118,24 @@ const App = () => {
       handleSubscriptionChange,
     );
 
+    // Push notification click → abandoned cart (email deep link jaisa hi kaam)
+    const handleNotificationClick = event => {
+      const data = event?.notification?.additionalData;
+      if (data?.type === 'abandoned-cart') {
+        handleAbandonedCart({
+          product_id: data.product_id,
+          type: data.type,
+          eid: data.eid,
+          fromemail: data.fromemail,
+        });
+      } else if (data?.type === 'review') {
+        setReview(true);
+        if (data?.order_id) setOrderId(Number(data.order_id));
+        navigationRef.reset({index: 0, routes: [{name: 'Login'}]});
+      }
+    };
+    OneSignal.Notifications.addEventListener('click', handleNotificationClick);
+
     OneSignal.User.pushSubscription.getIdAsync().then(id => {
       if (id) {
         console.log('Player ID (existing):', id);
@@ -94,12 +148,30 @@ const App = () => {
         'change',
         handleSubscriptionChange,
       );
+      OneSignal.Notifications.removeEventListener(
+        'click',
+        handleNotificationClick,
+      );
     };
   }, []);
 
   useEffect(() => {
     const handleDeepLink = ({url}) => {
       if (!url) return;
+
+      // Abandoned cart deep link (email button) — params parse karke handle karo
+      if (url.includes('type=abandoned-cart')) {
+        if (handleAbandonedCart(parseParams(url))) return;
+      }
+
+      // Review deep link — login?review=true&order_id=xxx
+      if (url.includes('review=true')) {
+        const params = parseParams(url);
+        setReview(true);
+        if (params?.order_id) setOrderId(Number(params.order_id));
+        navigationRef.reset({index: 0, routes: [{name: 'Login'}]});
+        return;
+      }
 
       // Handles both https App Links (Android) and mayfairapp:// custom scheme (iOS)
       if (url.includes('payment-success')) {
@@ -117,20 +189,34 @@ const App = () => {
     return () => linkingListener.remove();
   }, []);
 
-  useEffect(() => {
-    const backAction = () => true;
-    const backHandler = BackHandler.addEventListener(
+  // Device hardware/gesture back block karo. Native-stack mein react-navigation
+  // har navigation pe apna back handler dobara register karta hai, isliye humein
+  // bhi onStateChange pe dobara register karna padta hai taake LIFO priority pe
+  // sabse upar rahe aur back block ho.
+  const backSubRef = useRef(null);
+  const registerBackBlock = () => {
+    backSubRef.current?.remove?.();
+    backSubRef.current = BackHandler.addEventListener(
       'hardwareBackPress',
-      backAction,
+      () => {
+        console.log('🔙 hardware back blocked');
+        return true;
+      },
     );
+  };
 
-    return () => backHandler.remove();
+  useEffect(() => {
+    registerBackBlock();
+    return () => backSubRef.current?.remove?.();
   }, []);
 
   return (
-    <>
+    <SafeAreaProvider>
       {/* _________________All Routes here ______________*/}
-      <NavigationContainer linking={linking} ref={navigationRef}>
+      <NavigationContainer
+        linking={linking}
+        ref={navigationRef}
+        onStateChange={registerBackBlock}>
         <Stack.Navigator initialRouteName="Splash">
           <Stack.Screen
             name="Splash"
@@ -303,12 +389,17 @@ const App = () => {
             component={IdVerification}
             options={{headerShown: false}}
           />
+          <Stack.Screen
+            name="review-feedback"
+            component={ReviewScreen}
+            options={{headerShown: false}}
+          />
         </Stack.Navigator>
       </NavigationContainer>
 
       {/* _________________Toast here ______________ */}
       <Toast />
-    </>
+    </SafeAreaProvider>
   );
 };
 

@@ -29,12 +29,16 @@ import Toast from 'react-native-toast-message';
 import usePasswordReset from '../store/usePasswordReset';
 import useReturning from '../store/useReturningPatient';
 import usePlayerStore from '../store/usePlayerStore';
+import useAbandonCardStore from '../store/useAbandonCardStore';
+import useReviewStore from '../store/useReviewStore';
 import {useFocusEffect} from '@react-navigation/native';
 import {useCallback} from 'react';
 import {OneSignal} from 'react-native-onesignal';
+import {useSafeAreaInsets} from 'react-native-safe-area-context';
 
 const LoginScreen = () => {
   const navigation = useNavigation();
+  const insets = useSafeAreaInsets();
   const {
     control,
     handleSubmit,
@@ -47,7 +51,9 @@ const LoginScreen = () => {
 
   const {setIsPasswordReset, setShowResetPassword} = usePasswordReset();
   const {setAuthUserDetail} = useAuthUserDetailStore();
-  const {setToken} = useAuthStore();
+  const {token, setToken} = useAuthStore();
+  const {abandonCard} = useAbandonCardStore();
+  const {review} = useReviewStore();
   const {setLastName, setFirstName, setEmail} = useSignupStore();
   const {playerId} = usePlayerStore();
 
@@ -75,6 +81,17 @@ const LoginScreen = () => {
 
       fetchPlayerId();
     }, []),
+  );
+
+  // Pehle se logged-in hai aur abandoned-cart deep link se aaye → seedha gathering-data
+  useFocusEffect(
+    useCallback(() => {
+      if (token && abandonCard?.type === 'abandoned-cart') {
+        navigation.reset({index: 0, routes: [{name: 'gathering-data'}]});
+      } else if (token && review) {
+        navigation.navigate('review-feedback');
+      }
+    }, [token, abandonCard?.type, review]),
   );
 
   const loginMutation = useMutation(Login, {
@@ -108,7 +125,13 @@ const LoginScreen = () => {
       setEmail(user?.email);
       setIsReturningPatient(user?.isReturning);
 
-      navigation.navigate('dashboard');
+      if (abandonCard?.type === 'abandoned-cart') {
+        navigation.reset({index: 0, routes: [{name: 'gathering-data'}]});
+      } else if (review) {
+        navigation.navigate('review-feedback');
+      } else {
+        navigation.navigate('dashboard');
+      }
 
       setIsPasswordReset(false);
       setShowResetPassword(user?.show_password_reset);
@@ -181,7 +204,7 @@ const LoginScreen = () => {
       style={{flex: 1}}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
       <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-        <ScrollView contentContainerStyle={{flexGrow: 1}}>
+        <ScrollView contentContainerStyle={{flexGrow: 1, paddingBottom: insets.bottom + 16}}>
           <View style={styles.container}>
             <View style={styles.logoContainer}>
               <Image

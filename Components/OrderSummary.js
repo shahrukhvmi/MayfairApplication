@@ -19,6 +19,7 @@ import Toast from 'react-native-toast-message';
 import {CouponApi} from '../api/couponApi';
 import useShippingOrBillingStore from '../store/shipingOrbilling';
 import NextButton from './NextButton';
+import BackButton from './BackButton';
 import sendStepData from '../api/stepsDataApi';
 import usePatientInfoStore from '../store/patientInfoStore';
 import useMedicalInfoStore from '../store/medicalInfoStore';
@@ -465,9 +466,13 @@ const OrderSummary = ({isNextDisabled}) => {
 
       <NextButton
         label="Procceed to Payment"
-        style={{marginBottom: 30}}
+        style={{marginBottom: 8}}
         onPress={handleSubmit}
         disabled={!isNextDisabled}
+      />
+      <BackButton
+        label="Back"
+        onPress={() => navigation.navigate('dose-selection')}
       />
 
       {/* Loading Modal */}

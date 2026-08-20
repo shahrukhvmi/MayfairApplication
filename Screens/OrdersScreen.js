@@ -19,8 +19,10 @@ import { useStatusStore } from '../store/useStatusStore';
 import GetOrdersApi from '../api/getOrders';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import Header from '../Layout/header';
+import {useSafeAreaInsets} from 'react-native-safe-area-context';
 
 const OrdersScreen = () => {
+  const insets = useSafeAreaInsets();
   const [searchValue, setSearchValue] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [data, setData] = useState(null);
@@ -202,7 +204,7 @@ const OrdersScreen = () => {
                 data={filteredOrders}
                 keyExtractor={i => i.order_id.toString()}
                 renderItem={renderRow}
-                contentContainerStyle={{ paddingBottom: 40 }}
+                contentContainerStyle={{paddingBottom: insets.bottom + 16}}
               />
             )}
           </View>

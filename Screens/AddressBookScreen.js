@@ -12,9 +12,11 @@ import { getProfileData } from '../api/myProfileApi';
 import Shipping from '../Components/Shipping';
 import Billing from '../Components/Billing';
 import { useFocusEffect } from '@react-navigation/native';
+import {useSafeAreaInsets} from 'react-native-safe-area-context';
 
 const AddressBookScreen = () => {
   const [tabActive, setTabActive] = useState('shipping');
+  const insets = useSafeAreaInsets();
   const [billingCountries, setBillingCountries] = useState([]);
   const [shipmentCountries, setShipmentCountries] = useState([]);
 
@@ -38,7 +40,7 @@ const AddressBookScreen = () => {
       <Header />
 
       <ScrollView
-        contentContainerStyle={styles.wrapper}
+        contentContainerStyle={[styles.wrapper, {paddingBottom: insets.bottom + 16}]}
         showsVerticalScrollIndicator={false}>
         {/* Tabs */}
         <View style={styles.tabRow}>

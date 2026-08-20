@@ -57,7 +57,7 @@ const PaymentSuccess = () => {
       style={styles.container}
       contentContainerStyle={[
         styles.content,
-        {paddingTop: insets.top + 16, paddingBottom: insets.bottom + 24},
+        {paddingTop: insets.top + 16, paddingBottom: insets.bottom + 16},
       ]}>
       <View style={styles.card}>
         {/* Header */}

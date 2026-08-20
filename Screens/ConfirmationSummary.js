@@ -32,9 +32,11 @@ import {useMutation} from '@tanstack/react-query';
 import Toast from 'react-native-toast-message';
 import sendStepData from '../api/stepsDataApi';
 import useLastBmi from '../store/useLastBmiStore';
+import {useSafeAreaInsets} from 'react-native-safe-area-context';
 
 export default function ConfirmationSummary() {
   const navigation = useNavigation();
+  const insets = useSafeAreaInsets();
   const [showLoader, setShowLoader] = useState(false);
 
   // Zustand stores
@@ -169,7 +171,7 @@ export default function ConfirmationSummary() {
   return (
     <>
       <Header />
-      <ScrollView contentContainerStyle={styles.container}>
+      <ScrollView contentContainerStyle={[styles.container, {paddingBottom: insets.bottom + 16}]}>
         {/* Progress */}
         <View style={styles.progressContainer}>
           <View style={styles.progressBar} />

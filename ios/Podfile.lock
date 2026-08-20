@@ -21,10 +21,34 @@ PODS:
     - ReactCommon/turbomodule/core
     - ReactNativeDependencies
     - Yoga
+  - dotlottie-react-native (0.12.1):
+    - hermes-engine
+    - LottieFiles-dotLottie-iOS (~> 0.16.6)
+    - RCTRequired
+    - RCTTypeSafety
+    - React-Core
+    - React-Core-prebuilt
+    - React-debug
+    - React-Fabric
+    - React-featureflags
+    - React-graphics
+    - React-ImageManager
+    - React-jsi
+    - React-NativeModulesApple
+    - React-RCTFabric
+    - React-renderercss
+    - React-rendererdebug
+    - React-utils
+    - ReactCodegen
+    - ReactCommon/turbomodule/bridging
+    - ReactCommon/turbomodule/core
+    - ReactNativeDependencies
+    - Yoga
   - FBLazyVector (0.86.0)
   - hermes-engine (250829098.0.14):
     - hermes-engine/Pre-built (= 250829098.0.14)
   - hermes-engine/Pre-built (250829098.0.14)
+  - LottieFiles-dotLottie-iOS (0.16.9)
   - OneSignalXCFramework (5.5.5):
     - OneSignalXCFramework/OneSignalComplete (= 5.5.5)
   - OneSignalXCFramework/OneSignal (5.5.5):
@@ -2169,6 +2193,7 @@ PODS:
 
 DEPENDENCIES:
   - "AsyncStorage (from `../node_modules/@react-native-async-storage/async-storage`)"
+  - "dotlottie-react-native (from `../node_modules/@lottiefiles/dotlottie-react-native`)"
   - FBLazyVector (from `../node_modules/react-native/Libraries/FBLazyVector`)
   - hermes-engine (from `../node_modules/react-native/sdks/hermes-engine/hermes-engine.podspec`)
   - RCTDeprecation (from `../node_modules/react-native/ReactApple/Libraries/RCTFoundation/RCTDeprecation`)
@@ -2257,11 +2282,14 @@ DEPENDENCIES:
 
 SPEC REPOS:
   trunk:
+    - LottieFiles-dotLottie-iOS
     - OneSignalXCFramework
 
 EXTERNAL SOURCES:
   AsyncStorage:
     :path: "../node_modules/@react-native-async-storage/async-storage"
+  dotlottie-react-native:
+    :path: "../node_modules/@lottiefiles/dotlottie-react-native"
   FBLazyVector:
     :path: "../node_modules/react-native/Libraries/FBLazyVector"
   hermes-engine:
@@ -2434,8 +2462,10 @@ EXTERNAL SOURCES:
 
 SPEC CHECKSUMS:
   AsyncStorage: 163ab23f6aa37a58b7f2379d0b4ee7ac84d6655c
+  dotlottie-react-native: eec0f4fa00536f44d1cd2ee61573f522418e8fef
   FBLazyVector: b3e7ad108f0d882e30445c5527d774e3fd432f3d
   hermes-engine: 7bc7443a48bf285c8a3dc3e1117ef9f2c162af6a
+  LottieFiles-dotLottie-iOS: 9e54e71e2409f70725ef9403fdf1329f14367294
   OneSignalXCFramework: 48e5b7c5b51d4e67bab3405229f963efde1a3894
   RCTDeprecation: 2a74a2c57675e64419bd89078efde81f7c1de90b
   RCTRequired: 30451112e6fef4e6f31b4e7eee0845156e35e4b0
@@ -2520,6 +2550,6 @@ SPEC CHECKSUMS:
   RNVectorIcons: 97f26211c07d69e45b189f9dd0dbbe5e2d2b0b92
   Yoga: fe50ab299e578f397fef753cf309c6703a4db29b
 
-PODFILE CHECKSUM: 55e0778355ad6e966bae0f6e4176877dba5cfbd1
+PODFILE CHECKSUM: 5fd81c355397a2809b8b9208454d6eb4c98290e0
 
 COCOAPODS: 1.16.2

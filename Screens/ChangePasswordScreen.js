@@ -11,10 +11,12 @@ import NextButton from '../Components/NextButton';
 import useSignupStore from '../store/signupStore';
 import TextFields from '../Components/TextFields';
 import Header from '../Layout/header';
+import {useSafeAreaInsets} from 'react-native-safe-area-context';
 
 export default function PasswordChange() {
   const { email } = useSignupStore();
   const [isLoading, setIsLoading] = useState(false);
+  const insets = useSafeAreaInsets();
 
   const {
     control,
@@ -83,7 +85,7 @@ export default function PasswordChange() {
     <>
 
       <Header />
-      <ScrollView contentContainerStyle={styles.container}>
+      <ScrollView contentContainerStyle={[styles.container, {paddingBottom: insets.bottom + 16}]}>
         <Text style={styles.heading}>Change Password</Text>
         <Text style={styles.description}>Please create a strong password for your account.</Text>
 

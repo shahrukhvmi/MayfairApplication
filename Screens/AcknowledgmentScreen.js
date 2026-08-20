@@ -12,9 +12,11 @@ import {
 } from 'react-native';
 import Header from '../Layout/header';
 import NextButton from '../Components/NextButton';
+import {useSafeAreaInsets} from 'react-native-safe-area-context';
 
 export default function AcknowledgmentScreen() {
   const navigation = useNavigation();
+  const insets = useSafeAreaInsets();
   const [q1, setQ1] = useState(null);
   const [q2, setQ2] = useState(null);
   const [confirmChecked, setConfirmChecked] = useState(false);
@@ -26,7 +28,7 @@ export default function AcknowledgmentScreen() {
     <>
       <Header />
 
-      <ScrollView contentContainerStyle={styles.container}>
+      <ScrollView contentContainerStyle={[styles.container, {paddingBottom: insets.bottom + 16}]}>
         <Text style={styles.progressText}>0% Completed</Text>
         <Text style={styles.heading}>Acknowledgment</Text>
 

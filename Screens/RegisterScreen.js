@@ -28,9 +28,11 @@ import useUserDataStore from '../store/userDataStore';
 import {logApiError, logApiSuccess} from '../utils/logApiDebug';
 import Toast from 'react-native-toast-message';
 import useSignupStore from '../store/signupStore';
+import {useSafeAreaInsets} from 'react-native-safe-area-context';
 
 const RegisterScreen = () => {
   const navigation = useNavigation();
+  const insets = useSafeAreaInsets();
   const {
     control,
     handleSubmit,
@@ -111,7 +113,7 @@ const RegisterScreen = () => {
       style={{flex: 1}}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
       <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-        <ScrollView contentContainerStyle={{flexGrow: 1}}>
+        <ScrollView contentContainerStyle={{flexGrow: 1, paddingBottom: insets.bottom + 16}}>
           <View style={styles.container}>
             <View style={styles.logoContainer}>
               <Image

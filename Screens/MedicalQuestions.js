@@ -20,9 +20,11 @@ import PageLoader from '../Components/PageLoader';
 import useMedicalQuestionsStore from '../store/medicalQuestionStore';
 import useMedicalInfoStore from '../store/medicalInfoStore';
 import AnimatedLogoLoader from '../Components/AnimatedLogoLoader';
+import {useSafeAreaInsets} from 'react-native-safe-area-context';
 
 export default function MedicalQuestions() {
   const navigation = useNavigation();
+  const insets = useSafeAreaInsets();
   const [showLoader, setShowLoader] = useState(false);
   const { medicalQuestions } = useMedicalQuestionsStore();
   const { medicalInfo, setMedicalInfo } = useMedicalInfoStore();
@@ -97,7 +99,7 @@ export default function MedicalQuestions() {
   return (
     <>
       <Header />
-      <ScrollView contentContainerStyle={styles.container}>
+      <ScrollView contentContainerStyle={[styles.container, {paddingBottom: insets.bottom + 16}]}>
         {questions.map(q => {
           const selectedAnswer = watch(`responses[${q.id}].answer`);
           const subfieldValue = watch(`responses[${q.id}].subfield_response`);

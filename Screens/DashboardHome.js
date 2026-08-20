@@ -12,8 +12,10 @@ import useReorder from '../store/useReorderStore';
 import useImageUploadStore from '../store/useImageUploadStore';
 import useIdVerificationUploadStore from '../store/useIdVerificationUploadStore';
 import UploadTopPrompt from '../Components/UploadTopPrompt';
+import {useSafeAreaInsets} from 'react-native-safe-area-context';
 
 const DashboardHome = () => {
+  const insets = useSafeAreaInsets();
   /* ───────────────────────────────────────── state */
   const [productData, setProductData] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -176,7 +178,7 @@ const DashboardHome = () => {
             No available treatments at the moment.
           </Text>
         }
-        contentContainerStyle={styles.container}
+        contentContainerStyle={[styles.container, {paddingBottom: insets.bottom + 16}]}
         refreshControl={
           <RefreshControl
             refreshing={refreshing}

@@ -1,9 +1,11 @@
 import { Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import Header from '../Layout/header';
 import { useNavigation } from '@react-navigation/native';
+import {useSafeAreaInsets} from 'react-native-safe-area-context';
 
 export default function StartConsultationIntro() {
     const navigation = useNavigation();
+  const insets = useSafeAreaInsets();
 
     const handleContinue = () => {
         navigation.navigate('Acknowledgment'); // ✅ use name, no slash!
@@ -12,7 +14,7 @@ export default function StartConsultationIntro() {
     return (
         <>
             <Header />
-            <ScrollView contentContainerStyle={styles.container}>
+            <ScrollView contentContainerStyle={[styles.container, {paddingBottom: insets.bottom + 16}]}>
                 <Image
                     source={require('../assets/images/intro.png')} // Replace with your image
                     style={styles.image}

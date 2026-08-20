@@ -9,9 +9,11 @@ import {
   View,
 } from 'react-native';
 import Header from '../Layout/header';
+import {useSafeAreaInsets} from 'react-native-safe-area-context';
 
 export default function CalculateWeight() {
   const navigation = useNavigation();
+  const insets = useSafeAreaInsets();
   const [unit, setUnit] = useState('kg');
   const [kg, setKg] = useState('');
   const [stone, setStone] = useState('');
@@ -25,7 +27,7 @@ export default function CalculateWeight() {
   return (
     <>
       <Header />
-      <ScrollView contentContainerStyle={styles.container}>
+      <ScrollView contentContainerStyle={[styles.container, {paddingBottom: insets.bottom + 16}]}>
         {/* Progress */}
         <View style={styles.progressContainer}>
           <View style={styles.progressBar} />

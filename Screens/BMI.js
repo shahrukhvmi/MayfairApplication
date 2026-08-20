@@ -23,6 +23,7 @@ import BackButton from '../Components/BackButton';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import CustomCheckbox from '../Components/CustomCheckbox';
 import Header from '../Layout/header';
+import {useSafeAreaInsets} from 'react-native-safe-area-context';
 
 export default function BmiDetail() {
   const [showLoader, setShowLoader] = useState(false);
@@ -32,6 +33,7 @@ export default function BmiDetail() {
   const { lastBmi } = useLastBmi();
   const { isReturningPatient } = useReturning();
   const navigation = useNavigation();
+  const insets = useSafeAreaInsets();
 
   const {
     control,
@@ -170,7 +172,7 @@ export default function BmiDetail() {
     <>
       <Header />
 
-      <ScrollView contentContainerStyle={styles.container}>
+      <ScrollView contentContainerStyle={[styles.container, {paddingBottom: insets.bottom + 16}]}>
         <View style={styles.bmiBox}>
           <Text style={styles.bmiText}>BMI: {bmiValue}</Text>
         </View>

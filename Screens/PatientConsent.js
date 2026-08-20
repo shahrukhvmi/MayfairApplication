@@ -18,9 +18,11 @@ import NextButton from '../Components/NextButton';
 import BackButton from '../Components/BackButton';
 import {MdCheckBox, MdCheckBoxOutlineBlank} from 'react-icons/md'; // ignore in RN
 import Ionicons from 'react-native-vector-icons/Ionicons';
+import {useSafeAreaInsets} from 'react-native-safe-area-context';
 
 export default function PatientConsent() {
   const navigation = useNavigation();
+  const insets = useSafeAreaInsets();
   const [showLoader, setShowLoader] = useState(false);
 
   const {confirmationQuestions} = useConfirmationQuestionsStore();
@@ -83,8 +85,6 @@ export default function PatientConsent() {
 
   const onSubmit = async () => {
     setConfirmationInfo(questions);
-    setShowLoader(true);
-    await new Promise(resolve => setTimeout(resolve, 500));
     navigation.navigate('gp-detail');
   };
 
@@ -157,7 +157,7 @@ export default function PatientConsent() {
   return (
     <>
       <Header />
-      <ScrollView contentContainerStyle={styles.container}>
+      <ScrollView contentContainerStyle={[styles.container, {paddingBottom: insets.bottom + 16}]}>
         <View style={styles.progressContainer}>
           <View style={styles.progressBar} />
         </View>
@@ -242,11 +242,6 @@ export default function PatientConsent() {
           />
         </View>
 
-        {showLoader && (
-          <View style={styles.loaderOverlay}>
-            <ActivityIndicator size="large" color="#4B0082" />
-          </View>
-        )}
       </ScrollView>
     </>
   );

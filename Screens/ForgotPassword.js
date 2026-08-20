@@ -19,10 +19,12 @@ import { forgotPasswordLink } from '../api/forgotPasswordLinkApi';
 import Toast from 'react-native-toast-message';
 import {  useNavigation } from '@react-navigation/native';
 import { passwordlink } from '../config/constants';
+import {useSafeAreaInsets} from 'react-native-safe-area-context';
 
 const ForgotPasswordScreen = () => {
     const { control, handleSubmit, formState: { errors }, watch } = useForm();
     const navigation = useNavigation();
+  const insets = useSafeAreaInsets();
     const [resendTimer, setResendTimer] = useState(0);
     const [loading, setLoading] = useState(false);
     const [resendLoading, setResendLoading] = useState(false);
@@ -137,7 +139,7 @@ const ForgotPasswordScreen = () => {
     return (
         <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
             <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-                <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
+                <ScrollView contentContainerStyle={{flexGrow: 1, paddingBottom: insets.bottom + 16}}>
                     <View style={styles.container}>
                         <View style={styles.logoContainer}>
                             <Image source={require('../assets/images/logo-white.png')} style={styles.image} />

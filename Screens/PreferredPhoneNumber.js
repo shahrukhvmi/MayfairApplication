@@ -14,6 +14,8 @@ import {Flag} from 'react-native-country-picker-modal';
 import {useForm, Controller} from 'react-hook-form';
 
 import Header from '../Layout/header';
+import NextButton from '../Components/NextButton';
+import BackButton from '../Components/BackButton';
 import usePatientInfoStore from '../store/patientInfoStore';
 import useReturning from '../store/useReturningPatient';
 
@@ -26,6 +28,12 @@ export default function PreferredPhoneNumber() {
   const {isReturningPatient} = useReturning();
   const {patientInfo, setPatientInfo} = usePatientInfoStore();
 
+  // Prefill: backend "phone" (ya app-saved "phoneNo") — country code (+44) strip karke national number
+  const rawPhone = patientInfo?.phoneNo || '';
+  const nationalPhone = rawPhone.replace(/^\+44/, '');
+
+  console.log(patientInfo);
+
   const {
     control,
     handleSubmit,
@@ -35,15 +43,17 @@ export default function PreferredPhoneNumber() {
   } = useForm({
     mode: 'onChange',
     defaultValues: {
-      phoneNo: patientInfo?.phoneNo || '',
+      phoneNo: rawPhone,
     },
   });
 
   useEffect(() => {
-    if (patientInfo?.phoneNo) {
-      setValue('phoneNo', patientInfo.phoneNo);
+    if (rawPhone) {
+      phoneNumberRef.current = nationalPhone;
+      setValue('phoneNo', rawPhone);
+      trigger('phoneNo');
     }
-  }, [patientInfo]);
+  }, [rawPhone]);
 
   const onSubmit = data => {
     setPatientInfo({
@@ -95,7 +105,8 @@ export default function PreferredPhoneNumber() {
             validate: () => {
               const digits = phoneNumberRef.current.replace(/\D/g, '');
               if (digits.length < 6) return 'Phone number is too short';
-              if (digits.length > 15) return 'Phone number cannot exceed 15 digits';
+              if (digits.length > 15)
+                return 'Phone number cannot exceed 15 digits';
               return true;
             },
           }}
@@ -103,7 +114,9 @@ export default function PreferredPhoneNumber() {
             <>
               <PhoneInput
                 ref={phoneInputRef}
+                key={nationalPhone}
                 defaultCode="GB"
+                defaultValue={nationalPhone}
                 onChangeText={text => {
                   phoneNumberRef.current = text;
                 }}
@@ -121,6 +134,8 @@ export default function PreferredPhoneNumber() {
                 }}
                 containerStyle={styles.phoneContainer}
                 textContainerStyle={styles.textContainer}
+                flagButtonStyle={styles.flagButton}
+                codeTextStyle={styles.codeText}
                 textInputStyle={styles.textInput}
                 textInputProps={{
                   placeholder: 'Enter phone number',
@@ -135,23 +150,17 @@ export default function PreferredPhoneNumber() {
           )}
         />
 
-        {/* Spacer */}
-        <View style={styles.spacer} />
-
-        {/* Next Button */}
-        <TouchableOpacity
-          style={[styles.nextButton, !isValid && styles.disabledBtn]}
+        {/* Next / Back Buttons (baaki screens jaise) */}
+        <NextButton
+          style={{marginTop: 30}}
+          label="Next"
           disabled={!isValid}
-          onPress={handleSubmit(onSubmit)}>
-          <Text style={styles.nextText}>Next</Text>
-        </TouchableOpacity>
-
-        {/* Back */}
-        <TouchableOpacity
-          style={styles.backBtn}
-          onPress={() => navigation.navigate('residential-address')}>
-          <Text style={styles.backText}>Back</Text>
-        </TouchableOpacity>
+          onPress={handleSubmit(onSubmit)}
+        />
+        <BackButton
+          label="Back"
+          onPress={() => navigation.navigate('residential-address')}
+        />
       </KeyboardAvoidingView>
     </>
   );
@@ -205,6 +214,16 @@ const styles = StyleSheet.create({
   textContainer: {
     backgroundColor: '#fff',
     borderRadius: 10,
+  },
+  flagButton: {
+    width: 69,
+    marginRight: -8,
+  },
+  codeText: {
+    marginLeft: 0,
+    marginRight: 4,
+    fontSize: 15,
+    color: '#111',
   },
   textInput: {
     fontSize: 15,

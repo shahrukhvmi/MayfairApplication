@@ -15,6 +15,7 @@ import Header from '../Layout/header';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import AnimatedLogoLoader from '../Components/AnimatedLogoLoader';
+import {useSafeAreaInsets} from 'react-native-safe-area-context';
 /* ––––––––– utility helpers ––––––––– */
 const formatHeight = (d) => {
   if (!d) return 'N/A';
@@ -36,6 +37,7 @@ export default function OrderDetail() {
   const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState(0); // 0-3
   const navigation = useNavigation();
+  const insets = useSafeAreaInsets();
   /* fetch order */
   useFocusEffect(
     React.useCallback(() => {
@@ -102,7 +104,7 @@ export default function OrderDetail() {
         </Text>
       </View>
 
-      <ScrollView contentContainerStyle={styles.container}>
+      <ScrollView contentContainerStyle={[styles.container, {paddingBottom: insets.bottom + 16}]}>
         <Text style={styles.title}>
           Details of Order&nbsp;
           <Text style={styles.bold}>#{o.id}</Text>
@@ -131,12 +133,9 @@ export default function OrderDetail() {
               color: '#F59E0B',          // amber
             },
           ].map((s) => (
-            <View key={s.label} style={[styles.statChip, { backgroundColor: `${s.color}1A` }]}>
-              {/* <Ionicons name={s.icon} size={16} color={s.color} style={{ marginRight: 6 }} /> */}
-              <View style={{ flex: 1 }}>
-                <Text style={styles.statLabel}>{s.label}</Text>
-                <Text style={[styles.statValue, { color: s.color }]}>{s.value}</Text>
-              </View>
+            <View key={s.label} style={styles.statChip}>
+              <Text style={styles.statLabel}>{s.label}</Text>
+              <Text style={styles.statValue}>{s.value}</Text>
             </View>
           ))}
         </View>
@@ -434,29 +433,39 @@ const styles = StyleSheet.create({
   /* modern stat chips */
   statWrap: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 12,
+    gap: 10,
     marginBottom: 20,
   },
 
   statChip: {
-    flexDirection: 'row',
+    flex: 1,
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#ECEAF3',
+    paddingVertical: 12,
+    paddingHorizontal: 8,
     alignItems: 'center',
-    paddingVertical: 10,
-    paddingHorizontal: 14,
-    borderRadius: 14,
-    minWidth: 105,
-
+    justifyContent: 'center',
+    shadowColor: '#24003D',
+    shadowOffset: {width: 0, height: 2},
+    shadowOpacity: 0.08,
+    shadowRadius: 6,
+    elevation: 3,
   },
 
   statLabel: {
     fontSize: 12,
-    color: '#374151',
+    color: '#6B7280',
+    marginBottom: 4,
+    textAlign: 'center',
   },
 
   statValue: {
     fontSize: 14,
     fontWeight: '700',
+    color: '#1F2937',
+    textAlign: 'center',
   },
 
 });

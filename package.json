@@ -10,6 +10,7 @@
     "test": "jest"
   },
   "dependencies": {
+    "@lottiefiles/dotlottie-react-native": "^0.12.1",
     "@react-native-async-storage/async-storage": "^3.1.1",
     "@react-native-community/datetimepicker": "^8.4.2",
     "@react-native-picker/picker": "^2.11.1",

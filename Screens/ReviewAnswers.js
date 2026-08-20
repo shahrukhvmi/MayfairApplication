@@ -24,9 +24,11 @@ import NextButton from '../Components/NextButton';
 import BackButton from '../Components/BackButton';
 import Header from '../Layout/header';
 import { logApiError } from '../utils/logApiDebug';
+import {useSafeAreaInsets} from 'react-native-safe-area-context';
 
 const ReviewAnswers = () => {
     const navigation = useNavigation();
+  const insets = useSafeAreaInsets();
     const [showLoader, setShowLoader] = useState(false);
 
     const { patientInfo, setPatientInfo, clearPatientInfo } = usePatientInfoStore();
@@ -124,7 +126,7 @@ const ReviewAnswers = () => {
 
             <Header />
             <View style={styles.container}>
-                <ScrollView contentContainerStyle={styles.scrollContainer}>
+                <ScrollView contentContainerStyle={[styles.scrollContainer, {paddingBottom: insets.bottom + 16}]}>
                     <Text style={styles.title}>Review Your Answers</Text>
                     <View style={styles.innerSection}>
 

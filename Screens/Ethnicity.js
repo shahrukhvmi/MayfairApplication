@@ -14,9 +14,11 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import {useForm, Controller} from 'react-hook-form';
 
 import usePatientInfoStore from '../store/patientInfoStore';
+import {useSafeAreaInsets} from 'react-native-safe-area-context';
 
 export default function Ethnicity() {
   const navigation = useNavigation();
+  const insets = useSafeAreaInsets();
   const {patientInfo, setPatientInfo} = usePatientInfoStore();
 
   const {
@@ -59,7 +61,7 @@ export default function Ethnicity() {
   return (
     <>
       <Header />
-      <ScrollView contentContainerStyle={styles.container}>
+      <ScrollView contentContainerStyle={[styles.container, {paddingBottom: insets.bottom + 16}]}>
         {/* Progress */}
         <View style={styles.progressContainer}>
           <View style={styles.progressBar} />

@@ -19,9 +19,11 @@ import useProductId from '../store/useProductIdStore';
 import NextButton from '../Components/NextButton';
 import BackButton from '../Components/BackButton';
 import Header from '../Layout/header';
+import {useSafeAreaInsets} from 'react-native-safe-area-context';
 
 export default function PersonalDetails() {
   const navigation = useNavigation();
+  const insets = useSafeAreaInsets();
 
   // Zustand store
   const {patientInfo, setPatientInfo} = usePatientInfoStore();
@@ -50,12 +52,44 @@ export default function PersonalDetails() {
 
   const validateAge = date => {
     if (!date) return 'Date of birth is required';
-    const age = differenceInYears(new Date(), date);
-    if (age < 18) return 'You must be at least 18 years old';
-    if (productId === 1 && age > 75)
-      return 'Wegovy is not recommended above 75';
-    if (productId === 4 && age > 85)
-      return 'Mounjaro is not recommended above 85';
+
+    const today = new Date();
+    const age = differenceInYears(today, date);
+
+    if (age < 18) {
+      return 'You must be at least 18 years old';
+    }
+
+    // 85th birthday calculate karo
+    const birthDate = new Date(date);
+    const eightyFifthBirthday = new Date(
+      birthDate.getFullYear() + 85,
+      birthDate.getMonth(),
+      birthDate.getDate(),
+    );
+
+    // Agar aaj 85th birthday ke baad hai — block karo
+    const isOver85 = today > eightyFifthBirthday;
+
+    // console.log('🎂 DOB validate →', {
+    //   age,
+    //   productId,
+    //   productIdType: typeof productId,
+    //   isOver85,
+    // });
+
+    if (Number(productId) === 1 && isOver85) {
+      return 'Wegovy (Semaglutide) is not recommended for individuals above 85 years of age';
+    }
+
+    if (Number(productId) === 11 && isOver85) {
+      return 'Wegovy Pill is not recommended for individuals above 85 years of age';
+    }
+
+    if (Number(productId) === 4 && isOver85) {
+      return 'Mounjaro (Tirzepatide) is not recommended for individuals above 85 years of age';
+    }
+
     return true;
   };
 
@@ -117,7 +151,7 @@ export default function PersonalDetails() {
     <>
       <Header />
 
-      <ScrollView contentContainerStyle={styles.container}>
+      <ScrollView contentContainerStyle={[styles.container, {paddingBottom: insets.bottom + 16}]}>
         <View style={styles.progressBarContainer}>
           <View style={styles.progressBar} />
         </View>
@@ -131,25 +165,37 @@ export default function PersonalDetails() {
         </Text>
 
         {/* Gender Options */}
-        <View style={{flexDirection: 'row', gap: 10}}>
-          {['Male', 'Female'].map(option => (
-            <TouchableOpacity
-              key={option}
-              style={[
-                styles.optionButton,
-                gender === option && styles.optionButtonSelected,
-              ]}
-              onPress={() => setValue('gender', option)}>
-              <Ionicons
-                name={gender === option ? 'checkbox' : 'square-outline'}
-                size={20}
-                color="#4B0082"
-                style={{marginRight: 8}}
-              />
-              <Text style={styles.optionText}>{option}</Text>
-            </TouchableOpacity>
-          ))}
-        </View>
+        <Controller
+          control={control}
+          name="gender"
+          rules={{required: 'Please select your sex at birth'}}
+          render={({field: {value, onChange}}) => (
+            <View style={{flexDirection: 'row', gap: 10}}>
+              {['Male', 'Female'].map(option => (
+                <TouchableOpacity
+                  key={option}
+                  style={[
+                    styles.optionButton,
+                    value === option && styles.optionButtonSelected,
+                  ]}
+                  onPress={() => onChange(option)}>
+                  <Ionicons
+                    name={value === option ? 'checkbox' : 'square-outline'}
+                    size={20}
+                    color="#4B0082"
+                    style={{marginRight: 8}}
+                  />
+                  <Text style={styles.optionText}>{option}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          )}
+        />
+        {errors?.gender && (
+          <Text style={{color: 'red', marginTop: 6}}>
+            {errors.gender.message}
+          </Text>
+        )}
 
         {/* Pregnancy Section */}
         {gender === 'Female' && (
@@ -198,7 +244,7 @@ export default function PersonalDetails() {
                     })}
                   </View>
 
-                  {value === 'Yes' && gender === 'Female' && (
+                  {value === 'yes' && gender === 'Female' && (
                     <Text style={{color: 'red', marginTop: 10}}>
                       This treatment is not suitable if you're pregnant, trying
                       to get pregnant or breastfeeding.
@@ -267,12 +313,7 @@ export default function PersonalDetails() {
         <NextButton
           style={{marginTop: 30}}
           label="Next"
-          disabled={
-            !isValid ||
-            gender === '' ||
-            (gender === 'Female' && !watch('pregnancy')) ||
-            (gender === 'Female' && watch('pregnancy') === 'Yes')
-          }
+          disabled={!isValid || (gender === 'Female' && pregnancy === 'yes')}
           onPress={handleSubmit(onSubmit)}
         />
 

@@ -16,6 +16,7 @@
       android:allowBackup="false"
       android:usesCleartextTraffic="true"
       android:theme="@style/AppTheme"
+      android:enableOnBackInvokedCallback="false"
       android:supportsRtl="true">
       <activity
         android:name=".MainActivity"
@@ -45,6 +46,17 @@
             android:scheme="https"
             android:host="mayfair-staging.netlify.app"
             android:pathPrefix="/payment-failed" />
+
+          <data
+            android:scheme="https"
+            android:host="mayfair-staging.netlify.app"
+            android:pathPrefix="/login" />
+        </intent-filter>
+        <intent-filter>
+          <action android:name="android.intent.action.VIEW"/>
+          <category android:name="android.intent.category.DEFAULT"/>
+          <category android:name="android.intent.category.BROWSABLE"/>
+          <data android:scheme="mayfairapp"/>
         </intent-filter>
       </activity>
     </application>

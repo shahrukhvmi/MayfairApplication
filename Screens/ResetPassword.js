@@ -21,11 +21,13 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import { forgotPassword } from '../api/ChangePasswordApi';
 import { Controller, useForm } from 'react-hook-form';
 import { useMutation } from '@tanstack/react-query';
+import {useSafeAreaInsets} from 'react-native-safe-area-context';
 
 const ResetPassword = () => {
   const route = useRoute();
   const { token, email } = route.params || {};
   const navigation = useNavigation();
+  const insets = useSafeAreaInsets();
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -92,7 +94,7 @@ const ResetPassword = () => {
       style={{ flex: 1 }}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
       <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-        <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
+        <ScrollView contentContainerStyle={{flexGrow: 1, paddingBottom: insets.bottom + 16}}>
           <View style={styles.container}>
             <View style={styles.logoContainer}>
               <Image

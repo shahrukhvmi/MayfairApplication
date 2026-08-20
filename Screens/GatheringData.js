@@ -26,6 +26,9 @@ import useSignupStore from "../store/signupStore";
 import useBmiStore from "../store/bmiStore";
 import useUserDataStore from "../store/userDataStore";
 import AnimatedLogoLoader from "../Components/AnimatedLogoLoader";
+import { userConsultationApi } from "../api/userConsultationApi";
+import useReturning from "../store/useReturningPatient";
+import useAbandonCardStore from "../store/useAbandonCardStore";
 
 const GatherDataScreen = () => {
     const navigation = useNavigation();
@@ -53,6 +56,21 @@ const GatherDataScreen = () => {
     const { clearLastBmi } = useLastBmi();
     const { clearUserData } = useUserDataStore();
     const { clearFirstName, clearLastName, clearEmail, clearConfirmationEmail } = useSignupStore();
+
+    /* Abandoned-cart restore ke liye setters */
+    const { setPatientInfo } = usePatientInfoStore();
+    const { setAuthUserDetail } = useAuthUserDetailStore();
+    const { setBmi } = useBmiStore();
+    const { setMedicalInfo } = useMedicalInfoStore();
+    const { setConfirmationInfo } = useConfirmationInfoStore();
+    const { setGpDetails } = useGpDetailsStore();
+    const { setCheckout } = useCheckoutStore();
+    const { setShipping, setBilling } = useShippingOrBillingStore();
+    const { setLastBmi } = useLastBmi();
+    const { setFirstName, setLastName } = useSignupStore();
+    const { setIsReturningPatient } = useReturning();
+    const { abandonCard, setExtra, clearAbandonCard } = useAbandonCardStore();
+
     /*______________________ Feth Variation Api  _______________ */
     const variationMutation = useMutation(getVariationsApi, {
         onSuccess: (data) => {
@@ -91,10 +109,72 @@ const GatherDataScreen = () => {
                 clearConfirmationEmail();
                 navigation.navigate("Login"); // <- adjust to your login screen
             } else {
-                ToastAndroid.show("Something went wrong", ToastAndroid.LONG);
+                // Product out of stock / koi aur error → gathering-data pe atakne ke bajaye dashboard
+                ToastAndroid.show(
+                    error?.response?.data?.errors?.Product || "Something went wrong",
+                    ToastAndroid.LONG,
+                );
+                clearAbandonCard();
+                navigation.reset({ index: 0, routes: [{ name: "dashboard" }] });
             }
         },
     });
+
+    /*______________________ Abandoned Cart Restore (web jaisa) _______________ */
+    const consultationMutation = useMutation(userConsultationApi, {
+        onSuccess: (data) => {
+            const result = data?.data?.data;
+            setExtra(result?.extra); // dose-selection pe ye dose auto-add hogi
+
+            if (result == null) {
+                clearBmi();
+                clearCheckout();
+                clearConfirmationInfo();
+                clearGpDetails();
+                clearMedicalInfo();
+                clearPatientInfo();
+                clearBilling();
+                clearShipping();
+                clearAuthUserDetail();
+            } else {
+                setBmi(result?.bmi);
+                setCheckout(result?.checkout);
+                setConfirmationInfo(result?.confirmationInfo);
+                setGpDetails(result?.gpdetails);
+                setMedicalInfo(result?.medicalInfo);
+                setPatientInfo(result?.patientInfo);
+                setShipping(result?.shipping);
+                setBilling(result?.billing);
+                setAuthUserDetail(result?.auth_user);
+                setLastBmi(result?.bmi);
+                setFirstName(result?.auth_user?.fname);
+                setLastName(result?.auth_user?.lname);
+                setIsReturningPatient(result?.isReturning);
+            }
+        },
+        onError: (error) => {
+            setShowLoader(false);
+            // Product out of stock / restore fail → dashboard pe bhej do
+            ToastAndroid.show(
+                error?.response?.data?.errors?.Product || "Something went wrong",
+                ToastAndroid.LONG,
+            );
+            clearAbandonCard();
+            navigation.reset({ index: 0, routes: [{ name: "dashboard" }] });
+        },
+    });
+
+    // Agar abandoned-cart hai to consultation API se last cart restore karo
+    useEffect(() => {
+        if (abandonCard?.type === "abandoned-cart") {
+            consultationMutation.mutate({
+                clinic_id: 1,
+                product_id: abandonCard.productId,
+                type: abandonCard.type,
+                eid: Number(abandonCard.eid),
+            });
+        }
+    }, [abandonCard?.type]);
 
     // ✅ Replace useEffect with useFocusEffect
     useFocusEffect(

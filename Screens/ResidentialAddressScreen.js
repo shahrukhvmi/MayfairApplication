@@ -21,6 +21,7 @@ import SelectFields from '../Components/SelectFields';
 import TextFields from '../Components/TextFields';
 import Toast from 'react-native-toast-message';
 import PostcodeSearchInput from '../Components/PostcodeSearchInput';
+import {useSafeAreaInsets} from 'react-native-safe-area-context';
 
 // --- GETADDRESS.IO HELPER ---
 const GETADDRESS_KEY = '_UFb05P76EyMidU1VHIQ_A42976';
@@ -54,6 +55,7 @@ const fetchAddresses = async postcode => {
 
 export default function ResidentialAddressScreen() {
   const navigation = useNavigation();
+  const insets = useSafeAreaInsets();
   const {patientInfo, setPatientInfo} = usePatientInfoStore();
 
   const [addressOptions, setAddressOptions] = useState([]);
@@ -160,7 +162,7 @@ export default function ResidentialAddressScreen() {
   return (
     <>
       <Header />
-      <ScrollView contentContainerStyle={styles.container}>
+      <ScrollView contentContainerStyle={[styles.container, {paddingBottom: insets.bottom + 16}]}>
         <View style={styles.progressBarBackground}>
           <View style={styles.progressBarFill} />
         </View>

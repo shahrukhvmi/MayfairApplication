@@ -16,6 +16,7 @@ import {useForm, Controller} from 'react-hook-form';
 import {launchImageLibrary} from 'react-native-image-picker';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import {useNavigation} from '@react-navigation/native';
+import Toast from 'react-native-toast-message';
 
 import useCartStore from '../store/useCartStore';
 import useImageUploadStore from '../store/useImageUploadStore';
@@ -31,9 +32,11 @@ import FullBody from '../assets/images/full-body-ok.png';
 import FaceX from '../assets/images/face-x.png';
 import HalfBodyX from '../assets/images/half-body-x.png';
 import Header from '../Layout/header';
+import {useSafeAreaInsets} from 'react-native-safe-area-context';
 
 export default function PhotoUpload() {
   const navigation = useNavigation();
+  const insets = useSafeAreaInsets();
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [buttonLabel, setButtonLabel] = useState('Return to Dashboard');
@@ -66,12 +69,13 @@ export default function PhotoUpload() {
     askPermissions();
   }, []);
 
+  const MAX_SIZE_MB = 30;
+
   // pick image from gallery
   const handleUpload = async type => {
     launchImageLibrary(
       {
         mediaType: 'photo',
-        includeBase64: true,
         quality: 0.8,
       },
       response => {
@@ -81,6 +85,13 @@ export default function PhotoUpload() {
           console.log('ImagePicker Error: ', response.errorMessage);
         } else if (response.assets && response.assets.length > 0) {
           const file = response.assets[0];
+          if (file.fileSize && file.fileSize > MAX_SIZE_MB * 1024 * 1024) {
+            Toast.show({
+              type: 'error',
+              text1: `File too large. Maximum allowed size is ${MAX_SIZE_MB} MB.`,
+            });
+            return;
+          }
           setValue(type, file);
         }
       },
@@ -122,19 +133,23 @@ export default function PhotoUpload() {
   const onSubmit = async data => {
     try {
       if (!data.frontPhoto) {
-        Alert.alert('Upload Required', 'Please upload a full body image.');
+        Toast.show({type: 'error', text1: 'Please upload a full body image.'});
         return;
       }
       setLoading(true);
 
-      const payload = {
-        front: data.frontPhoto.base64, // ✅ send base64
-        order_id: orderId,
-      };
+      // ✅ Multipart FormData (web jaisa) — base64 nahi
+      const formData = new FormData();
+      formData.append('front', {
+        uri: data.frontPhoto.uri,
+        type: data.frontPhoto.type || 'image/jpeg',
+        name: data.frontPhoto.fileName || 'front.jpg',
+      });
+      formData.append('order_id', orderId);
 
-      const res = await ImageUplaodApi(payload);
+      const res = await ImageUplaodApi(formData);
 
-      if (res?.status == 200) {
+      if (res?.status === 200) {
         setOpen(true);
         if (!idVerificationUpload) {
           setButtonLabel('Upload ID verification photo');
@@ -143,12 +158,31 @@ export default function PhotoUpload() {
         }
       }
     } catch (error) {
-      console.log('Upload error', error);
+      console.log('Upload error', error?.response?.data || error);
+
+      const frontError = error?.response?.data?.errors?.front;
+      const orderError = error?.response?.data?.errors?.Order;
+      const pick = e => (Array.isArray(e) ? e[0] : e);
+
       if (error?.response?.data?.message === 'Unauthenticated.') {
-        Alert.alert('Session Expired', 'Please login again to upload images.', [
-          {text: 'OK', onPress: () => navigation.replace('Login')},
-        ]);
+        Toast.show({
+          type: 'error',
+          text1: 'Failed to upload images. Please login again.',
+        });
+        navigation.replace('Login');
+      } else if (frontError) {
+        Toast.show({type: 'error', text1: pick(frontError)});
+      } else if (orderError) {
+        Toast.show({type: 'error', text1: pick(orderError)});
+      } else {
+        Toast.show({
+          type: 'error',
+          text1: 'Something went wrong. Please try again.',
+        });
       }
+
+      // Error pe photo clear — user dobara select kare
+      setValue('frontPhoto', null);
     } finally {
       setLoading(false);
     }
@@ -175,10 +209,10 @@ export default function PhotoUpload() {
             <Text style={styles.uploadText}>Tap to upload</Text>
           </View>
         ) : (
-          <View style={{alignItems: 'center'}}>
+          <View style={{width: '100%', alignItems: 'center'}}>
             <Image
               source={{uri: photo.uri}}
-              style={{width: 80, height: 120, borderRadius: 8}}
+              style={{width: '100%', height: 200, borderRadius: 8}}
               resizeMode="contain"
             />
             <Ionicons
@@ -219,7 +253,7 @@ export default function PhotoUpload() {
         </View>
       </Modal>
 
-      <ScrollView contentContainerStyle={styles.container}>
+      <ScrollView contentContainerStyle={[styles.container, {paddingBottom: insets.bottom + 16}]}>
         <Text style={styles.heading}>
           Submit your photo for prescriber review
         </Text>

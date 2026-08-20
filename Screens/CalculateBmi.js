@@ -20,6 +20,7 @@ import BmiTextField from '../Components/BmiTextField';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import useReorderBackProcessStore from '../store/useReorderBackProcess';
 import useReturning from '../store/useReturningPatient';
+import {useSafeAreaInsets} from 'react-native-safe-area-context';
 
 const validateRange = (value, min, max, wholeOnly, message) => {
   const num = Number(value);
@@ -42,6 +43,7 @@ export default function CalculateBmi() {
 
   const { bmi, setBmi } = useBmiStore();
   const navigation = useNavigation();
+  const insets = useSafeAreaInsets();
   const { isReturningPatient } = useReturning();
   const {
     register,
@@ -322,7 +324,7 @@ export default function CalculateBmi() {
   return (
     <>
       <Header />
-      <ScrollView contentContainerStyle={styles.container}>
+      <ScrollView contentContainerStyle={[styles.container, {paddingBottom: insets.bottom + 16}]}>
         {/* Progress */}
         <View style={styles.progressContainer}>
           <View style={styles.progressBar} />
