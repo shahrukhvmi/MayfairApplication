@@ -18,7 +18,10 @@ import PostcodeSearchInput from './PostcodeSearchInput';
 import {useFocusEffect} from '@react-navigation/native';
 import NextButton from './NextButton';
 import SelectFields from './SelectFields';
+import {Fonts} from '../utils/fonts';
+import Feather from 'react-native-vector-icons/Feather';
 
+const PRIMARY = '#47317c';
 const GETADDRESS_KEY = '_UFb05P76EyMidU1VHIQ_A42976';
 
 // Fetch helper
@@ -176,12 +179,21 @@ export default function Billing({billingCountries}) {
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
-      <Text style={styles.title}>Billing Information</Text>
-      <Text style={styles.subtitle}>
-        Update your billing details — changes will apply to future orders only.
-      </Text>
+      <View style={styles.card}>
+        <View style={styles.cardHeader}>
+          <View style={styles.iconBox}>
+            <Feather name="credit-card" size={19} color={PRIMARY} />
+          </View>
+          <View style={{flex: 1}}>
+            <Text style={styles.title}>Billing information</Text>
+            <Text style={styles.subtitle}>
+              Update your billing details — changes will apply to future
+              orders only.
+            </Text>
+          </View>
+        </View>
 
-      <View style={{marginTop: 24}}>
+        <View style={{marginTop: 22}}>
         {/* Country Dropdown */}
         <Controller
           name="billingCountry"
@@ -323,28 +335,68 @@ export default function Billing({billingCountries}) {
             />
           )}
         />
-        <NextButton
-          disabled={!isValid}
-          label="Update"
-          onPress={handleSubmit(onSubmit)}
-          loading={showLoader}
-        />
+        <View style={styles.buttonWrap}>
+          <NextButton
+            disabled={!isValid}
+            label="Update billing"
+            onPress={handleSubmit(onSubmit)}
+            loading={showLoader}
+            style={styles.submitButton}
+          />
+        </View>
+        </View>
       </View>
     </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {paddingBottom: 60},
+  container: {paddingBottom: 20},
+  card: {
+    borderWidth: 1,
+    borderColor: 'rgba(71, 49, 124, 0.1)',
+    borderRadius: 20,
+    backgroundColor: '#fff',
+    padding: 18,
+  },
+  cardHeader: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 14,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(71, 49, 124, 0.07)',
+    paddingBottom: 18,
+  },
+  iconBox: {
+    width: 44,
+    height: 44,
+    borderRadius: 14,
+    backgroundColor: 'rgba(71, 49, 124, 0.08)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  buttonWrap: {
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(71, 49, 124, 0.07)',
+    paddingTop: 18,
+    marginTop: 4,
+  },
+  submitButton: {
+    backgroundColor: PRIMARY,
+    borderRadius: 13,
+    minHeight: 46,
+  },
   title: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: '#000',
+    fontSize: 18,
+    color: '#0f172a',
+    fontFamily: Fonts.bold,
   },
   subtitle: {
-    fontSize: 14,
-    color: '#444',
-    marginTop: 6,
+    fontSize: 12.5,
+    color: '#64748b',
+    marginTop: 4,
+    lineHeight: 17,
+    fontFamily: Fonts.regular,
   },
   postcodeRow: {
     flexDirection: 'row',

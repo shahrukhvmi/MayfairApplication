@@ -33,6 +33,7 @@ import Toast from 'react-native-toast-message';
 import sendStepData from '../api/stepsDataApi';
 import useLastBmi from '../store/useLastBmiStore';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
+import {Fonts} from '../utils/fonts';
 
 export default function ConfirmationSummary() {
   const navigation = useNavigation();
@@ -168,135 +169,216 @@ export default function ConfirmationSummary() {
     navigation.navigate(reorderBackProcess ? 'bmi' : 'gp-detail');
   };
 
+  const {email} = useSignupStore();
+
+  const InfoTile = ({label, value}) => (
+    <View style={styles.tile}>
+      <Text style={styles.tileLabel}>{label}</Text>
+      <Text style={styles.tileValue}>{value}</Text>
+    </View>
+  );
+
   return (
     <>
       <Header />
-      <ScrollView contentContainerStyle={[styles.container, {paddingBottom: insets.bottom + 16}]}>
-        {/* Progress */}
-        <View style={styles.progressContainer}>
-          <View style={styles.progressBar} />
-        </View>
-        <Text style={styles.progressText}>95% Completed</Text>
-
-        {/* Title */}
-        <Text style={styles.heading}>Confirm your answers</Text>
-        <Text style={styles.subheading}>
-          It’s important your answers are accurate, as we’ll use them to
-          determine your suitability for the treatment.
-        </Text>
-
-        {/* Summary Box */}
-        <View style={styles.answerBox}>
-          <Text style={styles.row}>
-            <Text style={styles.label}>Full Name: </Text>
-            <Text style={styles.value}>
-              {firstName
-                ? `${firstName} ${lastName}`
-                : `${patientInfo?.firstName} ${patientInfo?.lastName}`}
-            </Text>
-          </Text>
-          <Text style={styles.row}>
-            <Text style={styles.label}>Post code: </Text>
-            <Text style={styles.value}>{patientInfo?.address?.postalcode}</Text>
-          </Text>
-          <Text style={styles.row}>
-            <Text style={styles.label}>Date of Birth: </Text>
-            <Text style={styles.value}>{patientInfo?.dob}</Text>
-          </Text>
-          <Text style={styles.row}>
-            <Text style={styles.label}>Gender: </Text>
-            <Text style={styles.value}>{patientInfo?.gender}</Text>
-          </Text>
-          <Text style={styles.row}>
-            <Text style={styles.label}>Height: </Text>
-            <Text style={styles.value}>
-              {bmi?.height_unit === 'imperial'
-                ? `${bmi?.ft} ft ${bmi?.inch} inch`
-                : `${bmi?.cm} cm`}
-            </Text>
-          </Text>
-
-          <Text style={styles.row}>
-            <Text style={styles.label}>Weight: </Text>
-            <Text style={styles.value}>
-              {bmi?.weight_unit === 'metrics'
-                ? `${bmi?.kg} kg`
-                : `${bmi?.stones} stones ${bmi?.pound} pound`}
-            </Text>
-          </Text>
-          <Text style={styles.row}>
-            <Text style={styles.label}>BMI: </Text>
-            <Text style={styles.value}>{bmi?.bmi?.toFixed(1)}</Text>
-          </Text>
+      <ScrollView
+        style={styles.screen}
+        contentContainerStyle={[styles.container, {paddingBottom: insets.bottom + 24}]}
+        showsVerticalScrollIndicator={false}>
+        {/* Progress bar */}
+        <View style={styles.progressTrack}>
+          <View style={[styles.progressFill, {width: '95%'}]} />
         </View>
 
-        {/* Buttons */}
-        <NextButton label="Confirm and proceed" onPress={hanldeConfirm} />
-        <BackButton label="Review all answers" onPress={reviewAll} />
-        <BackButton label="Back" onPress={back} />
+        {/* Card */}
+        <View style={styles.card}>
+          <View style={styles.cardHeader}>
+            <Text style={styles.progressLabel}>95% COMPLETED</Text>
+            <Text style={styles.heading}>Confirm your answers</Text>
+            <Text style={styles.description}>
+              It's important your answers are accurate, as we'll use them to
+              determine your suitability for the treatment.
+            </Text>
+          </View>
+
+          <View style={styles.cardBody}>
+            {/* Summary grid */}
+            <View style={styles.grid}>
+              <InfoTile
+                label="Name"
+                value={
+                  firstName
+                    ? `${firstName} ${lastName}`
+                    : `${patientInfo?.firstName} ${patientInfo?.lastName}`
+                }
+              />
+              <InfoTile label="Email" value={email} />
+              <InfoTile
+                label="Post code"
+                value={patientInfo?.address?.postalcode}
+              />
+              <InfoTile label="Date of Birth" value={patientInfo?.dob} />
+              <InfoTile
+                label="Height"
+                value={
+                  bmi?.height_unit === 'imperial'
+                    ? `${bmi?.ft} ft ${bmi?.inch} inch`
+                    : `${bmi?.cm} cm`
+                }
+              />
+              <InfoTile label="Gender" value={patientInfo?.gender} />
+              <InfoTile
+                label="Weight"
+                value={
+                  bmi?.weight_unit === 'metrics'
+                    ? `${bmi?.kg} kg`
+                    : `${bmi?.stones} stones ${bmi?.pound} pound`
+                }
+              />
+              <View style={styles.tile}>
+                <Text style={styles.tileLabel}>BMI</Text>
+                <Text style={styles.tileValueBmi}>{bmi?.bmi?.toFixed(1)}</Text>
+              </View>
+            </View>
+
+            {/* Buttons */}
+            <View style={styles.buttonWrap}>
+              <NextButton
+                label="Confirm and proceed"
+                onPress={hanldeConfirm}
+                style={styles.submitButton}
+              />
+              <BackButton label="Review all answers" onPress={reviewAll} />
+              <BackButton label="Back" onPress={back} />
+            </View>
+          </View>
+        </View>
       </ScrollView>
 
       <Modal visible={showLoader} transparent animationType="none">
         <View style={styles.loaderOverlay}>
-          <ActivityIndicator size="large" color="#4B0082" />
+          <ActivityIndicator size="large" color={PRIMARY} />
         </View>
       </Modal>
     </>
   );
 }
 
+const PRIMARY = '#47317c';
+
 const styles = StyleSheet.create({
+  screen: {
+    backgroundColor: '#FBFBFD',
+  },
   container: {
-    backgroundColor: '#f8f5ff',
+    padding: 16,
     flexGrow: 1,
-    padding: 20,
-    paddingBottom: 100,
   },
-  progressContainer: {
-    height: 4,
-    backgroundColor: '#eee',
+
+  // Progress bar
+  progressTrack: {
+    height: 3,
     borderRadius: 2,
+    backgroundColor: 'rgba(71, 49, 124, 0.08)',
+    marginBottom: 16,
     overflow: 'hidden',
-    marginBottom: 6,
   },
-  progressBar: {
-    width: '95%',
-    height: 4,
-    backgroundColor: '#4B0082',
+  progressFill: {
+    height: '100%',
+    borderRadius: 2,
+    backgroundColor: PRIMARY,
   },
-  progressText: {
-    textAlign: 'center',
-    fontSize: 12,
-    color: '#666',
-    marginBottom: 20,
+
+  // Card
+  card: {
+    borderWidth: 1,
+    borderColor: 'rgba(71, 49, 124, 0.1)',
+    borderRadius: 18,
+    backgroundColor: '#fff',
+    overflow: 'hidden',
+    shadowColor: 'rgba(71, 49, 124, 0.15)',
+    shadowOffset: {width: 0, height: 8},
+    shadowOpacity: 1,
+    shadowRadius: 20,
+    elevation: 3,
+  },
+  cardHeader: {
+    backgroundColor: '#f5f2fc',
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(71, 49, 124, 0.08)',
+    paddingHorizontal: 20,
+    paddingTop: 22,
+    paddingBottom: 20,
+  },
+  progressLabel: {
+    fontSize: 10.5,
+    fontFamily: Fonts.medium,
+    color: 'rgba(71, 49, 124, 0.7)',
+    letterSpacing: 1.4,
+    marginBottom: 8,
   },
   heading: {
-    fontSize: 22,
-    fontWeight: 'bold',
-    marginBottom: 10,
+    fontSize: 21,
+    fontFamily: Fonts.semiBold,
+    color: '#0f172a',
+    marginBottom: 6,
   },
-  subheading: {
-    fontSize: 14,
-    color: '#333',
-    marginBottom: 20,
+  description: {
+    fontSize: 12.5,
+    fontFamily: Fonts.regular,
+    color: '#64748b',
+    lineHeight: 18,
   },
-  answerBox: {
-    backgroundColor: '#eee9ff',
-    borderRadius: 10,
-    padding: 20,
-    marginBottom: 30,
+  cardBody: {
+    paddingHorizontal: 20,
+    paddingTop: 20,
+    paddingBottom: 24,
   },
-  row: {
-    marginBottom: 10,
-    fontSize: 14,
+
+  // Summary grid
+  grid: {
+    flexDirection: 'row',
     flexWrap: 'wrap',
+    gap: 10,
+    marginBottom: 22,
   },
-  label: {
-    fontWeight: 'bold',
+  tile: {
+    width: '48%',
+    borderWidth: 1,
+    borderColor: '#f1f5f9',
+    borderRadius: 12,
+    backgroundColor: '#fff',
+    paddingHorizontal: 12,
+    paddingVertical: 11,
   },
-  value: {
-    color: '#333',
+  tileLabel: {
+    fontSize: 10,
+    fontFamily: Fonts.medium,
+    color: '#94a3b8',
+    textTransform: 'uppercase',
+    letterSpacing: 1,
+    marginBottom: 3,
   },
+  tileValue: {
+    fontSize: 13,
+    fontFamily: Fonts.medium,
+    color: '#1e293b',
+  },
+  tileValueBmi: {
+    fontSize: 14,
+    fontFamily: Fonts.semiBold,
+    color: PRIMARY,
+  },
+
+  buttonWrap: {
+    gap: 4,
+  },
+  submitButton: {
+    backgroundColor: PRIMARY,
+    borderRadius: 12,
+    minHeight: 48,
+  },
+
   loaderOverlay: {
     flex: 1,
     backgroundColor: 'rgba(255,255,255,0.7)',

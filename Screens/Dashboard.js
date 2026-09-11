@@ -7,12 +7,14 @@ import {
   useWindowDimensions,
 } from 'react-native';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
+import {useIsFocused, useRoute} from '@react-navigation/native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 
 import DashboardHome from './DashboardHome';
 import OrdersScreen from './OrdersScreen';
 import AddressBookScreen from './AddressBookScreen';
 import ChangePasswordScreen from './ChangePasswordScreen';
+import WeightLossJourneyScreen from './WeightLossJourneyScreen';
 
 const TABS = [
   {
@@ -31,6 +33,11 @@ const TABS = [
     label: 'Address Book',
   },
   {
+    icon: 'trending-up-outline',
+    activeIcon: 'trending-up',
+    label: 'Weight Loss Journey',
+  },
+  {
     icon: 'key-outline',
     activeIcon: 'key',
     label: 'Change Password',
@@ -41,6 +48,7 @@ const SCREENS = [
   DashboardHome,
   OrdersScreen,
   AddressBookScreen,
+  WeightLossJourneyScreen,
   ChangePasswordScreen,
 ];
 
@@ -51,6 +59,8 @@ const ACTIVE_CIRCLE_SIZE = 48;
 const Dashboard = () => {
   const {width} = useWindowDimensions();
   const insets = useSafeAreaInsets();
+  const route = useRoute();
+  const isFocused = useIsFocused();
 
   const [activeIndex, setActiveIndex] = useState(0);
   const activeIndexRef = useRef(0);
@@ -99,6 +109,23 @@ const Dashboard = () => {
     screenTranslateX.setValue(-width * currentIndex);
     sliderTranslateX.setValue(tabWidth * currentIndex);
   }, [width, tabWidth, screenTranslateX, sliderTranslateX]);
+
+  /*
+   * Allow other screens (e.g. the header dropdown) to deep-link into a
+   * specific tab via navigation.navigate('dashboard', {tab: 1}).
+   */
+  useEffect(() => {
+    if (!isFocused) return;
+
+    const requestedTab = route?.params?.tab;
+    if (requestedTab === undefined || requestedTab === null) return;
+    if (requestedTab === activeIndexRef.current) return;
+
+    activeIndexRef.current = requestedTab;
+    setActiveIndex(requestedTab);
+    screenTranslateX.setValue(-width * requestedTab);
+    sliderTranslateX.setValue(tabWidth * requestedTab);
+  }, [isFocused, route?.params?.tab, width, tabWidth, screenTranslateX, sliderTranslateX]);
 
   return (
     <View style={styles.container}>
@@ -206,8 +233,6 @@ const styles = StyleSheet.create({
     paddingTop: 10,
     paddingHorizontal: TAB_BAR_MARGIN,
     backgroundColor: '#FFFFFF',
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: '#E9E6ED',
   },
 
   tabBar: {
@@ -219,18 +244,6 @@ const styles = StyleSheet.create({
 
     backgroundColor: '#FFFFFF',
     borderRadius: 22,
-    borderWidth: 1,
-    borderColor: '#EBE7EF',
-
-    shadowColor: '#24003D',
-    shadowOffset: {
-      width: 0,
-      height: 4,
-    },
-    shadowOpacity: 0.12,
-    shadowRadius: 10,
-
-    elevation: 7,
   },
 
   tab: {
@@ -252,16 +265,6 @@ const styles = StyleSheet.create({
 
     borderRadius: ACTIVE_CIRCLE_SIZE / 2,
     backgroundColor: '#4B006E',
-
-    shadowColor: '#4B006E',
-    shadowOffset: {
-      width: 0,
-      height: 4,
-    },
-    shadowOpacity: 0.28,
-    shadowRadius: 7,
-
-    elevation: 6,
   },
 });
 

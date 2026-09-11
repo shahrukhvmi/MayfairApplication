@@ -8,13 +8,13 @@ import {
   ScrollView,
   ActivityIndicator,
   Modal,
-  Alert,
 } from 'react-native';
 import {useForm, Controller} from 'react-hook-form';
-import {Picker} from '@react-native-picker/picker';
 import {launchImageLibrary} from 'react-native-image-picker';
-import Ionicons from 'react-native-vector-icons/Ionicons';
+import Feather from 'react-native-vector-icons/Feather';
 import {useNavigation} from '@react-navigation/native';
+import {useSafeAreaInsets} from 'react-native-safe-area-context';
+import Toast from 'react-native-toast-message';
 
 import useCartStore from '../store/useCartStore';
 import useImageUploadStore from '../store/useImageUploadStore';
@@ -24,12 +24,22 @@ import {
   IdVerificationUpload,
   GetIdVerification,
 } from '../api/IdVerificationApi';
-import Toast from 'react-native-toast-message';
 import GetImageIsUplaod from '../api/GetImageIsUplaod';
 import NextButton from '../Components/NextButton';
 import Header from '../Layout/header';
 import {logApiSuccess} from '../utils/logApiDebug';
-import {useSafeAreaInsets} from 'react-native-safe-area-context';
+import {Fonts} from '../utils/fonts';
+
+const PRIMARY = '#47317c';
+const VIOLET = '#6d28d9';
+const MAX_SIZE_MB = 30;
+
+const ID_OPTIONS = [
+  {label: 'Passport', value: 'passport'},
+  {label: 'Driving License', value: 'driving_license'},
+  {label: 'Proof of age card (e.g. PASS card)', value: 'pass_card'},
+  {label: 'Government-issued ID card', value: 'id_card'},
+];
 
 export default function IdVerification() {
   const navigation = useNavigation();
@@ -40,17 +50,8 @@ export default function IdVerification() {
   const [selectedId, setSelectedId] = useState('passport');
   const [showIdDropdown, setShowIdDropdown] = useState(false);
 
-  const idOptions = [
-    {label: 'Passport', value: 'passport'},
-    {label: 'Driving License', value: 'driving_license'},
-    {label: 'Proof of age card (e.g. PASS card)', value: 'pass_card'},
-    {label: 'Government-issued ID card', value: 'id_card'},
-  ];
-
   const {control, setValue, handleSubmit, watch} = useForm();
   const {orderId} = useCartStore();
-
-  console.log(orderId, 'checking top order id');
 
   const {imageUploaded, setImageUploaded} = useImageUploadStore();
   const {idVerificationUpload, setIdVerificationUpload} =
@@ -59,16 +60,6 @@ export default function IdVerification() {
   const frontPhoto = watch('frontPhoto');
   const sidePhoto = watch('sidePhoto');
 
-  const idImages = {
-    passport: require('../assets/images/passport.png'),
-    driving_license: require('../assets/images/driving.png'),
-    pass_card: require('../assets/images/passcard.png'),
-    id_card: require('../assets/images/passcard.png'),
-  };
-
-  const MAX_SIZE_MB = 30;
-
-  // pick image
   const handleUpload = async type => {
     const result = await launchImageLibrary({
       mediaType: 'photo',
@@ -113,8 +104,6 @@ export default function IdVerification() {
   }, [orderId]);
 
   const onSubmit = async data => {
-    console.log('================== Console From Top ===============');
-
     try {
       if (!data.frontPhoto) {
         Toast.show({type: 'error', text1: 'Please upload a front image.'});
@@ -137,9 +126,7 @@ export default function IdVerification() {
 
       if (res?.status === 200) {
         logApiSuccess(res);
-        console.log('================== Console Between ===============');
-
-        setOpen(true); // ✅ only here
+        setOpen(true);
         setButtonLabel(
           !imageUploaded ? 'Upload full body photo' : 'Return to Dashboard',
         );
@@ -151,7 +138,6 @@ export default function IdVerification() {
       }
     } catch (error) {
       console.log('Upload Error', error?.response?.data);
-
       const errs = error?.response?.data?.errors;
       const pick = e => (Array.isArray(e) ? e[0] : e);
 
@@ -179,54 +165,43 @@ export default function IdVerification() {
   };
 
   const handleRedirect = () => {
-    console.log(imageUploaded, '======== is Image uploaded');
-    console.log(orderId, '======== is order id');
+    setOpen(false);
     if (!imageUploaded) {
-      setOpen(false);
       navigation.navigate('photo-upload');
     } else {
-      setOpen(false);
       navigation.navigate('dashboard');
     }
   };
 
-  const renderUploadBox = (label, photo, type, suggestion) => (
-    <View style={styles.uploadBox}>
+  const renderUploadBox = (label, photo, type, required) => (
+    <View style={styles.uploadCol}>
       <Text style={styles.uploadLabel}>
-        {label.includes('*') ? (
-          <>
-            {label.replace('*', '')}
-            <Text style={{color: 'red'}}>*</Text>
-          </>
-        ) : (
-          label
-        )}
+        {label}
+        {required && <Text style={styles.required}> *</Text>}
       </Text>
       <TouchableOpacity
         style={styles.uploadArea}
+        activeOpacity={0.8}
         onPress={() => handleUpload(type)}>
         {!photo ? (
-          <View style={{alignItems: 'center'}}>
-            <Ionicons name="cloud-upload-outline" size={40} color="#6D28D9" />
-            <Text style={styles.uploadText}>Tap to upload</Text>
+          <View style={styles.uploadEmpty}>
+            <Feather name="upload" size={24} color={VIOLET} />
+            <Text style={styles.uploadText}>Click here</Text>
+            <Text style={styles.uploadSubText}>or tap to upload image</Text>
           </View>
         ) : (
-          <View style={{width: '100%', alignItems: 'center'}}>
+          <View style={styles.previewWrap}>
             <Image
               source={{uri: photo.uri}}
-              style={{width: '100%', height: 150, borderRadius: 8}}
+              style={styles.preview}
               resizeMode="contain"
             />
-            <Ionicons
-              name="checkmark-circle"
-              size={22}
-              color="green"
-              style={styles.checkIcon}
-            />
+            <View style={styles.previewCheck}>
+              <Feather name="check-circle" size={20} color="#1F9E8C" />
+            </View>
           </View>
         )}
       </TouchableOpacity>
-      <Text style={styles.helperText}>{suggestion}</Text>
     </View>
   );
 
@@ -238,186 +213,204 @@ export default function IdVerification() {
       <Modal visible={open} transparent animationType="fade">
         <View style={styles.modalOverlay}>
           <View style={styles.modalBox}>
-            <Ionicons
-              name="checkmark-circle"
-              size={80}
-              color="#6D28D9"
-              style={{alignSelf: 'center', marginBottom: 10}}
-            />
+            <View style={styles.modalIconCircle}>
+              <Feather name="check" size={34} color="#fff" />
+            </View>
             <Text style={styles.modalTitle}>ID successfully uploaded</Text>
             <Text style={styles.modalText}>
               {!imageUploaded
-                ? 'Your ID Verification photo has been uploaded and is under review. Please upload your full body photo to proceed.'
-                : 'Your ID has been uploaded and is now under review. We’ll approve your order once the review is complete.'}
+                ? 'Your ID verification photo has been uploaded and is under review. Please upload your full body photo to proceed.'
+                : "Your ID has been uploaded and is now under review. We'll approve your order once the review is complete."}
             </Text>
-            <NextButton label={buttonLabel} onPress={handleRedirect} />
+            <NextButton
+              label={buttonLabel}
+              onPress={handleRedirect}
+              style={styles.modalButton}
+            />
           </View>
         </View>
       </Modal>
 
-      <ScrollView contentContainerStyle={[styles.container, {paddingBottom: insets.bottom + 16}]}>
-        <Text style={styles.heading}>ID verification required</Text>
-        <Text style={styles.subtext}>
-          As an online healthcare provider, we are required by law to confirm
-          that all patients are at least 18 years of age. Normally, these checks
-          are completed automatically using the information you provide.
-        </Text>
+      <ScrollView
+        style={styles.screen}
+        contentContainerStyle={[
+          styles.container,
+          {paddingBottom: insets.bottom + 24},
+        ]}
+        showsVerticalScrollIndicator={false}>
+        <View style={styles.card}>
+          {/* Heading */}
+          <Text style={styles.heading}>ID verification required</Text>
+          <View style={styles.headingRule} />
 
-        <Text style={[styles.subtext, {marginTop: 20}]}>
-          How would you like to verify your identity?
-        </Text>
-
-        {/* Single-line dropdown */}
-        <TouchableOpacity
-          style={styles.dropdown}
-          activeOpacity={0.7}
-          onPress={() => setShowIdDropdown(true)}>
-          <Text style={styles.dropdownText}>
-            {idOptions.find(o => o.value === selectedId)?.label ||
-              'Select ID type'}
+          <Text style={styles.subtext}>
+            As an online healthcare provider, we are required by law to confirm
+            that all patients are at least 18 years of age. Normally, these
+            checks are completed automatically against national identity
+            registers using the information you provide.
           </Text>
-          <Ionicons name="chevron-down" size={20} color="#555" />
-        </TouchableOpacity>
 
-        {/* Dropdown options */}
-        <Modal
-          visible={showIdDropdown}
-          transparent
-          animationType="fade"
-          onRequestClose={() => setShowIdDropdown(false)}>
+          <Text style={styles.question}>
+            How would you like to verify your identity?
+          </Text>
+
+          {/* Dropdown */}
           <TouchableOpacity
-            style={styles.dropdownOverlay}
-            activeOpacity={1}
-            onPress={() => setShowIdDropdown(false)}>
-            <View style={styles.dropdownSheet}>
-              {idOptions.map(opt => (
-                <TouchableOpacity
-                  key={opt.value}
-                  style={styles.dropdownOption}
-                  onPress={() => {
-                    setSelectedId(opt.value);
-                    setShowIdDropdown(false);
-                  }}>
-                  <Text
-                    style={[
-                      styles.dropdownOptionText,
-                      selectedId === opt.value &&
-                        styles.dropdownOptionTextActive,
-                    ]}>
-                    {opt.label}
-                  </Text>
-                  {selectedId === opt.value && (
-                    <Ionicons name="checkmark" size={18} color="#6D28D9" />
-                  )}
-                </TouchableOpacity>
-              ))}
-            </View>
+            style={styles.dropdown}
+            activeOpacity={0.7}
+            onPress={() => setShowIdDropdown(true)}>
+            <Text style={styles.dropdownText}>
+              {ID_OPTIONS.find(o => o.value === selectedId)?.label ||
+                'Select ID type'}
+            </Text>
+            <Feather name="chevron-down" size={20} color="#555" />
           </TouchableOpacity>
-        </Modal>
 
-        {/* Preview of selected ID */}
-        <View style={styles.exampleRow}>
-          <Image
-            source={idImages[selectedId]}
-            style={styles.exampleImage}
-            resizeMode="contain"
-          />
+          {/* Upload boxes side by side */}
+          <View style={styles.uploadRow}>
+            <Controller
+              name="frontPhoto"
+              control={control}
+              defaultValue={null}
+              render={() =>
+                renderUploadBox('Front', frontPhoto, 'frontPhoto', true)
+              }
+            />
+            <Controller
+              name="sidePhoto"
+              control={control}
+              defaultValue={null}
+              render={() =>
+                renderUploadBox('Back (optional)', sidePhoto, 'sidePhoto', false)
+              }
+            />
+          </View>
+
+          {/* Submit */}
+          <View style={styles.submitWrap}>
+            <TouchableOpacity
+              style={[
+                styles.submitBtn,
+                (loading || !frontPhoto) && styles.submitBtnDisabled,
+              ]}
+              onPress={handleSubmit(onSubmit)}
+              disabled={loading || !frontPhoto}
+              activeOpacity={0.85}>
+              {loading ? (
+                <ActivityIndicator color="#fff" />
+              ) : (
+                <Text
+                  style={[
+                    styles.submitText,
+                    (loading || !frontPhoto) && styles.submitTextDisabled,
+                  ]}>
+                  Upload
+                </Text>
+              )}
+            </TouchableOpacity>
+          </View>
         </View>
-
-        <Controller
-          name="frontPhoto"
-          control={control}
-          defaultValue={null}
-          render={() =>
-            renderUploadBox(
-              'Front*',
-              frontPhoto,
-              'frontPhoto',
-              'Upload the front of your ID',
-            )
-          }
-        />
-
-        <Controller
-          name="sidePhoto"
-          control={control}
-          defaultValue={null}
-          render={() =>
-            renderUploadBox(
-              'Back (optional)',
-              sidePhoto,
-              'sidePhoto',
-              'Upload the back of your ID',
-            )
-          }
-        />
-
-        <TouchableOpacity
-          style={[
-            styles.submitBtn,
-            (loading || !frontPhoto) && styles.submitBtnDisabled,
-          ]}
-          onPress={handleSubmit(onSubmit)}
-          disabled={loading || !frontPhoto}>
-          {loading ? (
-            <ActivityIndicator color="#fff" />
-          ) : (
-            <Text style={styles.submitText}>Upload</Text>
-          )}
-        </TouchableOpacity>
       </ScrollView>
+
+      {/* Dropdown options */}
+      <Modal
+        visible={showIdDropdown}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowIdDropdown(false)}>
+        <TouchableOpacity
+          style={styles.dropdownOverlay}
+          activeOpacity={1}
+          onPress={() => setShowIdDropdown(false)}>
+          <View style={styles.dropdownSheet}>
+            {ID_OPTIONS.map(opt => (
+              <TouchableOpacity
+                key={opt.value}
+                style={styles.dropdownOption}
+                onPress={() => {
+                  setSelectedId(opt.value);
+                  setShowIdDropdown(false);
+                }}>
+                <Text
+                  style={[
+                    styles.dropdownOptionText,
+                    selectedId === opt.value && styles.dropdownOptionTextActive,
+                  ]}>
+                  {opt.label}
+                </Text>
+                {selectedId === opt.value && (
+                  <Feather name="check" size={18} color={PRIMARY} />
+                )}
+              </TouchableOpacity>
+            ))}
+          </View>
+        </TouchableOpacity>
+      </Modal>
     </>
   );
 }
 
 const styles = StyleSheet.create({
+  screen: {
+    backgroundColor: '#FBFBFD',
+  },
   container: {
-    padding: 20,
-    backgroundColor: '#f7f4ff',
+    padding: 16,
     flexGrow: 1,
   },
+  card: {
+    backgroundColor: '#fff',
+    borderRadius: 22,
+    borderWidth: 1,
+    borderColor: '#f1f5f9',
+    padding: 20,
+    shadowColor: '#000',
+    shadowOffset: {width: 0, height: 12},
+    shadowOpacity: 0.08,
+    shadowRadius: 26,
+    elevation: 3,
+  },
+
   heading: {
     fontSize: 20,
-    fontWeight: '700',
+    fontFamily: Fonts.bold,
     color: '#000',
-    marginBottom: 10,
+  },
+  headingRule: {
+    height: 1,
+    backgroundColor: '#e5e7eb',
+    marginTop: 12,
+    marginBottom: 14,
   },
   subtext: {
+    fontSize: 13.5,
+    fontFamily: Fonts.regular,
+    color: '#475569',
+    lineHeight: 21,
+  },
+  question: {
     fontSize: 14,
-    color: '#555',
+    fontFamily: Fonts.regular,
+    color: '#374151',
+    marginTop: 22,
     marginBottom: 10,
   },
-  pickerWrapper: {
-    borderWidth: 1,
-    borderColor: '#ccc',
-    borderRadius: 8,
-    backgroundColor: '#fff',
-    marginVertical: 10,
-  },
-  exampleRow: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    marginVertical: 20,
-  },
-  exampleImage: {
-    width: '100%',
-    height: 200,
-    borderRadius: 8,
-  },
+
+  // Dropdown
   dropdown: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     borderWidth: 1,
-    borderColor: '#ccc',
-    borderRadius: 8,
+    borderColor: '#cbd5e1',
+    borderRadius: 10,
     backgroundColor: '#fff',
     paddingHorizontal: 14,
     paddingVertical: 14,
-    marginVertical: 10,
   },
   dropdownText: {
     fontSize: 15,
+    fontFamily: Fonts.regular,
     color: '#111',
     flex: 1,
   },
@@ -441,86 +434,148 @@ const styles = StyleSheet.create({
   },
   dropdownOptionText: {
     fontSize: 15,
+    fontFamily: Fonts.regular,
     color: '#333',
     flex: 1,
   },
   dropdownOptionTextActive: {
-    color: '#6D28D9',
-    fontWeight: '600',
+    color: PRIMARY,
+    fontFamily: Fonts.semiBold,
   },
-  uploadBox: {
-    marginVertical: 12,
+
+  // Upload
+  uploadRow: {
+    flexDirection: 'row',
+    gap: 12,
+    marginTop: 20,
+  },
+  uploadCol: {
+    flex: 1,
   },
   uploadLabel: {
-    fontSize: 14,
-    fontWeight: '600',
+    fontSize: 13.5,
+    fontFamily: Fonts.medium,
+    color: '#1e293b',
     marginBottom: 6,
   },
+  required: {
+    color: '#ef4444',
+  },
   uploadArea: {
-    borderWidth: 1,
+    borderWidth: 2,
     borderStyle: 'dashed',
-    borderColor: '#6D28D9',
-    borderRadius: 12,
-    padding: 20,
+    borderColor: VIOLET,
+    borderRadius: 16,
+    minHeight: 140,
+    padding: 10,
     alignItems: 'center',
     justifyContent: 'center',
-    width: '100%',
-    minHeight: 150,
     backgroundColor: '#fff',
   },
+  uploadEmpty: {
+    alignItems: 'center',
+  },
   uploadText: {
-    fontSize: 14,
-    color: '#555',
+    fontSize: 13,
+    fontFamily: Fonts.medium,
+    color: '#374151',
     marginTop: 8,
   },
-  checkIcon: {
+  uploadSubText: {
+    fontSize: 10.5,
+    fontFamily: Fonts.regular,
+    color: '#9ca3af',
+    marginTop: 2,
+    textAlign: 'center',
+  },
+  previewWrap: {
+    width: '100%',
+    alignItems: 'center',
+  },
+  preview: {
+    width: '100%',
+    height: 120,
+    borderRadius: 8,
+  },
+  previewCheck: {
     position: 'absolute',
     top: 4,
     right: 4,
   },
-  helperText: {
-    fontSize: 12,
-    color: '#666',
-    marginTop: 6,
-    textAlign: 'center',
+
+  // Submit
+  submitWrap: {
+    alignItems: 'center',
+    marginTop: 24,
   },
   submitBtn: {
-    backgroundColor: '#47317c',
-    padding: 14,
+    minHeight: 48,
+    paddingHorizontal: 40,
     borderRadius: 25,
+    backgroundColor: PRIMARY,
+    borderWidth: 2,
+    borderColor: PRIMARY,
+    justifyContent: 'center',
     alignItems: 'center',
-    marginTop: 20,
   },
   submitBtnDisabled: {
-    backgroundColor: '#ccc',
+    backgroundColor: '#d1d5db',
+    borderColor: '#d1d5db',
   },
   submitText: {
     color: '#fff',
-    fontWeight: '600',
+    fontSize: 14,
+    fontFamily: Fonts.semiBold,
   },
+  submitTextDisabled: {
+    color: '#fff',
+  },
+
+  // Modal
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.6)',
+    backgroundColor: 'rgba(15,23,42,0.5)',
     alignItems: 'center',
     justifyContent: 'center',
+    paddingHorizontal: 24,
   },
   modalBox: {
     backgroundColor: '#fff',
-    borderRadius: 16,
-    padding: 20,
-    width: '80%',
+    borderRadius: 18,
+    padding: 26,
+    width: '100%',
+    maxWidth: 380,
+    borderWidth: 1,
+    borderColor: 'rgba(71, 49, 124, 0.1)',
+  },
+  modalIconCircle: {
+    width: 62,
+    height: 62,
+    borderRadius: 31,
+    backgroundColor: PRIMARY,
+    justifyContent: 'center',
+    alignItems: 'center',
+    alignSelf: 'center',
+    marginBottom: 16,
   },
   modalTitle: {
-    fontSize: 18,
-    fontWeight: '700',
+    fontSize: 19,
+    fontFamily: Fonts.semiBold,
     textAlign: 'center',
-    marginBottom: 8,
-    color: '#000',
+    color: '#0f172a',
   },
   modalText: {
-    fontSize: 14,
+    fontSize: 13.5,
+    fontFamily: Fonts.regular,
     textAlign: 'center',
-    color: '#333',
-    marginBottom: 20,
+    color: '#475569',
+    marginTop: 10,
+    marginBottom: 22,
+    lineHeight: 20,
+  },
+  modalButton: {
+    backgroundColor: PRIMARY,
+    borderRadius: 12,
+    minHeight: 48,
   },
 });

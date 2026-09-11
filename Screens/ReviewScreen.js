@@ -10,8 +10,10 @@ import {
   Linking,
 } from 'react-native';
 import {DotLottie} from '@lottiefiles/dotlottie-react-native';
+import Ionicons from 'react-native-vector-icons/Ionicons';
 import {useNavigation} from '@react-navigation/native';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
+import {Fonts} from '../utils/fonts';
 import Toast from 'react-native-toast-message';
 import TrackReview from '../api/TrackReviewApi';
 import useReviewStore from '../store/useReviewStore';
@@ -109,7 +111,7 @@ export default function ReviewScreen() {
               <TouchableOpacity
                 style={styles.topBack}
                 onPress={() => transition('How was your experience?', 'idle')}>
-                <Text style={styles.topBackText}>← Back</Text>
+                <Ionicons name="chevron-back" size={22} color="#47317c" />
               </TouchableOpacity>
             )}
 
@@ -259,7 +261,7 @@ function ReviewButton({icon, label, subtitle, color, onPress}) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#4B0082',
+    backgroundColor: '#47317c',
   },
   content: {
     padding: 20,
@@ -287,12 +289,12 @@ const styles = StyleSheet.create({
   },
   topBackText: {
     fontSize: 16,
-    color: '#4B0082',
+    color: '#47317c',
     fontWeight: '600',
   },
   heading: {
     fontSize: 22,
-    fontWeight: '700',
+    fontWeight: '700', fontFamily: Fonts.semiBold,
     color: '#1A1A1A',
     textAlign: 'center',
     marginBottom: 28,
@@ -352,7 +354,7 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   submitBtn: {
-    backgroundColor: '#4B0082',
+    backgroundColor: '#47317c',
     borderRadius: 50,
     paddingVertical: 14,
     paddingHorizontal: 40,
@@ -400,13 +402,14 @@ const styles = StyleSheet.create({
   },
   reviewBtnLabel: {
     fontSize: 15,
-    fontWeight: '600',
+    fontWeight: '600', fontFamily: Fonts.medium,
     color: '#1A1A1A',
   },
   reviewBtnSub: {
     fontSize: 12,
     color: '#888',
     marginTop: 2,
+    fontFamily: Fonts.regular,
   },
   thanksPanel: {
     alignItems: 'center',
@@ -420,7 +423,7 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   backBtn: {
-    backgroundColor: '#4B0082',
+    backgroundColor: '#47317c',
     borderRadius: 50,
     paddingVertical: 14,
     paddingHorizontal: 40,

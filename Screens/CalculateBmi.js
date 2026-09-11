@@ -21,6 +21,7 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import useReorderBackProcessStore from '../store/useReorderBackProcess';
 import useReturning from '../store/useReturningPatient';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
+import {Fonts} from '../utils/fonts';
 
 const validateRange = (value, min, max, wholeOnly, message) => {
   const num = Number(value);
@@ -324,23 +325,27 @@ export default function CalculateBmi() {
   return (
     <>
       <Header />
-      <ScrollView contentContainerStyle={[styles.container, {paddingBottom: insets.bottom + 16}]}>
-        {/* Progress */}
-        <View style={styles.progressContainer}>
-          <View style={styles.progressBar} />
+      <ScrollView contentContainerStyle={[styles.container, {paddingBottom: insets.bottom + 16}]} showsVerticalScrollIndicator={false}>
+        {/* Progress bar */}
+        <View style={styles.progressTrack}>
+          <View style={[styles.progressFill, {width: '70%'}]} />
         </View>
-        <Text style={styles.progressText}>70% Completed</Text>
 
-        {/* Title */}
-        <Text style={styles.heading}>{localStep === 1
-          ? "What is your height?"
-          : "What is your current weight?"}</Text>
-        <Text style={styles.subText}>
-          Your Body Mass Index (BMI) is an important factor in assessing your
-          eligibility for treatment. Please enter your height below to allow us
-          to calculate your BMI.
-        </Text>
+        {/* Card */}
+        <View style={styles.card}>
+          <View style={styles.cardHeader}>
+            <Text style={styles.progressLabel}>70% COMPLETED</Text>
+            <Text style={styles.heading}>{localStep === 1
+              ? "What is your height?"
+              : "What is your current weight?"}</Text>
+            <Text style={styles.description}>
+              Your Body Mass Index (BMI) is an important factor in assessing your
+              eligibility for treatment. Please enter your {localStep === 1 ? 'height' : 'weight'} below to allow us
+              to calculate your BMI.
+            </Text>
+          </View>
 
+          <View style={styles.cardBody}>
         {/* Unit Switch */}
         <SwitchTabs
           tabs={
@@ -411,7 +416,7 @@ export default function CalculateBmi() {
         <View>
           {localStep === 1 &&
             (heightUnit === 'imperial' ? (
-              <View className="grid grid-cols-2 gap-4">
+              <View style={styles.row}>
                 <Controller
                   control={control}
                   name="heightFt"
@@ -433,6 +438,7 @@ export default function CalculateBmi() {
                       name="heightFt"
                       disabled={isReturningPatient}
                       readOnly={isReturningPatient}
+                      style={{flex: 1}}
                       fieldProps={{
                         value:
                           value !== undefined && value !== null
@@ -472,6 +478,7 @@ export default function CalculateBmi() {
                       name="heightIn"
                       disabled={isReturningPatient}
                       readOnly={isReturningPatient}
+                      style={{flex: 1}}
                       fieldProps={{
                         value:
                           value !== undefined && value !== null
@@ -538,7 +545,7 @@ export default function CalculateBmi() {
           {localStep === 2 && (
             <>
               {weightUnit === 'imperial' ? (
-                <View className="grid grid-cols-2 gap-4">
+                <View style={styles.row}>
                   <Controller
                     control={control}
                     name="weightSt"
@@ -558,6 +565,7 @@ export default function CalculateBmi() {
                         required
                         label="Stone (st)"
                         name="weightSt"
+                        style={{flex: 1}}
                         fieldProps={{
                           value:
                             value !== undefined && value !== null
@@ -595,6 +603,7 @@ export default function CalculateBmi() {
                         required
                         label="Pounds (lb)"
                         name="weightLbs"
+                        style={{flex: 1}}
                         fieldProps={{
                           value:
                             value !== undefined && value !== null
@@ -694,149 +703,137 @@ export default function CalculateBmi() {
           )}
         </View>
 
-        <NextButton
-          label="Next"
-          onPress={handleNext}
-          type="button"
-          disabled={!isStepValid()}
-        />
-        {localStep === 2 ? (
-          <BackButton
-            type="button"
-            label="Back"
-            className="mt-3"
-            onPress={() => setLocalStep(1)}
-          />
-        ) : (
-          <BackButton label="Back" className="mt-2" onPress={back} />
-        )}
+            <View style={styles.buttonWrap}>
+              <NextButton
+                label="Next"
+                onPress={handleNext}
+                type="button"
+                disabled={!isStepValid()}
+                style={styles.submitButton}
+              />
+              {localStep === 2 ? (
+                <BackButton
+                  type="button"
+                  label="Back"
+                  onPress={() => setLocalStep(1)}
+                />
+              ) : (
+                <BackButton label="Back" onPress={back} />
+              )}
+            </View>
+          </View>
+        </View>
       </ScrollView>
     </>
   );
 }
 
+const PRIMARY = '#47317c';
+
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: '#f8f5ff',
+    backgroundColor: '#FBFBFD',
     flexGrow: 1,
-    padding: 24,
+    padding: 16,
   },
-  progressContainer: {
-    height: 4,
-    backgroundColor: '#eee',
+
+  // Progress bar
+  progressTrack: {
+    height: 3,
     borderRadius: 2,
+    backgroundColor: 'rgba(71, 49, 124, 0.08)',
+    marginBottom: 16,
     overflow: 'hidden',
-    marginBottom: 6,
   },
-  progressBar: {
-    width: '70%',
-    height: 4,
-    backgroundColor: '#4B0082',
+  progressFill: {
+    height: '100%',
+    borderRadius: 2,
+    backgroundColor: PRIMARY,
   },
-  progressText: {
-    textAlign: 'center',
-    fontSize: 12,
-    color: '#666',
-    marginBottom: 20,
+
+  // Card
+  card: {
+    borderWidth: 1,
+    borderColor: 'rgba(71, 49, 124, 0.1)',
+    borderRadius: 18,
+    backgroundColor: '#fff',
+    overflow: 'hidden',
+    shadowColor: 'rgba(71, 49, 124, 0.15)',
+    shadowOffset: {width: 0, height: 8},
+    shadowOpacity: 1,
+    shadowRadius: 20,
+    elevation: 3,
   },
-  heading: {
-    fontSize: 22,
-    fontWeight: 'bold',
-    fontFamily: 'serif',
+  cardHeader: {
+    backgroundColor: '#f5f2fc',
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(71, 49, 124, 0.08)',
+    paddingHorizontal: 20,
+    paddingTop: 22,
+    paddingBottom: 20,
+  },
+  progressLabel: {
+    fontSize: 10.5,
+    fontFamily: Fonts.medium,
+    color: 'rgba(71, 49, 124, 0.7)',
+    letterSpacing: 1.4,
     marginBottom: 8,
   },
-  subText: {
-    fontSize: 14,
-    color: '#444',
-    marginBottom: 20,
-  },
-  unitToggle: {
-    flexDirection: 'row',
-    borderWidth: 1,
-    borderColor: '#f8f5ff',
-    borderRadius: 8,
-    overflow: 'hidden',
-    marginBottom: 15,
-  },
-  unitButton: {
-    flex: 1,
-    backgroundColor: 'lightgray',
-    padding: 12,
-    alignItems: 'center',
-  },
-  unitSelected: {
-    backgroundColor: '#36235C',
-    borderColor: '#4B0082',
-    color: '#fff',
-    padding: 12,
-  },
-  unitText: {
-    fontSize: 15,
-    fontWeight: 'bold',
-    color: '#fff',
-  },
-  label: {
-    fontWeight: 'bold',
+  heading: {
+    fontSize: 21,
+    fontFamily: Fonts.semiBold,
+    color: '#0f172a',
     marginBottom: 6,
   },
-  input: {
-    borderWidth: 1,
-    borderColor: '#ccc',
-    backgroundColor: '#fff',
-    borderRadius: 8,
-    padding: 12,
-    marginBottom: 16,
-    fontSize: 16,
+  description: {
+    fontSize: 12.5,
+    fontFamily: Fonts.regular,
+    color: '#64748b',
+    lineHeight: 18,
   },
+  cardBody: {
+    paddingHorizontal: 20,
+    paddingTop: 20,
+    paddingBottom: 24,
+  },
+
   row: {
     flexDirection: 'row',
+    gap: 12,
   },
-  nextButton: {
-    backgroundColor: '#4B0082',
-    borderRadius: 30,
-    paddingVertical: 14,
-    alignItems: 'center',
-    marginTop: 10,
+
+  buttonWrap: {
+    marginTop: 6,
   },
-  disabledBtn: {
-    backgroundColor: '#ccc',
+  submitButton: {
+    backgroundColor: PRIMARY,
+    borderRadius: 12,
+    minHeight: 48,
   },
-  nextText: {
-    color: '#fff',
-    fontWeight: 'bold',
-    fontSize: 16,
-  },
-  backText: {
-    textAlign: 'center',
-    marginTop: 18,
-    color: '#4B0082',
-    textDecorationLine: 'underline',
-  },
+
   infoBox: {
-    backgroundColor: '#FFF3CD',
+    borderWidth: 1,
+    borderColor: 'rgba(251, 191, 36, 0.4)',
+    backgroundColor: 'rgba(255, 251, 235, 0.6)',
     paddingHorizontal: 16,
-    paddingVertical: 16,
-    marginTop: 0,
-    marginBottom: 24,
-    borderRadius: 8,
-    shadowColor: '#000',
-    shadowOpacity: 0.1,
-    shadowOffset: { width: 0, height: 1 },
-    shadowRadius: 3,
-    elevation: 3,
+    paddingVertical: 14,
+    marginBottom: 6,
+    borderRadius: 14,
   },
   infoRow: {
     flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: 'flex-start',
+    gap: 8,
   },
   infoText: {
-    marginLeft: 8,
-    color: '#333',
-    fontSize: 14,
+    color: '#92400e',
+    fontSize: 12.5,
+    fontFamily: Fonts.regular,
     flex: 1,
     flexWrap: 'wrap',
+    lineHeight: 18,
   },
   boldText: {
-    fontWeight: 'bold',
+    fontFamily: Fonts.semiBold,
   },
 });

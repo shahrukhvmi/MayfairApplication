@@ -12,6 +12,7 @@ import {
 import Ionicons from 'react-native-vector-icons/Ionicons';
 
 import Icon from 'react-native-vector-icons/Ionicons';
+import {Fonts} from '../utils/fonts';
 
 const SelectFields = ({
   label,
@@ -45,7 +46,11 @@ const SelectFields = ({
         style={[
           styles.selectBox,
           {
-            borderColor: error ? 'red' : value ? '#000' : '#ccc',
+            borderColor: error
+              ? '#ef4444'
+              : value
+              ? 'rgba(71, 49, 124, 0.35)'
+              : 'rgba(71, 49, 124, 0.15)',
           },
         ]}
         onPress={() => {
@@ -127,34 +132,38 @@ const SelectFields = ({
 
 const styles = StyleSheet.create({
   container: {
-    marginBottom: 16,
+    marginBottom: 18,
   },
   label: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#333',
-    marginBottom: 6,
+    fontSize: 13,
+    color: '#334155',
+    marginBottom: 7,
+    fontFamily: Fonts.medium,
   },
   required: {
-    color: 'red',
+    color: '#ef4444',
+    fontFamily: Fonts.medium,
   },
   selectBox: {
     flexDirection: 'row',
     alignItems: 'center',
     borderWidth: 1,
-    borderRadius: 8,
+    borderColor: 'rgba(71, 49, 124, 0.15)',
+    borderRadius: 14,
     paddingHorizontal: 14,
-    paddingVertical: Platform.OS === 'ios' ? 14 : 10,
+    paddingVertical: Platform.OS === 'ios' ? 14 : 12,
     backgroundColor: '#fff',
     justifyContent: 'space-between',
   },
   selectText: {
-    fontSize: 16,
+    fontSize: 13,
+    color: '#0f172a',
+    fontFamily: Fonts.regular,
     flex: 1,
   },
   arrow: {
     fontSize: 16,
-    color: '#666',
+    color: '#94a3b8',
     marginLeft: 10,
   },
   errorText: {
@@ -200,7 +209,8 @@ const styles = StyleSheet.create({
   optionText: {
     fontSize: 16,
     color: '#000',
-    maxWidth: '95%', // Ensures it stays inside layout
+    maxWidth: '95%',
+    fontFamily: Fonts.regular,
   },
 
   noResult: {

@@ -17,6 +17,7 @@ import useShipmentCountries from '../store/useShipmentCountriesStore';
 import useShippingOrBillingStore from '../store/shipingOrbilling';
 import {useFocusEffect} from '@react-navigation/native';
 import SelectFields from './SelectFields';
+import {Fonts} from '../utils/fonts';
 
 const GETADDRESS_KEY = '_UFb05P76EyMidU1VHIQ_A42976';
 
@@ -262,17 +263,8 @@ export default function ShippingAddress({setIsShippingCheck}) {
   };
 
   return (
-    <ScrollView
-      contentContainerStyle={styles.container}
-      keyboardShouldPersistTaps="handled">
-      <View style={styles.card}>
-        <Text style={styles.title}>Shipping Information</Text>
-        <Text style={styles.subtitle}>
-          Update your shipping details — changes will apply to future orders
-          only.
-        </Text>
-
-        <View style={{marginTop: 24}}>
+    <View style={styles.container}>
+        <View>
           <Controller
             name="first_name"
             control={control}
@@ -441,33 +433,23 @@ export default function ShippingAddress({setIsShippingCheck}) {
             )}
           />
         </View>
-      </View>
-    </ScrollView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {paddingBottom: 0},
-  card: {
-    backgroundColor: '#fff',
-    padding: 20,
-    borderRadius: 16,
-    marginBottom: 20,
-    shadowColor: '#000',
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    shadowOffset: {width: 0, height: 2},
-    elevation: 2,
-  },
+  container: {},
   title: {
     fontSize: 20,
     fontWeight: '700',
     color: '#000',
+    fontFamily: Fonts.semiBold,
   },
   subtitle: {
     fontSize: 14,
     color: '#444',
     marginTop: 6,
+    fontFamily: Fonts.regular,
   },
   postcodeRow: {
     flexDirection: 'row',

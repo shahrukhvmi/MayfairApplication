@@ -1,18 +1,9 @@
 import React, {useEffect, useState} from 'react';
-import {useFocusEffect, useNavigation} from '@react-navigation/native';
-import {
-  ActivityIndicator,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-} from 'react-native';
-import Ionicons from 'react-native-vector-icons/Ionicons';
+import {useNavigation} from '@react-navigation/native';
+import {ScrollView, StyleSheet, Text, View} from 'react-native';
 import {useForm, Controller} from 'react-hook-form';
 
 import Header from '../Layout/header';
-import TextField from '../Components/TextFields';
 import NextButton from '../Components/NextButton';
 import BackButton from '../Components/BackButton';
 
@@ -22,8 +13,11 @@ import TextFields from '../Components/TextFields';
 import Toast from 'react-native-toast-message';
 import PostcodeSearchInput from '../Components/PostcodeSearchInput';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
+import {Fonts} from '../utils/fonts';
 
-// --- GETADDRESS.IO HELPER ---
+const PRIMARY = '#47317c';
+const PERCENTAGE = 40;
+
 const GETADDRESS_KEY = '_UFb05P76EyMidU1VHIQ_A42976';
 
 const fetchAddresses = async postcode => {
@@ -59,7 +53,6 @@ export default function ResidentialAddressScreen() {
   const {patientInfo, setPatientInfo} = usePatientInfoStore();
 
   const [addressOptions, setAddressOptions] = useState([]);
-  const [selectedIndex, setSelectedIndex] = useState(null);
   const [searching, setSearching] = useState(false);
 
   const {
@@ -86,6 +79,7 @@ export default function ResidentialAddressScreen() {
 
   const isNextEnabled =
     !!address1?.trim() && !!city?.trim() && !!country?.trim();
+
   useEffect(() => {
     if (patientInfo?.address) {
       setValue('postcode', patientInfo.address.postalcode || '');
@@ -93,15 +87,6 @@ export default function ResidentialAddressScreen() {
       setValue('address2', patientInfo.address.addresstwo || '');
       setValue('city', patientInfo.address.city || '');
       setValue('country', patientInfo.address.country || '');
-
-      // if (
-      //   patientInfo.address.addressone ||
-      //   patientInfo.address.addresstwo ||
-      //   patientInfo.address.city ||
-      //   patientInfo.address.country
-      // ) {
-      //   setShowManual(true);
-      // }
     }
   }, [patientInfo]);
 
@@ -144,11 +129,7 @@ export default function ResidentialAddressScreen() {
       }
 
       setAddressOptions(addresses);
-      // setShowManual(true);
     } catch (err) {
-      console.error(err, 'Error in address search');
-      logApiError(err, 'address search failed');
-
       Toast.show({
         type: 'error',
         text1: 'Postal Code Error',
@@ -162,166 +143,151 @@ export default function ResidentialAddressScreen() {
   return (
     <>
       <Header />
-      <ScrollView contentContainerStyle={[styles.container, {paddingBottom: insets.bottom + 16}]}>
-        <View style={styles.progressBarBackground}>
-          <View style={styles.progressBarFill} />
-        </View>
-        <Text style={styles.progressText}>40% Completed</Text>
-
-        <Text style={styles.heading}>Patient Residential Address</Text>
-        <Text style={styles.subtext}>
-          Required for age verification purpose
-        </Text>
-
-        {/* Postcode with button */}
-
-        {/* <View style={styles.relativeContainer}>
-          <Controller
-            control={control}
-            name="postcode"
-            render={({field: {onChange, value}}) => (
-              <TextFields
-                label={'Postcode'}
-                required
-                value={value}
-                onChangeText={onChange}
-                style={{position: 'relative'}}
-              />
-            )}
-          />
-
-          <TouchableOpacity
-            style={[styles.insideSearchButton, searching && {opacity: 0.6}]}
-            onPress={handleSearch}
-            disabled={searching}>
-            {searching ? (
-              <ActivityIndicator size="small" color="#fff" />
-            ) : (
-              <Ionicons name="search" size={18} color="#fff" />
-            )}
-          </TouchableOpacity>
-        </View> */}
-
-        <View>
-          <Controller
-            name="postcode"
-            control={control}
-            rules={{required: 'Postcode is required'}}
-            render={({field}) => (
-              <PostcodeSearchInput
-                label="Post code"
-                value={field.value}
-                onChangeText={text => {
-                  field.onChange(text);
-                  setAddressOptions([]);
-                  setSelectedIndex('');
-                }}
-                handleSearch={handleSearch}
-                addressSearchLoading={searching}
-                errors={errors?.postcode?.message}
-              />
-            )}
-          />
+      <ScrollView
+        style={styles.screen}
+        contentContainerStyle={[
+          styles.container,
+          {paddingBottom: insets.bottom + 24},
+        ]}
+        showsVerticalScrollIndicator={false}>
+        {/* Progress bar */}
+        <View style={styles.progressTrack}>
+          <View style={[styles.progressFill, {width: `${PERCENTAGE}%`}]} />
         </View>
 
-        {/* Address dropdown */}
-        {addressOptions.length > 0 && (
-          <Controller
-            control={control}
-            name="selectedAddress"
-            rules={{required: 'Please select your address'}}
-            render={({field: {onChange, value}}) => (
-              <SelectFields
-                label="Select Your Address"
-                value={value}
-                onChange={idx => {
-                  setSelectedIndex(idx);
-                  const selected = addressOptions[idx];
-                  onChange(idx);
+        {/* Card */}
+        <View style={styles.card}>
+          <View style={styles.cardHeader}>
+            <Text style={styles.progressLabel}>{PERCENTAGE}% COMPLETED</Text>
+            <Text style={styles.heading}>
+              Mention Your Residential Address
+            </Text>
+            <Text style={styles.description}>
+              Required for age verification purpose
+            </Text>
+          </View>
 
-                  setValue('address1', selected.line_1 || '', {
-                    shouldValidate: true,
-                  });
-                  setValue('address2', selected.line_2 || '', {
-                    shouldValidate: true,
-                  });
-                  setValue('city', selected.town_or_city || '', {
-                    shouldValidate: true,
-                  });
-                  setValue('country', selected.country || '', {
-                    shouldValidate: true,
-                  });
-                }}
-                options={addressOptions.map((addr, idx) => ({
-                  value: idx,
-                  label: addr.formatted_address.join(', '),
-                }))}
-                required
-                error={errors?.selectedAddress?.message}
+          <View style={styles.cardBody}>
+            <Controller
+              name="postcode"
+              control={control}
+              rules={{required: 'Postcode is required'}}
+              render={({field}) => (
+                <PostcodeSearchInput
+                  label="Post code"
+                  required
+                  value={field.value}
+                  onChangeText={text => {
+                    field.onChange(text);
+                    setAddressOptions([]);
+                  }}
+                  handleSearch={handleSearch}
+                  addressSearchLoading={searching}
+                  errors={errors?.postcode?.message}
+                />
+              )}
+            />
+
+            {addressOptions.length > 0 && (
+              <Controller
+                control={control}
+                name="selectedAddress"
+                render={({field: {onChange, value}}) => (
+                  <SelectFields
+                    label="Select Your Address"
+                    value={value}
+                    onChange={idx => {
+                      const selected = addressOptions[idx];
+                      onChange(idx);
+
+                      setValue('address1', selected.line_1 || '', {
+                        shouldValidate: true,
+                      });
+                      setValue('address2', selected.line_2 || '', {
+                        shouldValidate: true,
+                      });
+                      setValue('city', selected.town_or_city || '', {
+                        shouldValidate: true,
+                      });
+                      setValue('country', selected.country || '', {
+                        shouldValidate: true,
+                      });
+                    }}
+                    options={addressOptions.map((addr, idx) => ({
+                      value: idx,
+                      label: addr.formatted_address.join(', '),
+                    }))}
+                  />
+                )}
               />
             )}
-          />
-        )}
 
-        {/* Manual Address Fields */}
+            <Controller
+              control={control}
+              name="address1"
+              render={({field: {onChange, value}}) => (
+                <TextFields
+                  label="Address"
+                  placeholder="e.g. 10 Downing Street"
+                  required
+                  value={value}
+                  onChangeText={onChange}
+                />
+              )}
+            />
+            <Controller
+              control={control}
+              name="address2"
+              render={({field: {onChange, value}}) => (
+                <TextFields
+                  label="Address 2"
+                  placeholder="Apartment, suite or unit (optional)"
+                  value={value}
+                  onChangeText={onChange}
+                />
+              )}
+            />
+            <Controller
+              control={control}
+              name="city"
+              render={({field: {onChange, value}}) => (
+                <TextFields
+                  label="Town / City"
+                  placeholder="e.g. London"
+                  required
+                  value={value}
+                  onChangeText={onChange}
+                />
+              )}
+            />
+            <Controller
+              control={control}
+              name="country"
+              render={({field: {onChange, value}}) => (
+                <TextFields
+                  label="Country"
+                  placeholder="e.g. United Kingdom"
+                  required
+                  value={value}
+                  onChangeText={onChange}
+                />
+              )}
+            />
 
-        <Controller
-          control={control}
-          name="address1"
-          render={({field: {onChange, value}}) => (
-            <TextFields
-              label={'Address'}
-              required
-              value={value}
-              onChangeText={onChange}
-            />
-          )}
-        />
-        <Controller
-          control={control}
-          name="address2"
-          render={({field: {onChange, value}}) => (
-            <TextFields
-              label={'Address 2'}
-              value={value}
-              onChangeText={onChange}
-            />
-          )}
-        />
-        <Controller
-          control={control}
-          name="city"
-          render={({field: {onChange, value}}) => (
-            <TextFields
-              required
-              label={'City'}
-              value={value}
-              onChangeText={onChange}
-            />
-          )}
-        />
-        <Controller
-          control={control}
-          name="country"
-          render={({field: {onChange, value}}) => (
-            <TextFields
-              label={'Country'}
-              required
-              value={value}
-              onChangeText={onChange}
-            />
-          )}
-        />
-
-        <NextButton
-          label="Next"
-          disabled={!isNextEnabled}
-          onPress={handleSubmit(onSubmit)}
-        />
-        <BackButton
-          label="Back"
-          onPress={() => navigation.navigate('personal-details')}
-        />
+            <View style={styles.buttonWrap}>
+              <NextButton
+                label="Next"
+                disabled={!isNextEnabled}
+                onPress={handleSubmit(onSubmit)}
+                style={styles.submitButton}
+              />
+              <BackButton
+                label="Back"
+                onPress={() => navigation.navigate('personal-details')}
+              />
+            </View>
+          </View>
+        </View>
       </ScrollView>
 
       <Toast />
@@ -330,61 +296,80 @@ export default function ResidentialAddressScreen() {
 }
 
 const styles = StyleSheet.create({
+  screen: {
+    backgroundColor: '#FBFBFD',
+  },
   container: {
-    backgroundColor: '#f8f5ff',
-    padding: 24,
+    padding: 16,
     flexGrow: 1,
   },
-  progressBarBackground: {
-    height: 4,
-    backgroundColor: '#ddd',
+
+  // Progress bar
+  progressTrack: {
+    height: 3,
     borderRadius: 2,
-    marginBottom: 6,
+    backgroundColor: 'rgba(71, 49, 124, 0.08)',
+    marginBottom: 16,
+    overflow: 'hidden',
   },
-  progressBarFill: {
-    width: '40%',
-    height: 4,
-    backgroundColor: '#4B0082',
+  progressFill: {
+    height: '100%',
     borderRadius: 2,
+    backgroundColor: PRIMARY,
   },
-  progressText: {
-    textAlign: 'center',
-    fontSize: 12,
-    marginBottom: 20,
-    color: '#666',
+
+  // Card
+  card: {
+    borderWidth: 1,
+    borderColor: 'rgba(71, 49, 124, 0.1)',
+    borderRadius: 18,
+    backgroundColor: '#fff',
+    overflow: 'hidden',
+    shadowColor: 'rgba(71, 49, 124, 0.15)',
+    shadowOffset: {width: 0, height: 8},
+    shadowOpacity: 1,
+    shadowRadius: 20,
+    elevation: 3,
+  },
+  cardHeader: {
+    backgroundColor: '#f5f2fc',
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(71, 49, 124, 0.08)',
+    paddingHorizontal: 20,
+    paddingTop: 22,
+    paddingBottom: 20,
+  },
+  progressLabel: {
+    fontSize: 10.5,
+    fontFamily: Fonts.medium,
+    color: 'rgba(71, 49, 124, 0.7)',
+    letterSpacing: 1.4,
+    marginBottom: 8,
   },
   heading: {
-    fontSize: 26,
-    fontWeight: 'bold',
-    color: '#2e2e2e',
-    fontFamily: 'serif',
+    fontSize: 21,
+    fontFamily: Fonts.semiBold,
+    color: '#0f172a',
     marginBottom: 6,
   },
-  subtext: {
-    fontSize: 13,
-    color: '#555',
-    marginBottom: 20,
+  description: {
+    fontSize: 12.5,
+    fontFamily: Fonts.regular,
+    color: '#64748b',
+    lineHeight: 18,
   },
-  toggleText: {
-    color: '#4B0082',
-    fontSize: 13,
-    marginTop: 0,
-    marginBottom: 20,
-    textAlign: 'right',
+  cardBody: {
+    paddingHorizontal: 20,
+    paddingTop: 22,
+    paddingBottom: 24,
   },
-  relativeContainer: {
-    position: 'relative',
-    marginBottom: 0,
+
+  buttonWrap: {
+    marginTop: 6,
   },
-  insideSearchButton: {
-    position: 'absolute',
-    right: 0,
-    top: 26,
-    backgroundColor: '#4B0082',
-    borderRadius: 4,
-    paddingHorizontal: 12,
-    paddingVertical: 13,
-    justifyContent: 'center',
-    alignItems: 'center',
+  submitButton: {
+    backgroundColor: PRIMARY,
+    borderRadius: 12,
+    minHeight: 48,
   },
 });

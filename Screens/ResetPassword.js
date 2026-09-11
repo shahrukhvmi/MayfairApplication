@@ -1,10 +1,8 @@
-import React, { useEffect, useState } from 'react';
+import React, {useEffect, useState} from 'react';
 import {
   View,
   Text,
-  Image,
   StyleSheet,
-  TextInput,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
@@ -12,30 +10,32 @@ import {
   TouchableWithoutFeedback,
   Keyboard,
   ActivityIndicator,
-  Alert,
 } from 'react-native';
-import { useRoute, useNavigation } from '@react-navigation/native';
-import Toast from 'react-native-toast-message';
-import { logApiSuccess } from '../utils/logApiDebug';
-import Ionicons from 'react-native-vector-icons/Ionicons';
-import { forgotPassword } from '../api/ChangePasswordApi';
-import { Controller, useForm } from 'react-hook-form';
-import { useMutation } from '@tanstack/react-query';
+import {useRoute, useNavigation} from '@react-navigation/native';
+import {Controller, useForm} from 'react-hook-form';
+import {useMutation} from '@tanstack/react-query';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
+import Toast from 'react-native-toast-message';
+
+import {logApiSuccess, logApiError} from '../utils/logApiDebug';
+import {forgotPassword} from '../api/ChangePasswordApi';
+import Header from '../Layout/header';
+import TextFields from '../Components/TextFields';
+import {Fonts} from '../utils/fonts';
+
+const PRIMARY = '#47317c';
 
 const ResetPassword = () => {
   const route = useRoute();
-  const { token, email } = route.params || {};
+  const {token, email} = route.params || {};
   const navigation = useNavigation();
   const insets = useSafeAreaInsets();
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const {
     control,
     handleSubmit,
     watch,
-    formState: { errors },
+    formState: {errors},
   } = useForm();
 
   const forgotPasswordMutation = useMutation(forgotPassword, {
@@ -46,7 +46,7 @@ const ResetPassword = () => {
         text1: 'Password Updated Successfully',
         text2: 'You can now log in with your new password.',
       });
-      navigation.navigate("Login");
+      navigation.navigate('Login');
       setLoading(false);
     },
     onError: error => {
@@ -60,12 +60,8 @@ const ResetPassword = () => {
   });
 
   useEffect(() => {
-    if (token) console.log('🔐 Token from URL:', token);
-
-  }, [token])
-
-
-
+    if (token) console.log('Token from URL:', token);
+  }, [token]);
 
   const onSubmit = data => {
     const formData = {
@@ -79,104 +75,80 @@ const ResetPassword = () => {
     forgotPasswordMutation.mutate(formData);
   };
 
-  const handlePaste = e => {
-    e.preventDefault();
-    Alert.alert('Copy-pasting is disabled');
-  };
-
   const password = watch('password');
   const confirmPassword = watch('confirmPassword');
-
   const isDisabled = !password || !confirmPassword || loading;
 
   return (
-    <KeyboardAvoidingView
-      style={{ flex: 1 }}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
-      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-        <ScrollView contentContainerStyle={{flexGrow: 1, paddingBottom: insets.bottom + 16}}>
-          <View style={styles.container}>
-            <View style={styles.logoContainer}>
-              <Image
-                source={require('../assets/images/logo-white.png')}
-                style={styles.image}
-              />
-            </View>
-            <View style={styles.subView}>
-              <Text style={styles.subTxt}>Reset Password</Text>
+    <>
+      <Header />
+      <KeyboardAvoidingView
+        style={{flex: 1, backgroundColor: '#FBFBFD'}}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+        <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+          <ScrollView
+            style={styles.screen}
+            contentContainerStyle={[
+              styles.container,
+              {paddingBottom: insets.bottom + 24},
+            ]}
+            showsVerticalScrollIndicator={false}>
+            <View style={styles.card}>
+              <Text style={styles.heading}>Reset Password</Text>
+              <Text style={styles.description}>
+                Create a new password for your account.
+              </Text>
 
-              {/* Password */}
-              <View style={styles.passwordContainer}>
-                <Controller
-                  control={control}
-                  name="password"
-                  rules={{ required: 'Password is required' }}
-                  render={({ field: { onChange, value } }) => (
-                    <TextInput
-                      style={styles.passwordInput}
-                      placeholder="Password"
-                      value={value}
-                      onChangeText={onChange}
-                      secureTextEntry={!showPassword}
-                      placeholderTextColor="#aaa"
-                      onPaste={handlePaste}
-                    />
-                  )}
-                />
-                <TouchableOpacity
-                  onPress={() => setShowPassword(!showPassword)}>
-                  <Ionicons
-                    name={showPassword ? 'eye' : 'eye-off'}
-                    size={24}
-                    color="gray"
+              <Controller
+                control={control}
+                name="password"
+                rules={{required: 'Password is required'}}
+                render={({field: {onChange, value}}) => (
+                  <TextFields
+                    label="New Password"
+                    placeholder="Enter new password"
+                    type="password"
+                    required
+                    value={value}
+                    onChangeText={onChange}
+                    disablePaste
                   />
-                </TouchableOpacity>
-              </View>
+                )}
+              />
               {errors.password && (
                 <Text style={styles.errorText}>{errors.password.message}</Text>
               )}
 
-              {/* Confirm Password */}
-              <View style={styles.passwordContainer}>
-                <Controller
-                  control={control}
-                  name="confirmPassword"
-                  rules={{
-                    required: 'Confirm your password',
-                    validate: val =>
-                      val === watch('password') || "Passwords don't match",
-                  }}
-                  render={({ field: { onChange, value } }) => (
-                    <TextInput
-                      style={styles.passwordInput}
-                      placeholder="Confirm Password"
-                      value={value}
-                      onChangeText={onChange}
-                      secureTextEntry={!showConfirmPassword}
-                      placeholderTextColor="#aaa"
-                      onPaste={handlePaste}
-                    />
-                  )}
-                />
-                <TouchableOpacity
-                  onPress={() => setShowConfirmPassword(!showConfirmPassword)}>
-                  <Ionicons
-                    name={showConfirmPassword ? 'eye' : 'eye-off'}
-                    size={24}
-                    color="gray"
+              <Controller
+                control={control}
+                name="confirmPassword"
+                rules={{
+                  required: 'Confirm your password',
+                  validate: val =>
+                    val === watch('password') || "Passwords don't match",
+                }}
+                render={({field: {onChange, value}}) => (
+                  <TextFields
+                    label="Confirm Password"
+                    placeholder="Re-enter new password"
+                    type="password"
+                    required
+                    value={value}
+                    onChangeText={onChange}
+                    disablePaste
                   />
-                </TouchableOpacity>
-              </View>
+                )}
+              />
               {errors.confirmPassword && (
                 <Text style={styles.errorText}>
                   {errors.confirmPassword.message}
                 </Text>
               )}
 
-              {/* Submit Button */}
               <TouchableOpacity
                 onPress={handleSubmit(onSubmit)}
                 disabled={isDisabled}
+                activeOpacity={0.85}
                 style={[
                   styles.btn,
                   isDisabled ? styles.btnDisabled : styles.btnEnabled,
@@ -184,89 +156,104 @@ const ResetPassword = () => {
                 {loading ? (
                   <View style={styles.loadingContent}>
                     <ActivityIndicator color="#fff" />
-                    <Text style={styles.btnText}>Submitting...</Text>
+                    <Text style={styles.btnText}> Submitting...</Text>
                   </View>
                 ) : (
                   <Text style={styles.btnText}>Submit</Text>
                 )}
               </TouchableOpacity>
 
-              {/* Login Link */}
-              <View style={styles.endView}>
-                <Text style={styles.endTxt}>Already have an account?</Text>
-                <TouchableOpacity onPress={() => navigation.navigate('Login')}>
-                  <Text style={styles.loginTxt}>Login</Text>
-                </TouchableOpacity>
-              </View>
+              <Text style={styles.footer}>
+                Already have an account?{' '}
+                <Text
+                  style={styles.link}
+                  onPress={() => navigation.navigate('Login')}>
+                  Login
+                </Text>
+              </Text>
             </View>
-          </View>
-        </ScrollView>
-      </TouchableWithoutFeedback>
-    </KeyboardAvoidingView>
+          </ScrollView>
+        </TouchableWithoutFeedback>
+      </KeyboardAvoidingView>
+    </>
   );
 };
 
+export default ResetPassword;
+
 const styles = StyleSheet.create({
+  screen: {
+    backgroundColor: '#FBFBFD',
+  },
   container: {
-    backgroundColor: '#4B0082',
-    flex: 1,
-    justifyContent: 'flex-start',
-    alignItems: 'center',
+    padding: 16,
+    flexGrow: 1,
   },
-  subView: {
-    flex: 1,
-    marginTop: 50,
-    backgroundColor: 'white',
-    width: '100%',
-    borderTopLeftRadius: 40,
-    borderTopRightRadius: 40,
-    alignItems: 'center',
-    paddingVertical: 30,
+  card: {
+    backgroundColor: '#fff',
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(71, 49, 124, 0.1)',
+    padding: 20,
+    shadowColor: 'rgba(71, 49, 124, 0.09)',
+    shadowOffset: {width: 0, height: 10},
+    shadowOpacity: 1,
+    shadowRadius: 24,
+    elevation: 3,
   },
-  subTxt: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    marginBottom: 20,
-    fontFamily: 'Comic Sans MS',
+  heading: {
+    fontSize: 24,
+    fontFamily: Fonts.semiBold,
+    color: '#0f172a',
+    marginBottom: 6,
   },
-  passwordContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    borderBottomWidth: 1,
-    width: '80%',
-    marginBottom: 10,
-    justifyContent: 'space-between',
+  description: {
+    fontSize: 13.5,
+    fontFamily: Fonts.regular,
+    color: '#64748b',
+    marginBottom: 22,
+    lineHeight: 20,
   },
-  passwordInput: { height: 40, width: '85%', textAlign: 'start', fontSize: 16, color: '#000' },
-  btn: {
-    marginTop: 20,
-    height: 50,
-    width: '80%',
-    borderRadius: 30,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  btnEnabled: { backgroundColor: '#4B0082' },
-  btnDisabled: { backgroundColor: '#aaa' },
-  btnText: { color: '#fff', fontWeight: 'bold', fontSize: 16 },
-  loadingContent: { flexDirection: 'row', alignItems: 'center', gap: 10 },
-  endView: {
-    flexDirection: 'row',
-    marginTop: 30,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  endTxt: { fontSize: 16, fontWeight: '600', marginRight: 8 },
-  loginTxt: { fontSize: 16, fontWeight: 'bold', color: '#4B0082' },
-  logoContainer: { alignItems: 'center', justifyContent: 'center' },
-  image: { width: 200, height: 200, resizeMode: 'contain' },
   errorText: {
-    color: 'red',
+    color: '#ef4444',
     fontSize: 12,
-    marginBottom: 8,
-    width: '80%',
-    textAlign: 'left',
+    fontFamily: Fonts.regular,
+    marginTop: -10,
+    marginBottom: 12,
+  },
+  btn: {
+    marginTop: 6,
+    height: 50,
+    borderRadius: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  btnEnabled: {
+    backgroundColor: PRIMARY,
+  },
+  btnDisabled: {
+    backgroundColor: '#cbd5e1',
+  },
+  btnText: {
+    color: '#fff',
+    fontSize: 15,
+    fontFamily: Fonts.semiBold,
+  },
+  loadingContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  footer: {
+    fontSize: 13,
+    fontFamily: Fonts.regular,
+    color: '#334155',
+    textAlign: 'center',
+    marginTop: 20,
+  },
+  link: {
+    color: PRIMARY,
+    fontFamily: Fonts.semiBold,
+    textDecorationLine: 'underline',
   },
 });
-
-export default ResetPassword;

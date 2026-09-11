@@ -1,5 +1,5 @@
 // Dose.js
-import React, { useState } from 'react';
+import React, {useState} from 'react';
 import {
   View,
   Text,
@@ -10,16 +10,27 @@ import {
 } from 'react-native';
 import Toast from 'react-native-toast-message';
 import moment from 'moment';
-import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
+import Feather from 'react-native-vector-icons/Feather';
 
-import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import useCartStore from '../store/useCartStore';
-import { getNotified } from '../api/GetNotified';
+import {getNotified} from '../api/GetNotified';
+import {Fonts} from '../utils/fonts';
 
-const Dose = ({ doseData, onAdd, onIncrement, onDecrement, isSelected, qty, allow = 100, totalSelectedQty }) => {
+const PRIMARY = '#47317c';
+
+const Dose = ({
+  doseData,
+  onAdd,
+  onIncrement,
+  onDecrement,
+  isSelected,
+  qty,
+  allow = 100,
+  totalSelectedQty,
+}) => {
   const [showModal, setShowModal] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const { removeItemCompletely } = useCartStore();
+  const {removeItemCompletely} = useCartStore();
 
   const allowed = parseInt(allow);
   const doseStatus = doseData?.stock?.status;
@@ -36,17 +47,29 @@ const Dose = ({ doseData, onAdd, onIncrement, onDecrement, isSelected, qty, allo
     const totalQty = totalSelectedQty + 1;
 
     if (totalQty > allowed) {
-      Toast.show({ type: 'error', text1: 'Limit Exceeded', text2: `You can only select up to ${allowed} units.` });
+      Toast.show({
+        type: 'error',
+        text1: 'Limit Exceeded',
+        text2: `You can only select up to ${allowed} units.`,
+      });
       return;
     }
 
     if (doseData.qty >= doseData.stock.quantity) {
-      Toast.show({ type: 'error', text1: 'Out of Stock', text2: `Only ${doseData.stock.quantity} units available.` });
+      Toast.show({
+        type: 'error',
+        text1: 'Out of Stock',
+        text2: `Only ${doseData.stock.quantity} units available.`,
+      });
       return;
     }
 
     if (qty >= allowed) {
-      Toast.show({ type: 'error', text1: 'Limit Exceeded', text2: `Max ${allowed} units allowed.` });
+      Toast.show({
+        type: 'error',
+        text1: 'Limit Exceeded',
+        text2: `Max ${allowed} units allowed.`,
+      });
       return;
     }
 
@@ -75,37 +98,61 @@ const Dose = ({ doseData, onAdd, onIncrement, onDecrement, isSelected, qty, allo
       });
 
       if (response?.data?.status === true) {
-        Toast.show({ type: 'success', text1: 'Notified', text2: response?.data?.message });
+        Toast.show({
+          type: 'success',
+          text1: 'Notified',
+          text2: response?.data?.message,
+        });
       } else {
-        Toast.show({ type: 'error', text1: 'Error', text2: response?.errors });
+        Toast.show({type: 'error', text1: 'Error', text2: response?.errors});
       }
     } catch (err) {
       Toast.show({
         type: 'error',
         text1: 'Failed',
-        text2: err?.response?.data?.errors?.Notification || 'Something went wrong.',
+        text2:
+          err?.response?.data?.errors?.Notification ||
+          'Something went wrong.',
       });
     } finally {
       setIsLoading(false);
     }
   };
+
+  const isDisabledLook = isOutOfStock || (!isSelected && isAllowExceeded);
+
   return (
     <>
       <View style={styles.wrapper}>
         {doseStatus === 0 && (
-          <TouchableOpacity style={styles.notifyBtn} onPress={handleNotifiedClick}>
+          <TouchableOpacity
+            style={styles.notifyBtn}
+            onPress={handleNotifiedClick}
+            activeOpacity={0.8}>
             {isLoading ? (
               <>
-                <ActivityIndicator size={12} />
+                <ActivityIndicator size={12} color="#059669" />
                 <Text style={styles.notifyTxt}>Loading…</Text>
               </>
             ) : (
               <>
-                <FontAwesome5 name="info-circle" size={12} color="#16a34a" />
+                <Feather name="info" size={12} color="#059669" />
                 <Text style={styles.notifyTxt}>Get Notified</Text>
               </>
             )}
           </TouchableOpacity>
+        )}
+
+        {!isOutOfStock && !isSelected && isAllowExceeded && (
+          <View style={styles.limitBadge}>
+            <Text style={styles.limitBadgeText}>Selection limit reached</Text>
+          </View>
+        )}
+
+        {isOutOfStock && (
+          <View style={styles.outOfStockBadge}>
+            <Text style={styles.outOfStockBadgeText}>Out of stock</Text>
+          </View>
         )}
 
         <TouchableOpacity
@@ -121,27 +168,18 @@ const Dose = ({ doseData, onAdd, onIncrement, onDecrement, isSelected, qty, allo
               : isAllowExceeded
               ? styles.cardDisabled
               : styles.cardDefault,
-          ]}
-        >
-          {isOutOfStock && <Text style={styles.stockBadge}>Out of stock</Text>}
-
-          {isSelected && (
-            <View style={styles.tick}>
-              <FontAwesome5 name="check" size={10} color="#fff" />
+          ]}>
+          <View style={[styles.left, isDisabledLook && styles.dimmed]}>
+            <View style={[styles.checkbox, isSelected && styles.checkboxActive]}>
+              {isSelected && <Feather name="check" size={11} color="#fff" />}
             </View>
-          )}
 
-          <View style={styles.left}>
-            <FontAwesome5
-              name={isSelected ? 'dot-circle' : 'circle'}
-              size={14}
-              color={isSelected ? '#7c3aed' : '#374151'}
-              style={styles.radio}
-            />
-
-            <View>
+            <View style={{flex: 1}}>
               <Text style={styles.productName}>{doseData?.product_name}</Text>
-              <Text style={styles.doseName}>{doseData.name}</Text>
+              <Text
+                style={[styles.doseName, isSelected && styles.doseNameActive]}>
+                {doseData.name}
+              </Text>
               {doseData?.expiry && (
                 <Text style={styles.expiry}>
                   Expiry: {moment(doseData.expiry).format('DD/MM/YYYY')}
@@ -150,7 +188,7 @@ const Dose = ({ doseData, onAdd, onIncrement, onDecrement, isSelected, qty, allo
             </View>
           </View>
 
-          <View style={styles.right}>
+          <View style={[styles.right, isDisabledLook && styles.dimmed]}>
             <Text style={[styles.price, isSelected && styles.priceSelected]}>
               £{parseFloat(doseData.price).toFixed(2)}
             </Text>
@@ -158,21 +196,27 @@ const Dose = ({ doseData, onAdd, onIncrement, onDecrement, isSelected, qty, allo
             {isSelected && (
               <View style={styles.actionRow}>
                 <View style={styles.qtyBox}>
-                  <TouchableOpacity style={styles.qtyBtn} onPress={handleDecrement}>
-                    <FontAwesome5 name="minus" size={12} />
+                  <TouchableOpacity
+                    style={styles.qtyBtn}
+                    onPress={handleDecrement}>
+                    <Feather name="minus" size={11} color="#475569" />
                   </TouchableOpacity>
                   <Text style={styles.qtyTxt}>{qty}</Text>
                   <TouchableOpacity
-                    style={[styles.qtyBtn, qty >= allowed && styles.qtyBtnDisabled]}
+                    style={[
+                      styles.qtyBtn,
+                      qty >= allowed && styles.qtyBtnDisabled,
+                    ]}
                     disabled={qty >= allowed}
-                    onPress={handleIncrement}
-                  >
-                    <FontAwesome5 name="plus" size={12} />
+                    onPress={handleIncrement}>
+                    <Feather name="plus" size={11} color="#475569" />
                   </TouchableOpacity>
                 </View>
 
-                <TouchableOpacity onPress={() => setShowModal(true)} >
-                  <MaterialIcons name="delete" size={18} color="#fff" style={styles.deleteBtn} />
+                <TouchableOpacity
+                  style={styles.deleteBtn}
+                  onPress={() => setShowModal(true)}>
+                  <Feather name="trash-2" size={14} color="#ef4444" />
                 </TouchableOpacity>
               </View>
             )}
@@ -184,8 +228,7 @@ const Dose = ({ doseData, onAdd, onIncrement, onDecrement, isSelected, qty, allo
         transparent
         animationType="fade"
         visible={showModal}
-        onRequestClose={() => setShowModal(false)}
-      >
+        onRequestClose={() => setShowModal(false)}>
         <View style={styles.modalOverlay}>
           <View style={styles.modalBox}>
             <Text style={styles.modalTitle}>Remove Dose?</Text>
@@ -196,15 +239,13 @@ const Dose = ({ doseData, onAdd, onIncrement, onDecrement, isSelected, qty, allo
             <View style={styles.modalActions}>
               <TouchableOpacity
                 onPress={() => setShowModal(false)}
-                style={[styles.modalBtn, styles.cancelBtn]}
-              >
+                style={[styles.modalBtn, styles.cancelBtn]}>
                 <Text style={styles.cancelTxt}>Cancel</Text>
               </TouchableOpacity>
 
               <TouchableOpacity
                 onPress={handleDelete}
-                style={[styles.modalBtn, styles.deleteBtnModal]}
-              >
+                style={[styles.modalBtn, styles.deleteBtnModal]}>
                 <Text style={styles.deleteTxt}>Delete</Text>
               </TouchableOpacity>
             </View>
@@ -217,171 +258,203 @@ const Dose = ({ doseData, onAdd, onIncrement, onDecrement, isSelected, qty, allo
 
 const styles = StyleSheet.create({
   wrapper: {
-    marginTop: 14,
-    paddingHorizontal: 6,
+    marginTop: 16,
+    position: 'relative',
   },
   notifyBtn: {
     position: 'absolute',
     right: 10,
-    top: -8,
+    top: -12,
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#e0fce5',
-    paddingHorizontal: 8,
+    gap: 5,
+    backgroundColor: '#ecfdf5',
+    borderWidth: 1,
+    borderColor: '#a7f3d0',
+    paddingHorizontal: 10,
     paddingVertical: 4,
-    borderRadius: 5,
+    borderRadius: 8,
     zIndex: 20,
   },
   notifyTxt: {
-    marginLeft: 4,
     fontSize: 11,
-    fontWeight: '600',
-    color: '#15803d',
+    fontFamily: Fonts.semiBold,
+    color: '#059669',
   },
+  limitBadge: {
+    position: 'absolute',
+    left: 12,
+    top: -12,
+    zIndex: 20,
+    borderWidth: 1,
+    borderColor: '#fde68a',
+    backgroundColor: '#fffbeb',
+    borderRadius: 8,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+  },
+  limitBadgeText: {
+    fontSize: 11,
+    fontFamily: Fonts.semiBold,
+    color: '#b45309',
+  },
+  outOfStockBadge: {
+    position: 'absolute',
+    left: 12,
+    top: -12,
+    zIndex: 20,
+    borderWidth: 1,
+    borderColor: '#fecdd3',
+    backgroundColor: '#fff1f2',
+    borderRadius: 8,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+  },
+  outOfStockBadgeText: {
+    fontSize: 11,
+    fontFamily: Fonts.semiBold,
+    color: '#be123c',
+  },
+
   card: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    padding: 16,
-    borderWidth: 1.5,
+    padding: 14,
+    borderWidth: 1,
     borderRadius: 14,
     backgroundColor: '#fff',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.06,
-    shadowRadius: 4,
-    elevation: 2,
   },
-  cardDefault: { borderColor: '#ccc' },
+  cardDefault: {borderColor: '#e2e8f0'},
   cardSelected: {
-    borderColor: '#7c3aed',
-    backgroundColor: '#ffffff',
-    borderWidth: 1.8,
-    borderRadius: 16,
-    shadowColor: '#7c3aed',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 6,
-    elevation: 3,
+    borderColor: PRIMARY,
+    backgroundColor: 'rgba(71, 49, 124, 0.04)',
   },
-  cardOut: { borderColor: '#e5e7eb', backgroundColor: '#F8F9FA', opacity: 0.5 },
-  cardDisabled: { borderColor: '#ddd', opacity: 0.5 },
-  stockBadge: {
-    position: 'absolute',
-    top: -8,
-    left: 16,
-    backgroundColor: '#9333ea',
-    color: '#fff',
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-    fontSize: 10,
-    fontWeight: '600',
-    borderRadius: 5,
-    overflow: 'hidden',
-  },
-  tick: {
-    position: 'absolute',
-    top: -12,
-    right: -12,
-    backgroundColor: '#6D28D9',
-    padding: 8,
-    borderRadius: 999,
-    elevation: 4,
-    borderWidth: 2,
-    borderColor: '#fff',
-  },
+  cardOut: {borderColor: '#e2e8f0', backgroundColor: '#f8fafc'},
+  cardDisabled: {borderColor: '#e2e8f0', backgroundColor: '#f8fafc'},
+  dimmed: {opacity: 0.55},
+
   left: {
     flex: 1,
     flexDirection: 'row',
     alignItems: 'flex-start',
     gap: 10,
   },
-  radio: { marginTop: 4 },
+  checkbox: {
+    width: 18,
+    height: 18,
+    borderRadius: 5,
+    borderWidth: 2,
+    borderColor: '#cbd5e1',
+    backgroundColor: '#fff',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: 2,
+  },
+  checkboxActive: {
+    borderColor: PRIMARY,
+    backgroundColor: PRIMARY,
+  },
   productName: {
     textTransform: 'capitalize',
-    fontWeight: 'bold',
-    fontSize: 15,
-    color: '#1f2937',
+    fontSize: 14.5,
+    fontFamily: Fonts.semiBold,
+    color: '#0f172a',
   },
   doseName: {
-    fontSize: 14,
-    color: '#4b5563',
-    fontWeight: '600',
+    fontSize: 13,
+    color: '#64748b',
+    fontFamily: Fonts.medium,
     marginTop: 2,
   },
+  doseNameActive: {
+    color: PRIMARY,
+  },
   expiry: {
-    fontSize: 12,
-    color: '#6b7280',
-    marginTop: 2,
+    fontSize: 11.5,
+    fontFamily: Fonts.regular,
+    color: '#94a3b8',
+    marginTop: 3,
   },
   right: {
     alignItems: 'flex-end',
   },
   price: {
-    fontWeight: '600',
-    fontSize: 16,
-    color: '#374151',
+    fontSize: 15,
+    fontFamily: Fonts.semiBold,
+    color: '#334155',
   },
   priceSelected: {
-    color: '#6D28D9',
-    fontWeight: 'bold',
-    fontSize: 17,
-  },
-  qtyBox: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#f3f4f6',
-    borderRadius: 999,
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-  },
-  qtyBtn: {
-    backgroundColor: '#e5e7eb',
-    padding: 6,
-    borderRadius: 999,
-  },
-  qtyBtnDisabled: { opacity: 0.4 },
-  qtyTxt: {
-    marginHorizontal: 10,
-    fontSize: 14,
-    fontWeight: '700',
-    color: '#111827',
+    color: PRIMARY,
   },
   actionRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 10,
-    marginTop: 6,
+    gap: 8,
+    marginTop: 8,
+  },
+  qtyBox: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 2,
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+    backgroundColor: '#fff',
+    borderRadius: 999,
+    paddingHorizontal: 4,
+    paddingVertical: 4,
+  },
+  qtyBtn: {
+    width: 26,
+    height: 26,
+    borderRadius: 13,
+    backgroundColor: '#f1f5f9',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  qtyBtnDisabled: {opacity: 0.4},
+  qtyTxt: {
+    width: 22,
+    textAlign: 'center',
+    fontSize: 13,
+    fontFamily: Fonts.semiBold,
+    color: '#0f172a',
   },
   deleteBtn: {
-    color: '#ef4444',
-    fontSize:22,
-    // padding: 8,
-    // borderRadius: 999,
+    width: 30,
+    height: 30,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: '#fecaca',
+    backgroundColor: '#fef2f2',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
+
   modalOverlay: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: 'rgba(0,0,0,0.45)',
+    backgroundColor: 'rgba(15, 23, 42, 0.5)',
   },
   modalBox: {
     backgroundColor: '#fff',
     width: '84%',
     padding: 22,
-    borderRadius: 16,
-    elevation: 6,
+    borderRadius: 18,
   },
   modalTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#1e1e1e',
+    fontSize: 17,
+    fontFamily: Fonts.semiBold,
+    color: '#0f172a',
     marginBottom: 8,
   },
   modalMessage: {
-    fontSize: 14,
-    color: '#374151',
+    fontSize: 13.5,
+    fontFamily: Fonts.regular,
+    color: '#475569',
     marginBottom: 20,
+    lineHeight: 19,
   },
   modalActions: {
     flexDirection: 'row',
@@ -394,18 +467,20 @@ const styles = StyleSheet.create({
     marginLeft: 10,
   },
   cancelBtn: {
-    backgroundColor: '#f3f4f6',
+    backgroundColor: '#f1f5f9',
   },
   deleteBtnModal: {
     backgroundColor: '#dc2626',
   },
   cancelTxt: {
-    color: '#111827',
-    fontWeight: '600',
+    color: '#334155',
+    fontFamily: Fonts.semiBold,
+    fontSize: 13,
   },
   deleteTxt: {
     color: '#fff',
-    fontWeight: '600',
+    fontFamily: Fonts.semiBold,
+    fontSize: 13,
   },
 });
 

@@ -1,104 +1,154 @@
-import {useNavigation} from '@react-navigation/native';
-import {useEffect, useRef, useState} from 'react';
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  ScrollView,
-  StyleSheet,
-  Modal,
-  ActivityIndicator,
-} from 'react-native';
+import React, {useEffect, useRef, useState} from 'react';
+import {View, Text, ScrollView, StyleSheet} from 'react-native';
 import Header from '../Layout/header';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
-import TextFields from '../Components/TextFields';
+import {Fonts} from '../utils/fonts';
 import OrderSummary from '../Components/OrderSummary';
-import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import BillingAddress from '../Components/BillingAddress';
 import ProductConsent from '../Components/ProductConsent';
 import useShippingOrBillingStore from '../store/shipingOrbilling';
 import ShippingAddress from '../Components/ShippingAddress';
-import NextButton from '../Components/NextButton';
+import CheckoutSection from '../Components/CheckoutSection';
+import BackButton from '../Components/BackButton';
 import Toast from 'react-native-toast-message';
 
-export default function CheckoutSteps() {
+const PRIMARY = '#47317c';
+
+export default function CheckoutSteps({navigation}) {
   const scrollRef = useRef();
-  const [formData, setFormData] = useState({});
-  const [isChecked, setIsChecked] = useState(false);
+  const sectionYRef = useRef({});
+
   const [isShippingCheck, setIsShippingCheck] = useState(false);
   const [isBillingCheck, setIsBillingCheck] = useState(false);
   const [isConcentCheck, setIsConcentCheck] = useState(false);
   const {billingSameAsShipping} = useShippingOrBillingStore();
 
-  const [loading, setLoading] = useState(false);
-  const [thankYou, setThankYou] = useState(false);
+  const [openStep, setOpenStep] = useState('shipping');
 
-  const navigation = useNavigation();
-
-  console.log(isShippingCheck, 'isShippingCheck');
-  console.log(isBillingCheck, 'isBillingCheck');
+  const prevShipping = useRef(false);
+  const prevBilling = useRef(false);
+  const prevConsent = useRef(false);
 
   const insets = useSafeAreaInsets();
-  const isNextDisabled = isShippingCheck && isBillingCheck && isConcentCheck;
+  const isNextDisabled =
+    isShippingCheck &&
+    (billingSameAsShipping || isBillingCheck) &&
+    isConcentCheck;
 
-  console.log(isNextDisabled, 'isNextDisabled');
+  const scrollToStep = key => {
+    setTimeout(() => {
+      const y = sectionYRef.current[key];
+      if (y != null && scrollRef.current) {
+        scrollRef.current.scrollTo({y: Math.max(y - 12, 0), animated: true});
+      }
+    }, 350);
+  };
+
+  // Auto-advance: Shipping done → open Billing (or Consent if same-as-shipping)
+  useEffect(() => {
+    if (isShippingCheck && !prevShipping.current && openStep === 'shipping') {
+      const nextStep = billingSameAsShipping ? 'consent' : 'billing';
+      setOpenStep(nextStep);
+      scrollToStep(nextStep);
+    }
+    prevShipping.current = isShippingCheck;
+  }, [isShippingCheck, billingSameAsShipping]);
+
+  // Auto-advance: Billing done → open Consent
+  useEffect(() => {
+    if (isBillingCheck && !prevBilling.current && openStep === 'billing') {
+      setOpenStep('consent');
+      scrollToStep('consent');
+    }
+    prevBilling.current = isBillingCheck;
+  }, [isBillingCheck]);
+
+  // Auto-advance: Consent given → open Order Summary
+  useEffect(() => {
+    if (isConcentCheck && !prevConsent.current && openStep === 'consent') {
+      setOpenStep('summary');
+      scrollToStep('summary');
+    }
+    prevConsent.current = isConcentCheck;
+  }, [isConcentCheck]);
+
+  const handleToggle = key => {
+    setOpenStep(prev => (prev === key ? null : key));
+  };
 
   return (
     <>
       <Header />
       <ScrollView
-        style={styles.container}
         ref={scrollRef}
-        contentContainerStyle={{paddingBottom: insets.bottom + 40}}>
+        style={styles.screen}
+        contentContainerStyle={[
+          styles.container,
+          {paddingBottom: insets.bottom + 32},
+        ]}
+        showsVerticalScrollIndicator={false}>
         <Text style={styles.heading}>
           Checkout to kick-start your weight loss journey
         </Text>
 
-        <>
-          {/* Step 2: Shipping */}
+        <CheckoutSection
+          stepNumber={1}
+          title="Shipping Address"
+          subtitle="Where should we deliver your order?"
+          isCompleted={isShippingCheck}
+          isOpen={openStep === 'shipping'}
+          onToggle={() => handleToggle('shipping')}
+          onLayout={e => {
+            sectionYRef.current.shipping = e.nativeEvent.layout.y;
+          }}>
           <ShippingAddress setIsShippingCheck={setIsShippingCheck} />
+        </CheckoutSection>
 
-          {/* Step 3: Billing */}
-          {!billingSameAsShipping && (
+        {!billingSameAsShipping && (
+          <CheckoutSection
+            stepNumber={2}
+            title="Billing Address"
+            subtitle="Where should we send your invoice?"
+            isCompleted={isBillingCheck}
+            isOpen={openStep === 'billing'}
+            onToggle={() => handleToggle('billing')}
+            onLayout={e => {
+              sectionYRef.current.billing = e.nativeEvent.layout.y;
+            }}>
             <BillingAddress setIsBillingCheck={setIsBillingCheck} />
-          )}
+          </CheckoutSection>
+        )}
 
-          {/* Step 4: Consent */}
-          <ProductConsent
-            setIsConcentCheck={setIsConcentCheck}
-            isCompleted={setIsConcentCheck}
-          />
+        <CheckoutSection
+          stepNumber={billingSameAsShipping ? 2 : 3}
+          title="Treatment Consent"
+          subtitle="Please confirm you've reviewed the treatment information"
+          isCompleted={isConcentCheck}
+          isOpen={openStep === 'consent'}
+          onToggle={() => handleToggle('consent')}
+          onLayout={e => {
+            sectionYRef.current.consent = e.nativeEvent.layout.y;
+          }}>
+          <ProductConsent setIsConcentCheck={setIsConcentCheck} />
+        </CheckoutSection>
 
-          {/* Step 5: Summary */}
+        <CheckoutSection
+          stepNumber={billingSameAsShipping ? 3 : 4}
+          title="Order Summary"
+          subtitle="Review your items before payment"
+          isCompleted={false}
+          isOpen={openStep === 'summary'}
+          onToggle={() => handleToggle('summary')}
+          onLayout={e => {
+            sectionYRef.current.summary = e.nativeEvent.layout.y;
+          }}>
           <OrderSummary isNextDisabled={isNextDisabled} />
+        </CheckoutSection>
 
-          {/* <TouchableOpacity
-            onPress={handleSubmit}
-            style={styles.submitButton}
-            disabled={true}>
-            <Text style={styles.submitText}>Procceed to Payment</Text>
-          </TouchableOpacity> */}
-        </>
-
-        {/* Loading Modal */}
-        <Modal transparent visible={loading}>
-          <View style={styles.modalOverlay}>
-            <View style={styles.modalBox}>
-              <ActivityIndicator size="large" color="#4B0082" />
-              <Text style={{marginTop: 12}}>Processing payment...</Text>
-            </View>
-          </View>
-        </Modal>
-
-        {/* Thank You Modal */}
-        <Modal transparent visible={thankYou}>
-          <View style={styles.modalOverlay}>
-            <View style={styles.modalBox}>
-              <Text style={styles.thankText}>Thank you!</Text>
-              <Text>Your order has been placed.</Text>
-            </View>
-          </View>
-        </Modal>
+        <BackButton
+          label="Back"
+          onPress={() => navigation.navigate('dose-selection')}
+        />
       </ScrollView>
 
       <Toast />
@@ -107,138 +157,18 @@ export default function CheckoutSteps() {
 }
 
 const styles = StyleSheet.create({
+  screen: {
+    backgroundColor: '#FBFBFD',
+  },
   container: {
-    backgroundColor: '#F5F9FF',
     padding: 16,
-    flex: 1,
   },
   heading: {
-    fontSize: 26,
-    fontWeight: '600',
-    color: '#1A1A1A',
+    fontSize: 19,
+    fontFamily: Fonts.semiBold,
+    color: '#0f172a',
     marginBottom: 18,
     textAlign: 'center',
-  },
-  subHeading: {
-    textAlign: 'left',
-    color: '#1A1A1A',
-    marginBottom: 16,
-    fontSize: 20,
-    fontWeight: '600',
-  },
-  card: {
-    backgroundColor: '#fff',
-    padding: 20,
-    borderRadius: 16,
-    marginBottom: 20,
-    shadowColor: '#000',
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    shadowOffset: {width: 0, height: 2},
-    elevation: 2,
-  },
-  paragraphExplain: {
-    marginBottom: 10,
-  },
-  paragraph: {
-    fontSize: 14,
-    color: '#444',
-    lineHeight: 22,
-    marginBottom: 10,
-  },
-  checkboxRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginTop: 16,
-  },
-  checkbox: {
-    width: 24,
-    height: 24,
-    borderColor: '#4B0082',
-    borderWidth: 2,
-    borderRadius: 6,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  checkedBox: {
-    backgroundColor: '#4B0082',
-  },
-  tick: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: 'bold',
-  },
-  actions: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginTop: 10,
-    alignItems: 'center',
-  },
-  nextButton: {
-    backgroundColor: '#4B0082',
-    paddingVertical: 14,
-    paddingHorizontal: 32,
-    borderRadius: 50,
-    alignItems: 'center',
-    justifyContent: 'center',
-    minWidth: 120,
-  },
-  nextText: {
-    color: '#fff',
-    fontWeight: '600',
-    fontSize: 16,
-  },
-  backText: {
-    color: '#4B0082',
-    fontWeight: '500',
-    fontSize: 14,
-    textDecorationLine: 'underline',
-  },
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.4)',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  modalBox: {
-    backgroundColor: '#fff',
-    padding: 24,
-    borderRadius: 16,
-    alignItems: 'center',
-    width: '80%',
-  },
-  thankText: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#4B0082',
-    marginBottom: 8,
-  },
-  total: {
-    fontWeight: 'bold',
-    marginTop: 16,
-    fontSize: 18,
-    color: '#4B0082',
-  },
-  submitButton: {
-    backgroundColor: '#4B0082',
-    paddingVertical: 16,
-    borderRadius: 50,
-    alignItems: 'center',
-    marginTop: 20,
-    marginBottom: 30,
-  },
-  submitText: {
-    color: '#fff',
-    fontWeight: '600',
-    fontSize: 16,
-  },
-  thankYouText: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#4B0082',
-    marginBottom: 8,
-  },
-  disabled: {
-    backgroundColor: '#aaa',
+    lineHeight: 25,
   },
 });

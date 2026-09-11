@@ -2,12 +2,12 @@
 import React, {useState} from 'react';
 import {
   Image,
-  SafeAreaView,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
 } from 'react-native';
+import {useSafeAreaInsets} from 'react-native-safe-area-context';
 
 import {useNavigation} from '@react-navigation/native';
 import useLoginModalStore from '../store/useLoginModalStore';
@@ -17,10 +17,12 @@ import Dropdown from '../Components/Dropdown';
 
 const Header = () => {
   const navigation = useNavigation();
+  const insets = useSafeAreaInsets();
 
   const {token, clearToken} = useAuthStore();
   const {
     firstName: userFirstName,
+    email,
     clearFirstName,
     clearLastName,
     clearEmail,
@@ -35,29 +37,25 @@ const Header = () => {
   };
 
   return (
-    <>
-      <SafeAreaView style={{backgroundColor: '#fff', zIndex: 999}}>
-        <View style={styles.header}>
-          {/* Logo */}
-          <TouchableOpacity onPress={() => navigation.navigate('dashboard')}>
-            <Image
-              source={require('../assets/images/logo.png')}
-              style={styles.logo}
-            />
-          </TouchableOpacity>
-
-          {/* Right side — login or profile */}
-          <Dropdown
-            token={token}
-            userFirstName={userFirstName}
-            handleLogout={handleLogout}
-            // openLoginModal={openLoginModal}
+    <View style={{backgroundColor: '#fff', paddingTop: insets.top, zIndex: 999}}>
+      <View style={styles.header}>
+        {/* Logo */}
+        <TouchableOpacity onPress={() => navigation.navigate('dashboard')}>
+          <Image
+            source={require('../assets/images/logo.png')}
+            style={styles.logo}
           />
-        </View>
+        </TouchableOpacity>
 
-        {/* Login Modal */}
-      </SafeAreaView>
-    </>
+        {/* Right side — login or profile */}
+        <Dropdown
+          token={token}
+          userFirstName={userFirstName}
+          email={email}
+          handleLogout={handleLogout}
+        />
+      </View>
+    </View>
   );
 };
 

@@ -1,5 +1,13 @@
 import React, {useEffect, useState} from 'react';
-import {View, Text, FlatList, StyleSheet, RefreshControl} from 'react-native';
+import {
+  View,
+  Text,
+  FlatList,
+  StyleSheet,
+  RefreshControl,
+  Image,
+  ImageBackground,
+} from 'react-native';
 import {useMutation} from '@tanstack/react-query';
 import Toast from 'react-native-toast-message';
 
@@ -13,10 +21,13 @@ import useImageUploadStore from '../store/useImageUploadStore';
 import useIdVerificationUploadStore from '../store/useIdVerificationUploadStore';
 import UploadTopPrompt from '../Components/UploadTopPrompt';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
+import {Fonts} from '../utils/fonts';
+import useSignupStore from '../store/signupStore';
+import Feather from 'react-native-vector-icons/Feather';
 
 const DashboardHome = () => {
   const insets = useSafeAreaInsets();
-  /* ───────────────────────────────────────── state */
+  const {firstName} = useSignupStore();
   const [productData, setProductData] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -26,7 +37,6 @@ const DashboardHome = () => {
   const {idVerificationUpload, setIdVerificationUpload} =
     useIdVerificationUploadStore();
 
-  /* ───────────────────────────────────────── API */
   const getProducts = useMutation({
     mutationFn: GetProductsApi,
     onSuccess: res => {
@@ -89,16 +99,29 @@ const DashboardHome = () => {
     fetchImageStatus();
   }, [reorder]);
 
-  /* ───────────────────────────────────────── render */
   const renderLoaderSkeleton = () => (
-    <View style={styles.loaderWrapper}>
-      {[...Array(6)].map((_, i) => (
-        <View key={i} style={styles.loaderCard} />
+    <View style={styles.loaderScreen}>
+      {/* Welcome banner skeleton */}
+      <View style={styles.skeletonBanner} />
+
+      {/* Reorder / section heading skeleton */}
+      <View style={styles.skeletonHeading} />
+
+      {/* Product row skeletons */}
+      {[...Array(4)].map((_, i) => (
+        <View key={i} style={styles.skeletonRow}>
+          <View style={styles.skeletonThumb} />
+          <View style={{flex: 1, gap: 8}}>
+            <View style={styles.skeletonLineWide} />
+            <View style={styles.skeletonLineNarrow} />
+          </View>
+          <View style={styles.skeletonButton} />
+        </View>
       ))}
     </View>
   );
 
-  const renderProductCard = ({item, index}) => (
+  const renderProductCard = ({item}) => (
     <ProductCard
       id={item.id}
       title={item.name}
@@ -114,12 +137,53 @@ const DashboardHome = () => {
 
   const renderHeader = () => (
     <>
+      {/* Welcome Banner */}
+      <ImageBackground
+        source={require('../assets/images/dashboard-hero.png')}
+        style={styles.welcomeHeader}
+        imageStyle={styles.welcomeHeaderImage}>
+        <View style={styles.welcomeOverlay} />
+
+        <Text style={styles.welcomeHeading}>
+          Welcome back{firstName ? `,\n${firstName}` : ''}
+        </Text>
+        <Text style={styles.welcomeSubtitle}>
+          Your health journey continues here.
+        </Text>
+
+        <View style={styles.badgeRow}>
+          <View style={styles.badgeItem}>
+            <View style={styles.badgeIconCircle}>
+              <Feather name="shield" size={16} color="#fff" />
+            </View>
+            <Text style={styles.badgeTitle}>Safe & Trusted</Text>
+            <Text style={styles.badgeSubtitle}>UK Regulated</Text>
+          </View>
+
+          <View style={styles.badgeItem}>
+            <View style={styles.badgeIconCircle}>
+              <Feather name="users" size={16} color="#fff" />
+            </View>
+            <Text style={styles.badgeTitle}>Expert Support</Text>
+            <Text style={styles.badgeSubtitle}>Clinical Team</Text>
+          </View>
+
+          <View style={styles.badgeItem}>
+            <View style={styles.badgeIconCircle}>
+              <Feather name="truck" size={16} color="#fff" />
+            </View>
+            <Text style={styles.badgeTitle}>Discreet Delivery</Text>
+            <Text style={styles.badgeSubtitle}>To Your Door</Text>
+          </View>
+        </View>
+      </ImageBackground>
+
       {(!imageUploaded || !idVerificationUpload) && <UploadTopPrompt />}
 
       {productData?.reorder ? (
         <View style={styles.section}>
-          <Text style={styles.heading}>Reorder Treatment</Text>
-          <View style={styles.grid}>
+          <Text style={styles.headingNoPad}>Reorder Treatment</Text>
+          <View style={styles.reorderList}>
             {(Array.isArray(productData.reorder)
               ? productData.reorder
               : [productData.reorder]
@@ -142,7 +206,7 @@ const DashboardHome = () => {
 
       {products.length > 0 && (
         <View style={styles.section}>
-          <Text style={styles.heading}>Available Treatments</Text>
+          <Text style={styles.headingNoPad}>Available Treatments</Text>
           <Text style={styles.paragraph}>
             We offer the following weight-loss injection treatments to support
             your journey.
@@ -152,7 +216,6 @@ const DashboardHome = () => {
     </>
   );
 
-  /* ───────────────────────────────────────── UI */
   if (isLoading && !refreshing) {
     return (
       <>
@@ -178,7 +241,10 @@ const DashboardHome = () => {
             No available treatments at the moment.
           </Text>
         }
-        contentContainerStyle={[styles.container, {paddingBottom: insets.bottom + 16}]}
+        contentContainerStyle={[
+          styles.container,
+          {paddingBottom: insets.bottom + 16},
+        ]}
         refreshControl={
           <RefreshControl
             refreshing={refreshing}
@@ -194,54 +260,190 @@ const DashboardHome = () => {
   );
 };
 
-/* ───────────────────────────────────────── styles */
 const styles = StyleSheet.create({
+  list: {
+    backgroundColor: '#FBFBFD',
+  },
   container: {
     paddingHorizontal: 16,
     paddingBottom: 32,
-    backgroundColor: '#ffffff',
+    backgroundColor: '#FBFBFD',
   },
-  section: {
+
+  // Welcome Banner
+  welcomeHeader: {
+    marginHorizontal: -16,
+    paddingHorizontal: 20,
+    paddingTop: 28,
+    paddingBottom: 24,
     marginBottom: 12,
+    backgroundColor: '#3d2a68',
+    overflow: 'hidden',
+  },
+  welcomeHeaderImage: {
+    resizeMode: 'cover',
+  },
+  welcomeOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: '#231644',
+    opacity: 0.75,
+  },
+  welcomeHeading: {
+    fontSize: 26,
+    lineHeight: 32,
+    color: '#ffffff',
+    fontFamily: Fonts.bold,
+    marginBottom: 6,
+    zIndex: 1,
+    textShadowColor: 'rgba(0,0,0,0.35)',
+    textShadowOffset: {width: 0, height: 1},
+    textShadowRadius: 4,
+  },
+  welcomeSubtitle: {
+    fontSize: 14,
+    color: 'rgba(255,255,255,0.9)',
+    fontFamily: Fonts.regular,
+    lineHeight: 19,
+    marginBottom: 22,
+    zIndex: 1,
+    textShadowColor: 'rgba(0,0,0,0.35)',
+    textShadowOffset: {width: 0, height: 1},
+    textShadowRadius: 4,
+  },
+  badgeRow: {
+    flexDirection: 'row',
+    justifyContent: 'flex-start',
+    gap: 22,
+    zIndex: 1,
+  },
+  badgeItem: {
+    alignItems: 'center',
+    width: 84,
+  },
+  badgeIconCircle: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.3)',
+    backgroundColor: 'rgba(255,255,255,0.1)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  badgeTitle: {
+    fontSize: 11.5,
+    color: '#ffffff',
+    fontFamily: Fonts.semiBold,
+    textAlign: 'center',
+  },
+  badgeSubtitle: {
+    fontSize: 10,
+    color: 'rgba(255,255,255,0.6)',
+    fontFamily: Fonts.regular,
+    textAlign: 'center',
+    marginTop: 2,
+  },
+
+  // Sections
+  section: {
+    marginBottom: 8,
   },
   heading: {
-    fontSize: 20,
-    fontWeight: '700',
-    marginVertical: 16,
-    color: '#1C1C29',
+    fontSize: 18,
+    fontFamily: Fonts.bold,
+    marginTop: 16,
+    marginBottom: 12,
+    color: '#0f172a',
+  },
+  headingNoPad: {
+    fontSize: 18,
+    fontFamily: Fonts.bold,
+    marginTop: 16,
+    marginBottom: 12,
+    color: '#0f172a',
   },
   paragraph: {
-    fontSize: 14,
-    marginBottom: 16,
-    color: '#4B5563',
+    fontSize: 13,
+    marginBottom: 12,
+    color: '#64748b',
+    fontFamily: Fonts.regular,
+    lineHeight: 18,
   },
-  grid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-between',
-    gap: 16,
+  reorderList: {
+    gap: 12,
   },
   emptyText: {
     textAlign: 'center',
     fontSize: 14,
-    color: '#888',
+    color: '#94a3b8',
     marginTop: 40,
+    fontFamily: Fonts.regular,
   },
 
-  /* loader skeleton */
-  loaderWrapper: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 12,
+  // Loader skeleton
+  loaderScreen: {
+    flex: 1,
+    backgroundColor: '#FBFBFD',
     padding: 16,
   },
-  loaderCard: {
-    width: '48%',
+  skeletonBanner: {
     height: 200,
-    borderRadius: 12,
-    backgroundColor: '#e0e0e0',
-    opacity: 0.3,
+    borderRadius: 18,
+    backgroundColor: '#e2d9f3',
+    opacity: 0.6,
+    marginBottom: 20,
+  },
+  skeletonHeading: {
+    width: '55%',
+    height: 20,
+    borderRadius: 6,
+    backgroundColor: '#e2e8f0',
+    opacity: 0.7,
+    marginBottom: 16,
+  },
+  skeletonRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 14,
+    borderWidth: 1,
+    borderColor: '#f1f5f9',
+    borderRadius: 16,
+    backgroundColor: '#fff',
+    padding: 14,
     marginBottom: 12,
+  },
+  skeletonThumb: {
+    width: 64,
+    height: 64,
+    borderRadius: 12,
+    backgroundColor: '#e2e8f0',
+    opacity: 0.7,
+  },
+  skeletonLineWide: {
+    width: '75%',
+    height: 14,
+    borderRadius: 5,
+    backgroundColor: '#e2e8f0',
+    opacity: 0.7,
+  },
+  skeletonLineNarrow: {
+    width: '45%',
+    height: 12,
+    borderRadius: 5,
+    backgroundColor: '#e2e8f0',
+    opacity: 0.5,
+  },
+  skeletonButton: {
+    width: 88,
+    height: 34,
+    borderRadius: 10,
+    backgroundColor: '#e2d9f3',
+    opacity: 0.7,
   },
 });
 

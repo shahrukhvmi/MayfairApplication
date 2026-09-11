@@ -1,40 +1,60 @@
 import React from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  SafeAreaView,
-} from 'react-native';
-import Ionicons from 'react-native-vector-icons/Ionicons'; // or use MaterialIcons if preferred
-import { useNavigation } from '@react-navigation/native';
+import {View, Text, StyleSheet} from 'react-native';
+import {useNavigation} from '@react-navigation/native';
+import {useSafeAreaInsets} from 'react-native-safe-area-context';
+import Feather from 'react-native-vector-icons/Feather';
+
 import NextButton from '../Components/NextButton';
+import {Fonts} from '../utils/fonts';
+
+const PRIMARY = '#47317c';
 
 const PaymentFailed = () => {
   const navigation = useNavigation();
+  const insets = useSafeAreaInsets();
 
   const handleGoBack = () => {
-    navigation.navigate('dashboard'); // Ensure 'Dashboard' is defined in your stack
+    navigation.navigate('dashboard');
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <View
+      style={[
+        styles.container,
+        {paddingTop: insets.top + 16, paddingBottom: insets.bottom + 16},
+      ]}>
       <View style={styles.card}>
-        <View style={styles.iconWrapper}>
-          <View style={styles.errorIconCircle}>
-            <Ionicons name="close" size={40} color="#fff" />
-          </View>
-        </View>
-        <Text style={styles.title}>Payment Failed</Text>
-        <Text style={styles.description}>
-          It looks like your payment wasn’t completed. You can try again or
-          contact us if you need help.
-        </Text>
+        {/* Header */}
+        <View style={styles.header}>
+          <View style={styles.decorCircleTop} />
+          <View style={styles.decorCircleBottom} />
 
-        <NextButton onPress={handleGoBack} label='Continue to Available Treatments' />
-       
+          <View style={styles.iconWrap}>
+            <View style={styles.cardIcon}>
+              <Feather name="credit-card" size={40} color={PRIMARY} />
+              <View style={styles.alertBadge}>
+                <Feather name="alert-triangle" size={15} color="#fff" />
+              </View>
+            </View>
+          </View>
+
+          <Text style={styles.title}>Payment Failed</Text>
+          <Text style={styles.description}>
+            It looks like your payment wasn't completed. You can try again or
+            contact us if you need help.
+          </Text>
+        </View>
+
+        {/* Action */}
+        <View style={styles.body}>
+          <NextButton
+            onPress={handleGoBack}
+            label="Visit patient dashboard"
+            style={styles.button}
+          />
+        </View>
       </View>
-    </SafeAreaView>
+    </View>
   );
 };
 
@@ -43,59 +63,108 @@ export default PaymentFailed;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F2EEFF',
+    backgroundColor: '#FBFBFD',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingHorizontal: 24,
+    paddingHorizontal: 20,
   },
   card: {
-    backgroundColor: '#fff',
-    padding: 24,
-    borderRadius: 12,
     width: '100%',
-    maxWidth: 400,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.15,
-    shadowRadius: 6,
-    // elevation: 5,
+    maxWidth: 420,
+    borderRadius: 18,
+    borderWidth: 1,
+    borderColor: 'rgba(71, 49, 124, 0.1)',
+    backgroundColor: '#fff',
+    overflow: 'hidden',
+    shadowColor: 'rgba(71, 49, 124, 0.14)',
+    shadowOffset: {width: 0, height: 14},
+    shadowOpacity: 1,
+    shadowRadius: 30,
+    elevation: 4,
+  },
+
+  header: {
+    backgroundColor: '#f5f2fc',
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(71, 49, 124, 0.08)',
     alignItems: 'center',
+    paddingHorizontal: 24,
+    paddingVertical: 34,
+    overflow: 'hidden',
   },
-  iconWrapper: {
-    marginBottom: 16,
+  decorCircleTop: {
+    position: 'absolute',
+    top: -60,
+    right: -48,
+    width: 150,
+    height: 150,
+    borderRadius: 75,
+    borderWidth: 22,
+    borderColor: 'rgba(71, 49, 124, 0.035)',
   },
-  errorIconCircle: {
-    backgroundColor: 'red',
-    width: 64,
-    height: 64,
-    borderRadius: 32,
+  decorCircleBottom: {
+    position: 'absolute',
+    bottom: -60,
+    left: -48,
+    width: 130,
+    height: 130,
+    borderRadius: 65,
+    backgroundColor: 'rgba(71, 49, 124, 0.035)',
+  },
+  iconWrap: {
+    marginBottom: 22,
+  },
+  cardIcon: {
+    width: 108,
+    height: 80,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(71, 49, 124, 0.15)',
+    backgroundColor: '#fff',
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: 'rgba(71, 49, 124, 0.16)',
+    shadowOffset: {width: 0, height: 12},
+    shadowOpacity: 1,
+    shadowRadius: 24,
+    elevation: 4,
+  },
+  alertBadge: {
+    position: 'absolute',
+    bottom: -10,
+    right: -10,
+    width: 34,
+    height: 34,
+    borderRadius: 11,
+    borderWidth: 4,
+    borderColor: '#f5f2fc',
+    backgroundColor: '#ef4444',
     justifyContent: 'center',
     alignItems: 'center',
   },
   title: {
     fontSize: 24,
-    color: '#1F2937',
-    fontWeight: '700',
-    marginBottom: 12,
+    fontFamily: Fonts.bold,
+    color: '#0f172a',
     textAlign: 'center',
   },
   description: {
-    fontSize: 16,
-    color: '#6B7280',
-    marginBottom: 24,
+    fontSize: 13.5,
+    fontFamily: Fonts.regular,
+    color: '#64748b',
     textAlign: 'center',
+    marginTop: 10,
+    lineHeight: 20,
+    paddingHorizontal: 6,
+  },
+
+  body: {
+    paddingHorizontal: 24,
+    paddingVertical: 22,
   },
   button: {
-    backgroundColor: '#6B21A8',
-    paddingVertical: 12,
-    paddingHorizontal: 20,
-    borderRadius: 8,
-    minWidth: '80%',
-  },
-  buttonText: {
-    color: '#fff',
-    textAlign: 'center',
-    fontWeight: '600',
-    fontSize: 16,
+    backgroundColor: PRIMARY,
+    borderRadius: 12,
+    minHeight: 48,
   },
 });

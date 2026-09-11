@@ -1,237 +1,395 @@
-import Ionicons from 'react-native-vector-icons/Ionicons';
+import Feather from 'react-native-vector-icons/Feather';
 
 import {useState} from 'react';
 import {useNavigation} from '@react-navigation/native';
 
-import {
-  ScrollView,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-} from 'react-native';
+import {ScrollView, StyleSheet, Text, TouchableOpacity, View} from 'react-native';
 import Header from '../Layout/header';
 import NextButton from '../Components/NextButton';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
+import {Fonts} from '../utils/fonts';
+
+const PRIMARY = '#47317c';
+const PERCENTAGE = 0;
+
+const CONSENT_ITEMS = [
+  'You consent for your medical information to be assessed by the clinical team at Mayfair Weight Loss Clinic and its pharmacy and to be prescribed medication.',
+  'You consent to an age and ID check when placing your first order.',
+  'You will answer all questions honestly and accurately, and understand that it is an offence to provide false information.',
+  'You have capacity to understand all about the condition and medication information we have provided and that you give fully informed consent to the treatment option provided.',
+  'You understand that the treatment or medical advice provided is based on the information you have provided.',
+];
+
+const QUESTIONS = [
+  {
+    id: 'personalUse',
+    text: 'Are you purchasing this medication for yourself, of your own free will and the medicine is for your personal use only?',
+  },
+  {
+    id: 'decisionCapacity',
+    text: 'Do you believe you have the ability to make healthcare decisions for yourself?',
+  },
+];
 
 export default function AcknowledgmentScreen() {
   const navigation = useNavigation();
   const insets = useSafeAreaInsets();
-  const [q1, setQ1] = useState(null);
-  const [q2, setQ2] = useState(null);
+  const [answers, setAnswers] = useState({personalUse: null, decisionCapacity: null});
   const [confirmChecked, setConfirmChecked] = useState(false);
 
-  const bothYes = q1 === true && q2 === true;
-  const canConfirm = bothYes && confirmChecked;
+  const {personalUse, decisionCapacity} = answers;
+  const isNoSelected = personalUse === 'no' || decisionCapacity === 'no';
+  const showConsentBox = personalUse === 'yes' && decisionCapacity === 'yes';
+  const canConfirm = showConsentBox && confirmChecked;
+
+  const setAnswer = (id, value) =>
+    setAnswers(prev => ({...prev, [id]: value}));
+
+  const renderYesNo = (fieldId, value) => (
+    <View style={styles.optionRow}>
+      {['yes', 'no'].map(option => {
+        const isSelected = value === option;
+        const isYes = option === 'yes';
+        return (
+          <TouchableOpacity
+            key={option}
+            activeOpacity={0.8}
+            onPress={() => setAnswer(fieldId, option)}
+            style={[
+              styles.optionPill,
+              isSelected &&
+                (isYes ? styles.optionPillYesActive : styles.optionPillNoActive),
+            ]}>
+            <View
+              style={[
+                styles.radioCircle,
+                isSelected &&
+                  (isYes ? styles.radioCircleYesActive : styles.radioCircleNoActive),
+              ]}>
+              {isSelected && <View style={styles.radioDot} />}
+            </View>
+            <Text
+              style={[
+                styles.optionLabel,
+                isSelected && (isYes ? styles.optionLabelYes : styles.optionLabelNo),
+              ]}>
+              {option === 'yes' ? 'Yes' : 'No'}
+            </Text>
+          </TouchableOpacity>
+        );
+      })}
+    </View>
+  );
 
   return (
     <>
       <Header />
 
-      <ScrollView contentContainerStyle={[styles.container, {paddingBottom: insets.bottom + 16}]}>
-        <Text style={styles.progressText}>0% Completed</Text>
-        <Text style={styles.heading}>Acknowledgment</Text>
-
-        {/* Question 1 */}
-        <Text style={styles.question}>
-          Are you purchasing this medication for yourself, of your own free will
-          and the medicine is for your personal use only?
-        </Text>
-        <View style={styles.optionRow}>
-          <Option
-            label="Yes"
-            selected={q1 === true}
-            onPress={() => setQ1(true)}
-          />
-          <Option
-            label="No"
-            selected={q1 === false}
-            onPress={() => setQ1(false)}
-          />
+      <ScrollView
+        style={styles.screen}
+        contentContainerStyle={[
+          styles.container,
+          {paddingBottom: insets.bottom + 24},
+        ]}
+        showsVerticalScrollIndicator={false}>
+        {/* Progress bar */}
+        <View style={styles.progressTrack}>
+          <View style={[styles.progressFill, {width: `${PERCENTAGE}%`}]} />
         </View>
 
-        {/* Question 2 */}
-        <Text style={styles.question}>
-          Do you believe you have the ability to make healthcare decisions for
-          yourself?
-        </Text>
-        <View style={styles.optionRow}>
-          <Option
-            label="Yes"
-            selected={q2 === true}
-            onPress={() => setQ2(true)}
-          />
-          <Option
-            label="No"
-            selected={q2 === false}
-            onPress={() => setQ2(false)}
-          />
-        </View>
+        {/* Card */}
+        <View style={styles.card}>
+          <View style={styles.cardHeader}>
+            <Text style={styles.progressLabel}>{PERCENTAGE}% COMPLETED</Text>
+            <Text style={styles.heading}>Acknowledgment</Text>
+          </View>
 
-        {/* Confirmation Section */}
-        {bothYes && (
-          <View style={styles.confirmBox}>
-            <TouchableOpacity
-              style={styles.confirmHeader}
-              onPress={() => setConfirmChecked(!confirmChecked)}>
-              <Ionicons
-                name={confirmChecked ? 'checkbox' : 'square-outline'}
-                size={20}
-                color={confirmChecked ? '#4B0082' : '#999'}
-                style={{marginRight: 8}}
-              />
-              <Text style={styles.confirmTitle}>Do you confirm that:</Text>
-            </TouchableOpacity>
+          <View style={styles.cardBody}>
+            {QUESTIONS.map((q, idx) => (
+              <View
+                key={q.id}
+                style={[styles.questionBlock, idx === 0 && styles.questionBlockFirst]}>
+                <Text style={styles.questionText}>{q.text}</Text>
+                {renderYesNo(q.id, q.id === 'personalUse' ? personalUse : decisionCapacity)}
+              </View>
+            ))}
 
-            <View style={styles.bulletPoints}>
-              {[
-                'You consent for your medical information to be assessed by the clinical team at Mayfair Weight Loss Clinic and its pharmacy and to be prescribed medication.',
-                'You consent to an age and ID check when placing your first order.',
-                'You will answer all questions honestly and accurately, and understand that it is an offence to provide false information.',
-              ].map((item, idx) => (
-                <View style={styles.bulletRow} key={idx}>
-                  <Text style={styles.bulletDot}>•</Text>
-                  <Text style={styles.bulletText}>{item}</Text>
+            {isNoSelected && (
+              <View style={styles.warningBox}>
+                <Text style={styles.warningText}>
+                  Unfortunately we are unable to proceed. Please consult a
+                  healthcare professional if you have concerns.
+                </Text>
+              </View>
+            )}
+
+            {showConsentBox && (
+              <View style={styles.consentBox}>
+                <TouchableOpacity
+                  style={styles.consentHeader}
+                  activeOpacity={0.8}
+                  onPress={() => setConfirmChecked(!confirmChecked)}>
+                  <View
+                    style={[
+                      styles.checkbox,
+                      confirmChecked && styles.checkboxActive,
+                    ]}>
+                    {confirmChecked && (
+                      <Feather name="check" size={12} color="#fff" />
+                    )}
+                  </View>
+                  <Text style={styles.consentTitle}>Do you confirm that:</Text>
+                </TouchableOpacity>
+
+                <View style={styles.consentList}>
+                  {CONSENT_ITEMS.map((item, idx) => (
+                    <View style={styles.consentRow} key={idx}>
+                      <Feather
+                        name="check-circle"
+                        size={13}
+                        color="rgba(71, 49, 124, 0.5)"
+                        style={styles.consentIcon}
+                      />
+                      <Text style={styles.consentText}>{item}</Text>
+                    </View>
+                  ))}
                 </View>
-              ))}
+              </View>
+            )}
+
+            <View style={styles.buttonWrap}>
+              <NextButton
+                label="I Confirm"
+                loading={false}
+                disabled={!canConfirm}
+                onPress={() => navigation.navigate('signup')}
+                style={styles.submitButton}
+              />
             </View>
           </View>
-        )}
-
-        {/* Confirm Button */}
-        <NextButton
-          label="I Confirm"
-          loading={false}
-          disabled={!canConfirm}
-          onPress={() => navigation.navigate('signup')}
-        />
+        </View>
       </ScrollView>
     </>
   );
 }
 
-const Option = ({label, selected, onPress}) => {
-  const isNo = label.toLowerCase() === 'no';
-  const showWarning = selected && isNo;
-
-  return (
-    <TouchableOpacity
-      onPress={onPress}
-      style={[
-        styles.option,
-        selected && {
-          borderColor: isNo ? '#D30000' : '#4B0082',
-          backgroundColor: isNo ? '#ffe6e6' : '#f2e9ff',
-        },
-      ]}>
-      <Ionicons
-        name={selected ? 'checkbox' : 'square-outline'}
-        size={20}
-        color={showWarning ? '#D30000' : selected ? '#4B0082' : '#888'}
-        style={{marginRight: 8}}
-      />
-      <Text
-        style={{fontWeight: 'bold', color: showWarning ? '#D30000' : '#333'}}>
-        {label}
-      </Text>
-    </TouchableOpacity>
-  );
-};
-
 const styles = StyleSheet.create({
+  screen: {
+    backgroundColor: '#FBFBFD',
+  },
   container: {
-    padding: 20,
-    backgroundColor: '#f5f3ff',
+    padding: 16,
     flexGrow: 1,
   },
-  progressText: {
-    textAlign: 'center',
-    fontSize: 12,
-    color: '#666',
-    marginBottom: 12,
+
+  // Progress bar
+  progressTrack: {
+    height: 3,
+    borderRadius: 2,
+    backgroundColor: 'rgba(71, 49, 124, 0.08)',
+    marginBottom: 16,
+    overflow: 'hidden',
+  },
+  progressFill: {
+    height: '100%',
+    borderRadius: 2,
+    backgroundColor: PRIMARY,
+  },
+
+  // Card
+  card: {
+    borderWidth: 1,
+    borderColor: 'rgba(71, 49, 124, 0.1)',
+    borderRadius: 18,
+    backgroundColor: '#fff',
+    overflow: 'hidden',
+    shadowColor: 'rgba(71, 49, 124, 0.15)',
+    shadowOffset: {width: 0, height: 8},
+    shadowOpacity: 1,
+    shadowRadius: 20,
+    elevation: 3,
+  },
+  cardHeader: {
+    backgroundColor: '#f5f2fc',
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(71, 49, 124, 0.08)',
+    paddingHorizontal: 20,
+    paddingTop: 22,
+    paddingBottom: 20,
+  },
+  progressLabel: {
+    fontSize: 10.5,
+    fontFamily: Fonts.medium,
+    color: 'rgba(71, 49, 124, 0.7)',
+    letterSpacing: 1.4,
+    marginBottom: 8,
   },
   heading: {
-    fontSize: 26,
-    fontWeight: '600',
-    textAlign: 'center',
-    marginBottom: 25,
-    color: '#2e2e2e',
-    fontFamily: 'serif',
+    fontSize: 21,
+    fontFamily: Fonts.semiBold,
+    color: '#0f172a',
   },
-  question: {
-    fontSize: 15,
-    marginBottom: 10,
-    color: '#333',
+  cardBody: {
+    paddingHorizontal: 20,
+    paddingTop: 6,
+    paddingBottom: 24,
+  },
+
+  // Questions
+  questionBlock: {
+    paddingVertical: 22,
+    borderTopWidth: 1,
+    borderTopColor: '#f1f5f9',
+  },
+  questionBlockFirst: {
+    borderTopWidth: 0,
+    paddingTop: 18,
+  },
+  questionText: {
+    fontSize: 14.5,
+    fontFamily: Fonts.medium,
+    color: '#1e293b',
+    lineHeight: 21,
   },
   optionRow: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 25,
+    gap: 12,
+    marginTop: 14,
   },
-  option: {
-    flex: 0.48,
+  optionPill: {
+    flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 16,
-    paddingHorizontal: 10,
-    borderRadius: 8,
+    gap: 10,
     borderWidth: 2,
-    borderColor: '#ccc',
+    borderColor: '#e2e8f0',
+    borderRadius: 14,
     backgroundColor: '#fff',
-    marginLeft: 10,
+    paddingHorizontal: 16,
+    paddingVertical: 14,
   },
-  confirmBox: {
-    backgroundColor: '#fff',
-    padding: 15,
+  optionPillYesActive: {
+    borderColor: PRIMARY,
+    backgroundColor: 'rgba(71, 49, 124, 0.05)',
+  },
+  optionPillNoActive: {
+    borderColor: '#f87171',
+    backgroundColor: '#fef2f2',
+  },
+  radioCircle: {
+    width: 20,
+    height: 20,
     borderRadius: 10,
-    marginBottom: 30,
-    borderLeftWidth: 4,
-    borderLeftColor: '#4B0082',
+    borderWidth: 2,
+    borderColor: '#cbd5e1',
+    backgroundColor: '#fff',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
-  confirmHeader: {
+  radioCircleYesActive: {
+    borderColor: PRIMARY,
+    backgroundColor: PRIMARY,
+  },
+  radioCircleNoActive: {
+    borderColor: '#f87171',
+    backgroundColor: '#f87171',
+  },
+  radioDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: '#fff',
+  },
+  optionLabel: {
+    fontSize: 14,
+    fontFamily: Fonts.medium,
+    color: '#334155',
+  },
+  optionLabelYes: {
+    color: PRIMARY,
+  },
+  optionLabelNo: {
+    color: '#dc2626',
+  },
+
+  // Warning
+  warningBox: {
+    marginTop: 8,
+    borderWidth: 1,
+    borderColor: '#fecaca',
+    backgroundColor: '#fef2f2',
+    borderRadius: 14,
+    paddingHorizontal: 18,
+    paddingVertical: 15,
+  },
+  warningText: {
+    fontSize: 12.5,
+    fontFamily: Fonts.medium,
+    color: '#dc2626',
+    lineHeight: 18,
+  },
+
+  // Consent box
+  consentBox: {
+    marginTop: 8,
+    borderWidth: 1,
+    borderColor: 'rgba(71, 49, 124, 0.14)',
+    backgroundColor: '#faf9fd',
+    borderRadius: 14,
+    padding: 18,
+  },
+  consentHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 10,
+    gap: 12,
   },
-  confirmTitle: {
-    fontWeight: 'bold',
-    color: '#333',
-    fontSize: 15,
+  checkbox: {
+    width: 20,
+    height: 20,
+    borderRadius: 5,
+    borderWidth: 2,
+    borderColor: '#cbd5e1',
+    backgroundColor: '#fff',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
-  bulletPoints: {
-    paddingLeft: 6,
+  checkboxActive: {
+    borderColor: PRIMARY,
+    backgroundColor: PRIMARY,
   },
-  bulletRow: {
+  consentTitle: {
+    fontSize: 14,
+    fontFamily: Fonts.semiBold,
+    color: '#1e293b',
+  },
+  consentList: {
+    marginTop: 14,
+    paddingLeft: 4,
+    gap: 10,
+  },
+  consentRow: {
     flexDirection: 'row',
     alignItems: 'flex-start',
-    marginBottom: 8,
+    gap: 8,
   },
-  bulletDot: {
-    fontSize: 18,
-    lineHeight: 20,
-    color: '#4B0082',
-    marginRight: 6,
+  consentIcon: {
+    marginTop: 2,
   },
-  bulletText: {
+  consentText: {
     flex: 1,
-    fontSize: 14,
-    color: '#444',
-    lineHeight: 20,
+    fontSize: 12.5,
+    fontFamily: Fonts.regular,
+    color: '#475569',
+    lineHeight: 18,
   },
-  confirmBtn: {
-    paddingVertical: 15,
-    borderRadius: 30,
-    alignItems: 'center',
+
+  // Button
+  buttonWrap: {
+    marginTop: 22,
   },
-  btnPurple: {
-    backgroundColor: '#4B0082',
-  },
-  disabledBtn: {
-    backgroundColor: '#ccc',
-  },
-  confirmText: {
-    color: '#fff',
-    fontWeight: 'bold',
-    fontSize: 16,
+  submitButton: {
+    backgroundColor: PRIMARY,
+    borderRadius: 12,
+    minHeight: 48,
   },
 });

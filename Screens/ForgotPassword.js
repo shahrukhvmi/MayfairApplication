@@ -1,347 +1,333 @@
-import React, { useEffect, useState } from 'react';
+import React, {useEffect, useState} from 'react';
 import {
-    View,
-    Text,
-    TextInput,
-    KeyboardAvoidingView,
-    Platform,
-    ScrollView,
-    TouchableOpacity,
-    TouchableWithoutFeedback,
-    Keyboard,
-    ActivityIndicator,
-    StyleSheet,
-    Image,
+  View,
+  Text,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  TouchableOpacity,
+  TouchableWithoutFeedback,
+  Keyboard,
+  ActivityIndicator,
+  StyleSheet,
 } from 'react-native';
-import { useForm, Controller } from 'react-hook-form';
-import { useMutation } from '@tanstack/react-query';
-import { forgotPasswordLink } from '../api/forgotPasswordLinkApi';
-import Toast from 'react-native-toast-message';
-import {  useNavigation } from '@react-navigation/native';
-import { passwordlink } from '../config/constants';
+import {useForm, Controller} from 'react-hook-form';
+import {useMutation} from '@tanstack/react-query';
+import {useNavigation} from '@react-navigation/native';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
+import Feather from 'react-native-vector-icons/Feather';
+import Toast from 'react-native-toast-message';
+
+import {forgotPasswordLink} from '../api/forgotPasswordLinkApi';
+import {passwordlink} from '../config/constants';
+import Header from '../Layout/header';
+import TextFields from '../Components/TextFields';
+import {Fonts} from '../utils/fonts';
+
+const PRIMARY = '#47317c';
 
 const ForgotPasswordScreen = () => {
-    const { control, handleSubmit, formState: { errors }, watch } = useForm();
-    const navigation = useNavigation();
+  const {control, handleSubmit, watch} = useForm();
+  const navigation = useNavigation();
   const insets = useSafeAreaInsets();
-    const [resendTimer, setResendTimer] = useState(0);
-    const [loading, setLoading] = useState(false);
-    const [resendLoading, setResendLoading] = useState(false);
-    const [isSuccess, setIsSuccess] = useState(false);
-    const submittedEmail = watch('email');
+  const [resendTimer, setResendTimer] = useState(0);
+  const [loading, setLoading] = useState(false);
+  const [resendLoading, setResendLoading] = useState(false);
+  const [isSuccess, setIsSuccess] = useState(false);
+  const submittedEmail = watch('email');
 
-    const forgotLinkMutation = useMutation(forgotPasswordLink);
+  const forgotLinkMutation = useMutation(forgotPasswordLink);
 
-    useEffect(() => {
-        if (isSuccess && resendTimer === 0) {
-            setResendTimer(30);
-        }
-    }, [isSuccess]);
+  useEffect(() => {
+    if (isSuccess && resendTimer === 0) {
+      setResendTimer(30);
+    }
+  }, [isSuccess]);
 
-
-
-
-    useEffect(() => {
-        let interval = null;
-        if (resendTimer > 0) {
-            interval = setInterval(() => {
-                setResendTimer((prev) => prev - 1);
-            }, 1000);
-        }
-        return () => {
-            if (interval) clearInterval(interval);
-        };
-    }, [resendTimer])
-    const onSubmit = (data) => {
-        setLoading(true);
-        console.log(passwordlink, "passwordlink")
-        forgotLinkMutation.mutate(
-            {
-                email: data.email,
-                passwordlink: passwordlink,
-                clinic_id: 1,
-            },
-            {
-                onSuccess: () => {
-                    setIsSuccess(true);
-                    Toast.show({
-                        type: 'success',
-                        text1: 'Success',
-                        text2: 'Reset link sent to your email.',
-                    });
-                },
-                onError: (error) => {
-                    setLoading(false);
-                    const errors = error?.response?.data?.errors;
-                    const emailError = error?.response?.data?.errors?.email;
-                    console.log(emailError, "emailError")
-                    Toast.show({
-                        type: 'error',
-                        text1: 'Error',
-                        text2: emailError,
-                    })
-                    console.log(error, "sdasdasdsds")
-                    if (errors) {
-                        Object.values(errors).flat().forEach(msg =>
-                            Toast.show({ type: 'error', text1: 'Error', text2: msg })
-                        );
-                    } else {
-                        Toast.show({ type: 'error', text1: 'Error', text2: 'Something went wrong.' });
-                    }
-                },
-                onSettled: () => {
-                    setLoading(false);
-                },
-            }
-        );
+  useEffect(() => {
+    let interval = null;
+    if (resendTimer > 0) {
+      interval = setInterval(() => {
+        setResendTimer(prev => prev - 1);
+      }, 1000);
+    }
+    return () => {
+      if (interval) clearInterval(interval);
     };
+  }, [resendTimer]);
 
-    const handleResend = () => {
-        if (!submittedEmail) {
-            Toast.show({ type: 'error', text1: 'Error', text2: 'Email is missing.' });
-            return;
-        }
-
-        setResendLoading(true);
-
-        forgotLinkMutation.mutate(
-            {
-                email: submittedEmail,
-                passwordlink: passwordlink,
-                clinic_id: 1,
-            },
-            {
-                onSuccess: () => {
-                    Toast.show({
-                        type: 'success',
-                        text1: 'Link Resent',
-                        text2: 'Password reset link has been resent.',
-                    });
-                    setResendTimer(30);
-                },
-                onError: () => {
-                    Toast.show({
-                        type: 'error',
-                        text1: 'Error',
-                        text2: 'Unable to resend reset link.',
-                    });
-                },
-                onSettled: () => {
-                    setResendLoading(false);
-                },
-            }
-        );
-    };
-
-    const email = watch('email');
-    const isDisabled = !email || loading;
-    return (
-        <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
-            <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-                <ScrollView contentContainerStyle={{flexGrow: 1, paddingBottom: insets.bottom + 16}}>
-                    <View style={styles.container}>
-                        <View style={styles.logoContainer}>
-                            <Image source={require('../assets/images/logo-white.png')} style={styles.image} />
-                        </View>
-
-                        <View style={styles.subView}>
-                            <Text style={styles.subTxt}>Forgot Password</Text>
-
-                            {!isSuccess ? (
-                                <>
-                                    {/* Email Field */}
-                                    <Controller
-                                        control={control}
-                                        name="email"
-                                        rules={{ required: 'Email is required' }}
-                                        render={({ field: { onChange, value } }) => (
-                                            <TextInput
-                                                style={styles.nameInput}
-                                                placeholder="Email"
-                                                value={value}
-                                                onChangeText={onChange}
-                                                keyboardType="email-address"
-                                                autoCapitalize="none"
-                                                placeholderTextColor="#aaa"
-                                            />
-                                        )}
-                                    />
-                                    {errors.email && (
-                                        <Text style={styles.errorText}>{errors.email.message}</Text>
-                                    )}
-
-                                    {/* Submit Button */}
-                                    <TouchableOpacity
-                                        onPress={handleSubmit(onSubmit)}
-                                        disabled={isDisabled}
-                                        style={[styles.btn, isDisabled ? styles.btnDisabled : styles.btnEnabled]}
-                                    >
-                                        {loading ? (
-                                            <View style={styles.loadingContent}>
-                                                <ActivityIndicator color="#fff" />
-                                                <Text style={styles.btnText}> Sending...</Text>
-                                            </View>
-                                        ) : (
-                                            <Text style={styles.btnText}>Send Reset Link</Text>
-                                        )}
-                                    </TouchableOpacity>
-
-                                </>
-                            ) : (
-                                <>
-                                    <Text style={{ color: 'green', textAlign: 'center', marginBottom: 20 }}>
-                                        A password reset link has been sent to your email address.
-                                    </Text>
-                                    <Text style={{ textAlign: 'center', color: '#555', marginBottom: 20 }}>
-                                        Didn’t receive the email? Check your spam or junk folder.
-                                    </Text>
-
-                                    <TouchableOpacity
-                                        onPress={handleResend}
-                                        disabled={resendLoading || resendTimer > 0}
-                                        style={[
-                                            styles.btn,
-                                            resendLoading || resendTimer > 0 ? styles.btnDisabled : styles.btnEnabled,
-                                        ]}
-                                    >
-                                        {resendLoading ? (
-                                            <ActivityIndicator color="#fff" />
-                                        ) : (
-                                            <Text style={styles.btnText}>
-                                                {resendTimer > 0
-                                                    ? `Resend Link (${resendTimer}s)`
-                                                    : 'Resend Password Reset Link'}
-                                            </Text>
-                                        )}
-                                    </TouchableOpacity>
-                                </>
-                            )}
-
-                            {/* Back to login */}
-                            <View style={styles.endView}>
-                                <Text style={styles.endTxt}>Remember your password?</Text>
-                                <TouchableOpacity onPress={() => navigation.navigate('Login')}>
-                                    <Text style={styles.loginTxt}>Login</Text>
-                                </TouchableOpacity>
-                            </View>
-                        </View>
-                    </View>
-                </ScrollView>
-            </TouchableWithoutFeedback>
-        </KeyboardAvoidingView>
+  const onSubmit = data => {
+    setLoading(true);
+    forgotLinkMutation.mutate(
+      {email: data.email, passwordlink, clinic_id: 1},
+      {
+        onSuccess: () => {
+          setIsSuccess(true);
+          Toast.show({
+            type: 'success',
+            text1: 'Success',
+            text2: 'Reset link sent to your email.',
+          });
+        },
+        onError: error => {
+          setLoading(false);
+          const errors = error?.response?.data?.errors;
+          const emailError = errors?.email;
+          if (emailError) {
+            Toast.show({type: 'error', text1: 'Error', text2: emailError});
+          }
+          if (errors) {
+            Object.values(errors)
+              .flat()
+              .forEach(msg =>
+                Toast.show({type: 'error', text1: 'Error', text2: msg}),
+              );
+          } else {
+            Toast.show({
+              type: 'error',
+              text1: 'Error',
+              text2: 'Something went wrong.',
+            });
+          }
+        },
+        onSettled: () => setLoading(false),
+      },
     );
+  };
+
+  const handleResend = () => {
+    if (!submittedEmail) {
+      Toast.show({type: 'error', text1: 'Error', text2: 'Email is missing.'});
+      return;
+    }
+    setResendLoading(true);
+    forgotLinkMutation.mutate(
+      {email: submittedEmail, passwordlink, clinic_id: 1},
+      {
+        onSuccess: () => {
+          Toast.show({
+            type: 'success',
+            text1: 'Link Resent',
+            text2: 'Password reset link has been resent.',
+          });
+          setResendTimer(30);
+        },
+        onError: () => {
+          Toast.show({
+            type: 'error',
+            text1: 'Error',
+            text2: 'Unable to resend reset link.',
+          });
+        },
+        onSettled: () => setResendLoading(false),
+      },
+    );
+  };
+
+  const email = watch('email');
+  const isDisabled = !email || loading;
+
+  return (
+    <>
+      <Header />
+      <KeyboardAvoidingView
+        style={{flex: 1, backgroundColor: '#FBFBFD'}}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+        <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+          <ScrollView
+            style={styles.screen}
+            contentContainerStyle={[
+              styles.container,
+              {paddingBottom: insets.bottom + 24},
+            ]}
+            showsVerticalScrollIndicator={false}>
+            <View style={styles.card}>
+              <Text style={styles.heading}>Forgot Password</Text>
+              <Text style={styles.description}>
+                Enter your email and we'll send you a link to reset your
+                password.
+              </Text>
+
+              {!isSuccess ? (
+                <>
+                  <Controller
+                    control={control}
+                    name="email"
+                    rules={{required: true}}
+                    render={({field: {onChange, value}}) => (
+                      <TextFields
+                        label="Email Address"
+                        placeholder="name@example.com"
+                        required
+                        value={value}
+                        onChangeText={onChange}
+                        disabled={loading}
+                      />
+                    )}
+                  />
+
+                  <TouchableOpacity
+                    onPress={handleSubmit(onSubmit)}
+                    disabled={isDisabled}
+                    activeOpacity={0.85}
+                    style={[
+                      styles.btn,
+                      isDisabled ? styles.btnDisabled : styles.btnEnabled,
+                    ]}>
+                    {loading ? (
+                      <View style={styles.loadingContent}>
+                        <ActivityIndicator color="#fff" />
+                        <Text style={styles.btnText}> Sending...</Text>
+                      </View>
+                    ) : (
+                      <Text style={styles.btnText}>Send Reset Link</Text>
+                    )}
+                  </TouchableOpacity>
+                </>
+              ) : (
+                <>
+                  <View style={styles.successBox}>
+                    <Feather name="check-circle" size={18} color="#059669" />
+                    <Text style={styles.successText}>
+                      A password reset link has been sent to your email address.
+                    </Text>
+                  </View>
+                  <Text style={styles.spamText}>
+                    Didn't receive the email? Check your spam or junk folder.
+                  </Text>
+
+                  <TouchableOpacity
+                    onPress={handleResend}
+                    disabled={resendLoading || resendTimer > 0}
+                    activeOpacity={0.85}
+                    style={[
+                      styles.btn,
+                      resendLoading || resendTimer > 0
+                        ? styles.btnDisabled
+                        : styles.btnEnabled,
+                    ]}>
+                    {resendLoading ? (
+                      <ActivityIndicator color="#fff" />
+                    ) : (
+                      <Text style={styles.btnText}>
+                        {resendTimer > 0
+                          ? `Resend Link (${resendTimer}s)`
+                          : 'Resend Password Reset Link'}
+                      </Text>
+                    )}
+                  </TouchableOpacity>
+                </>
+              )}
+
+              <Text style={styles.footer}>
+                Remember your password?{' '}
+                <Text
+                  style={styles.link}
+                  onPress={() => navigation.navigate('Login')}>
+                  Login
+                </Text>
+              </Text>
+            </View>
+          </ScrollView>
+        </TouchableWithoutFeedback>
+      </KeyboardAvoidingView>
+    </>
+  );
 };
 
 export default ForgotPasswordScreen;
 
-
 const styles = StyleSheet.create({
-    container: {
-        backgroundColor: '#4B0082',
-        flex: 1,
-        justifyContent: 'flex-start',
-        alignItems: 'center',
-    },
-    subView: {
-        flex: 1,
-        marginTop: 50,
-        backgroundColor: 'white',
-        width: '100%',
-        borderTopLeftRadius: 40,
-        borderTopRightRadius: 40,
-        alignItems: 'center',
-        paddingVertical: 30,
-    },
-    subTxt: {
-        fontSize: 28,
-        fontWeight: 'bold',
-        marginBottom: 20,
-        fontFamily: 'Comic Sans MS',
-    },
-    nameInput: {
-        height: 40,
-        width: '80%',
-        borderBottomWidth: 1,
-        marginBottom: 10,
-        textAlign: 'start',
-        fontSize: 16,
-    },
-    passwordContainer: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        borderBottomWidth: 1,
-        width: '80%',
-        marginBottom: 10,
-        justifyContent: 'space-between',
-    },
-    forgotTxt: {
-        fontSize: 14,
-        fontWeight: '600',
-        color: '#4B0082',
-        textAlign: 'center',
-    },
-
-    passwordInput: {
-        height: 40,
-        width: '85%',
-        textAlign: 'start',
-        fontSize: 16,
-    },
-    btn: {
-        marginTop: 20,
-        height: 50,
-        width: '80%',
-        borderRadius: 30,
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-    btnEnabled: {
-        backgroundColor: '#4B0082',
-    },
-    btnDisabled: {
-        backgroundColor: '#aaa',
-    },
-    btnText: {
-        color: '#fff',
-        fontWeight: 'bold',
-        fontSize: 16,
-    },
-    loadingContent: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: 10,
-    },
-    endView: {
-        flexDirection: 'row',
-        marginTop: 20,
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-    endTxt: {
-        fontSize: 16,
-        fontWeight: '600',
-        marginRight: 8,
-    },
-    loginTxt: {
-        fontSize: 16,
-        fontWeight: 'bold',
-        color: '#4B0082',
-    },
-    logoContainer: {
-        alignItems: 'center',
-        justifyContent: 'center',
-    },
-    image: {
-        width: 200,
-        height: 200,
-        resizeMode: 'contain',
-    },
-    errorText: {
-        color: 'red',
-        fontSize: 12,
-        marginBottom: 8,
-        width: '80%',
-        textAlign: 'left',
-    },
+  screen: {
+    backgroundColor: '#FBFBFD',
+  },
+  container: {
+    padding: 16,
+    flexGrow: 1,
+  },
+  card: {
+    backgroundColor: '#fff',
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(71, 49, 124, 0.1)',
+    padding: 20,
+    shadowColor: 'rgba(71, 49, 124, 0.09)',
+    shadowOffset: {width: 0, height: 10},
+    shadowOpacity: 1,
+    shadowRadius: 24,
+    elevation: 3,
+  },
+  heading: {
+    fontSize: 24,
+    fontFamily: Fonts.semiBold,
+    color: '#0f172a',
+    marginBottom: 6,
+  },
+  description: {
+    fontSize: 13.5,
+    fontFamily: Fonts.regular,
+    color: '#64748b',
+    marginBottom: 22,
+    lineHeight: 20,
+  },
+  btn: {
+    marginTop: 6,
+    height: 50,
+    borderRadius: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  btnEnabled: {
+    backgroundColor: PRIMARY,
+  },
+  btnDisabled: {
+    backgroundColor: '#cbd5e1',
+  },
+  btnText: {
+    color: '#fff',
+    fontSize: 15,
+    fontFamily: Fonts.semiBold,
+  },
+  loadingContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  successBox: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 10,
+    borderWidth: 1,
+    borderColor: '#a7f3d0',
+    backgroundColor: '#ecfdf5',
+    borderRadius: 14,
+    padding: 14,
+    marginBottom: 12,
+  },
+  successText: {
+    flex: 1,
+    fontSize: 13,
+    fontFamily: Fonts.medium,
+    color: '#047857',
+    lineHeight: 19,
+  },
+  spamText: {
+    fontSize: 12.5,
+    fontFamily: Fonts.regular,
+    color: '#64748b',
+    marginBottom: 18,
+    lineHeight: 18,
+  },
+  footer: {
+    fontSize: 13,
+    fontFamily: Fonts.regular,
+    color: '#334155',
+    textAlign: 'center',
+    marginTop: 20,
+  },
+  link: {
+    color: PRIMARY,
+    fontFamily: Fonts.semiBold,
+    textDecorationLine: 'underline',
+  },
 });

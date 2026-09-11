@@ -10,6 +10,7 @@ import {
 } from 'react-native';
 import Header from '../Layout/header';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
+import {Fonts} from '../utils/fonts';
 
 export default function CalculateWeight() {
   const navigation = useNavigation();
@@ -134,7 +135,7 @@ const styles = StyleSheet.create({
   heading: {
     fontSize: 22,
     fontWeight: 'bold',
-    fontFamily: 'serif',
+    fontFamily: Fonts.semiBold,
     marginBottom: 8,
   },
   subText: {
@@ -169,6 +170,7 @@ const styles = StyleSheet.create({
   label: {
     fontWeight: 'bold',
     marginBottom: 6,
+    fontFamily: Fonts.medium,
   },
   input: {
     borderWidth: 1,
@@ -178,6 +180,7 @@ const styles = StyleSheet.create({
     padding: 12,
     marginBottom: 16,
     fontSize: 16,
+    fontFamily: Fonts.regular,
   },
   row: {
     flexDirection: 'row',

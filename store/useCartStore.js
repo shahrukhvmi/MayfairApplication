@@ -60,6 +60,30 @@ const useCartStore = create(
       setCheckOut: (checkOut) => set({ checkOut }),
       setOrderId: (orderId) => set({ orderId }),
 
+      setConsentGiven: (id, consentData) => {
+        const state = get();
+        const currentItems = state.items.doses || [];
+
+        const updatedItems = currentItems.map((item) =>
+          item.id === id
+            ? {
+                ...item,
+                consentGiven: true,
+                medication_name: consentData?.medication_name || '',
+                dosage: consentData?.dosage || '',
+                dosage_time: consentData?.dosage_time || '',
+              }
+            : item,
+        );
+
+        set({
+          items: {
+            ...state.items,
+            doses: updatedItems,
+          },
+        });
+      },
+
       removeItemCompletely: (id, typeRaw) => {
         const state = get();
         const type = typeRaw?.toLowerCase() === 'addon' ? 'addons' : 'doses';

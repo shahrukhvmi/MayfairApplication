@@ -1,36 +1,40 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import {
   View,
   Text,
   StyleSheet,
+  ScrollView,
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
-import { Controller, useForm } from 'react-hook-form';
-import { useFocusEffect, useNavigation } from '@react-navigation/native';
+import {Controller, useForm} from 'react-hook-form';
+import {useFocusEffect, useNavigation} from '@react-navigation/native';
 import useSignupStore from '../store/signupStore';
 import useAuthStore from '../store/authStore';
-import PageLoader from '../Components/PageLoader';
 import NextButton from '../Components/NextButton';
 import BackButton from '../Components/BackButton';
 import TextFields from '../Components/TextFields';
 import Header from '../Layout/header';
+import {useSafeAreaInsets} from 'react-native-safe-area-context';
+import {Fonts} from '../utils/fonts';
+
+const PRIMARY = '#47317c';
+const PERCENTAGE = 10;
 
 const SignUpScreen = () => {
   const navigation = useNavigation();
-  const [showLoader, setShowLoader] = useState(false);
+  const insets = useSafeAreaInsets();
+  const [showLoader, setShowLoader] = React.useState(false);
 
-  const { token } = useAuthStore();
-  const { firstName, lastName, setFirstName, setLastName } = useSignupStore();
+  const {token} = useAuthStore();
+  const {firstName, lastName, setFirstName, setLastName} = useSignupStore();
 
   const {
     control,
-    register,
     handleSubmit,
     setValue,
     trigger,
-    watch,
-    formState: { errors, isValid },
+    formState: {isValid},
   } = useForm({
     mode: 'onChange',
     defaultValues: {
@@ -47,7 +51,8 @@ const SignUpScreen = () => {
       if (firstName || lastName) {
         trigger(['firstName', 'lastName']);
       }
-    }, [firstName, lastName, setValue, trigger]));
+    }, [firstName, lastName, setValue, trigger]),
+  );
 
   const onSubmit = async data => {
     setFirstName(data.firstName);
@@ -56,7 +61,7 @@ const SignUpScreen = () => {
     setShowLoader(true);
     await new Promise(res => setTimeout(res, 500));
 
-    setShowLoader(false); // ✅ reset loader before navigating
+    setShowLoader(false);
     navigation.navigate('steps-information');
   };
 
@@ -65,61 +70,77 @@ const SignUpScreen = () => {
       <Header />
 
       <KeyboardAvoidingView
-        style={styles.wrapper}
+        style={styles.screen}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-        <View style={styles.container}>
-          <Text style={styles.heading}>Enter your full legal name</Text>
-          <Text style={styles.description}>
-            We require this to generate your prescription if you qualify for the
-            treatment.
-          </Text>
-
-          <View style={[styles.form, showLoader && { opacity: 0.5 }]}>
-            <Controller
-              control={control}
-              name="firstName"
-              rules={{ required: true }}
-              render={({ field: { onChange, value } }) => (
-                <TextFields
-                  label="First Name"
-                  placeholder="First Name"
-                  onChangeText={onChange}
-                  value={value}
-                  required
-                />
-              )}
-            />
-
-            <Controller
-              control={control}
-              name="lastName"
-              rules={{ required: true }}
-              render={({ field: { onChange, value } }) => (
-                <TextFields
-                  label="Last Name"
-                  placeholder="Last Name"
-                  onChangeText={onChange}
-                  value={value}
-                  required
-                />
-              )}
-            />
+        <ScrollView
+          contentContainerStyle={[
+            styles.container,
+            {paddingBottom: insets.bottom + 24},
+          ]}
+          showsVerticalScrollIndicator={false}>
+          {/* Progress bar */}
+          <View style={styles.progressTrack}>
+            <View style={[styles.progressFill, {width: `${PERCENTAGE}%`}]} />
           </View>
 
-          <NextButton
-            label="Next"
-            onPress={handleSubmit(onSubmit)}
-            disabled={!isValid}
-          // onPress={() => { navigation.navigate('email-confirmation') }}
-          />
+          {/* Card */}
+          <View style={styles.card}>
+            <View style={styles.cardHeader}>
+              <Text style={styles.progressLabel}>{PERCENTAGE}% COMPLETED</Text>
+              <Text style={styles.heading}>Enter your full legal name</Text>
+              <Text style={styles.description}>
+                We require this to generate your prescription if you qualify
+                for the treatment.
+              </Text>
+            </View>
 
-          <BackButton
-            label="Back"
-            onPress={() => navigation.navigate('Acknowledgment')}
-          />
+            <View style={[styles.cardBody, showLoader && {opacity: 0.5}]}>
+              <Controller
+                control={control}
+                name="firstName"
+                rules={{required: true}}
+                render={({field: {onChange, value}}) => (
+                  <TextFields
+                    label="First Name"
+                    placeholder="Enter your first name"
+                    onChangeText={onChange}
+                    value={value}
+                    required
+                  />
+                )}
+              />
 
+              <Controller
+                control={control}
+                name="lastName"
+                rules={{required: true}}
+                render={({field: {onChange, value}}) => (
+                  <TextFields
+                    label="Last Name"
+                    placeholder="Enter your last name"
+                    onChangeText={onChange}
+                    value={value}
+                    required
+                  />
+                )}
+              />
 
-        </View>
+              <View style={styles.buttonWrap}>
+                <NextButton
+                  label="Next"
+                  onPress={handleSubmit(onSubmit)}
+                  disabled={!isValid}
+                  loading={showLoader}
+                  style={styles.submitButton}
+                />
+                <BackButton
+                  label="Back"
+                  onPress={() => navigation.navigate('Acknowledgment')}
+                />
+              </View>
+            </View>
+          </View>
+        </ScrollView>
       </KeyboardAvoidingView>
     </>
   );
@@ -128,36 +149,81 @@ const SignUpScreen = () => {
 export default SignUpScreen;
 
 const styles = StyleSheet.create({
-  wrapper: {
+  screen: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: '#FBFBFD',
   },
   container: {
-    flex: 1,
-    padding: 20,
-    justifyContent: 'flex-start',
+    padding: 16,
+    flexGrow: 1,
+  },
+
+  // Progress bar
+  progressTrack: {
+    height: 3,
+    borderRadius: 2,
+    backgroundColor: 'rgba(71, 49, 124, 0.08)',
+    marginBottom: 16,
+    overflow: 'hidden',
+  },
+  progressFill: {
+    height: '100%',
+    borderRadius: 2,
+    backgroundColor: PRIMARY,
+  },
+
+  // Card
+  card: {
+    borderWidth: 1,
+    borderColor: 'rgba(71, 49, 124, 0.1)',
+    borderRadius: 18,
+    backgroundColor: '#fff',
+    overflow: 'hidden',
+    shadowColor: 'rgba(71, 49, 124, 0.15)',
+    shadowOffset: {width: 0, height: 8},
+    shadowOpacity: 1,
+    shadowRadius: 20,
+    elevation: 3,
+  },
+  cardHeader: {
+    backgroundColor: '#f5f2fc',
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(71, 49, 124, 0.08)',
+    paddingHorizontal: 20,
+    paddingTop: 22,
+    paddingBottom: 20,
+  },
+  progressLabel: {
+    fontSize: 10.5,
+    fontFamily: Fonts.medium,
+    color: 'rgba(71, 49, 124, 0.7)',
+    letterSpacing: 1.4,
+    marginBottom: 8,
   },
   heading: {
-    fontSize: 22,
-    fontWeight: 'bold',
-    color: '#111',
-    marginBottom: 10,
+    fontSize: 21,
+    fontFamily: Fonts.semiBold,
+    color: '#0f172a',
+    marginBottom: 6,
   },
   description: {
-    fontSize: 14,
-    color: '#555',
-    marginBottom: 20,
+    fontSize: 12.5,
+    fontFamily: Fonts.regular,
+    color: '#64748b',
+    lineHeight: 18,
   },
-  form: {
-    gap: 4,
+  cardBody: {
+    paddingHorizontal: 20,
+    paddingTop: 22,
+    paddingBottom: 24,
   },
-  loaderOverlay: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(255,255,255,0.7)',
-    justifyContent: 'center',
-    alignItems: 'center',
+
+  buttonWrap: {
+    marginTop: 8,
   },
-  backButton: {
-    marginTop: 16,
+  submitButton: {
+    backgroundColor: PRIMARY,
+    borderRadius: 12,
+    minHeight: 48,
   },
 });

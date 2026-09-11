@@ -1,25 +1,48 @@
-import React, { useEffect, useState } from 'react';
+import React, {useRef, useState} from 'react';
 import {
   View,
   Text,
   TextInput,
   FlatList,
   TouchableOpacity,
-  ActivityIndicator,
   StyleSheet,
   ScrollView,
 } from 'react-native';
-import Ionicons from 'react-native-vector-icons/Ionicons';
-import { Picker } from '@react-native-picker/picker';
-import { useMutation } from '@tanstack/react-query';
+import Feather from 'react-native-vector-icons/Feather';
+import {useMutation} from '@tanstack/react-query';
 import Toast from 'react-native-toast-message';
 import useOrderId from '../store/useOrderIdStore';
 import usePaginationStore from '../store/pagination';
-import { useStatusStore } from '../store/useStatusStore';
+import {useStatusStore} from '../store/useStatusStore';
 import GetOrdersApi from '../api/getOrders';
-import { useFocusEffect, useNavigation } from '@react-navigation/native';
+import {useFocusEffect, useNavigation} from '@react-navigation/native';
 import Header from '../Layout/header';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
+import {Fonts} from '../utils/fonts';
+
+const PRIMARY = '#47317c';
+
+const STATUS_OPTIONS = [
+  {value: 'all', label: 'All orders', dot: PRIMARY, bg: '#f3f0f9', text: PRIMARY, border: '#d9cff0'},
+  {value: 'processing', label: 'Processing', dot: '#f59e0b', bg: '#fffbeb', text: '#b45309', border: '#fde68a'},
+  {value: 'incomplete', label: 'Incomplete', dot: '#f97316', bg: '#fff7ed', text: '#c2410c', border: '#fed7aa'},
+  {value: 'approved', label: 'Approved', dot: '#10b981', bg: '#ecfdf5', text: '#065f46', border: '#a7f3d0'},
+  {value: 'cancelled', label: 'Cancelled', dot: '#ef4444', bg: '#fef2f2', text: '#991b1b', border: '#fecaca'},
+];
+
+const getStatusMeta = status =>
+  STATUS_OPTIONS.find(o => o.value === status?.toLowerCase()) ||
+  {dot: '#94a3b8', bg: '#f8fafc', text: '#64748b', border: '#e2e8f0'};
+
+const OrderStatusPill = ({status}) => {
+  const meta = getStatusMeta(status);
+  return (
+    <View style={[styles.statusPill, {backgroundColor: meta.bg, borderColor: meta.border}]}>
+      <View style={[styles.statusDot, {backgroundColor: meta.dot}]} />
+      <Text style={[styles.statusText, {color: meta.text}]}>{status}</Text>
+    </View>
+  );
+};
 
 const OrdersScreen = () => {
   const insets = useSafeAreaInsets();
@@ -27,9 +50,15 @@ const OrdersScreen = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [data, setData] = useState(null);
 
-  const { currentPage, setCurrentPage } = usePaginationStore();
-  const { status, setStatus } = useStatusStore();
-  const { setOrderId } = useOrderId();
+  const {currentPage, setCurrentPage} = usePaginationStore();
+  const listRef = useRef(null);
+
+  const goToPage = page => {
+    setCurrentPage(page);
+    listRef.current?.scrollToOffset({offset: 0, animated: true});
+  };
+  const {status, setStatus} = useStatusStore();
+  const {setOrderId} = useOrderId();
 
   const navigation = useNavigation();
 
@@ -39,22 +68,24 @@ const OrdersScreen = () => {
       setIsLoading(false);
     },
     onError: () => {
-      Toast.show({ type: 'error', text1: 'Something went wrong' });
+      Toast.show({type: 'error', text1: 'Something went wrong'});
       setIsLoading(false);
     },
   });
 
   useFocusEffect(
     React.useCallback(() => {
-      getOrdersMutation.mutate({ page: currentPage });
-    }, [currentPage]));
+      getOrdersMutation.mutate({page: currentPage});
+    }, [currentPage]),
+  );
 
   const filteredOrders = data?.allorders?.filter(order => {
     const q = searchValue.toLowerCase();
     const matchesSearch =
+      !q ||
       order.order_id.toString().includes(q) ||
       order.treatment?.toLowerCase().includes(q) ||
-      order.items.some(i => i.product.toLowerCase().includes(q));
+      order.items.some(i => i.product?.toLowerCase().includes(q));
 
     const matchesStatus =
       status === 'all' || order.status.toLowerCase() === status.toLowerCase();
@@ -62,288 +93,664 @@ const OrdersScreen = () => {
     return matchesSearch && matchesStatus;
   });
 
-  const pillStyle = s => {
-    switch (s.toLowerCase()) {
-      case 'processing':
-        return [styles.pill, styles.processing];
-      case 'incomplete':
-        return [styles.pill, styles.incomplete];
-      case 'approved':
-        return [styles.pill, styles.approved];
-      case 'cancelled':
-        return [styles.pill, styles.cancelled];
-      default:
-        return [styles.pill, styles.defaultPill];
-    }
-  };
-
   const handleSendId = id => {
     setOrderId(id);
     navigation.navigate('order-detail');
   };
 
-  const renderRow = ({ item }) => {
-    const treatments = [...new Set(item.items.map(i => i.product))].join('\n');
+  const getUniqueTreatments = order => {
+    const items = Array.isArray(order?.items) ? order.items : [];
+    return [...new Set(items.map(i => i?.product).filter(Boolean))];
+  };
 
-    const grouped = Object.values(
-      item.items.reduce((acc, cur) => {
+  const getGroupedItems = order => {
+    const items = Array.isArray(order?.items) ? order.items : [];
+    return Object.values(
+      items.reduce((acc, item) => {
         const name =
-          cur.name === '' && cur.label === 'Pack of 5 Needles'
+          item?.name === '' && item?.label === 'Pack of 5 Needles'
             ? 'Pack of 5 Needles'
-            : cur.name;
-        acc[name] = acc[name] || { name, qty: 0 };
-        acc[name].qty += cur.quantity;
+            : item?.name || item?.label || item?.product || 'Item';
+        acc[name] = acc[name] || {name, quantity: 0};
+        acc[name].quantity += Number(item?.quantity) || 0;
         return acc;
       }, {}),
     );
+  };
+
+  const renderOrderCard = ({item: order}) => {
+    const treatments = getUniqueTreatments(order);
+    const groupedItems = getGroupedItems(order);
 
     return (
-      <View style={styles.row}>
-        <Text style={[styles.cell, styles.id]} numberOfLines={1}>{item.order_id}</Text>
-        <Text style={[styles.cell, styles.date]} numberOfLines={1}>{item.created_at}</Text>
-        <Text style={[styles.cell, styles.treat]} numberOfLines={3}>{treatments}</Text>
-        <View style={[styles.cell, styles.items]}>
-          {grouped.map(g => (
-            <Text key={g.name} numberOfLines={1}>• {g.name} × {g.qty}</Text>
-          ))}
+      <View style={styles.orderCard}>
+        <View style={styles.orderCardHeader}>
+          <View>
+            <Text style={styles.orderLabel}>ORDER</Text>
+            <Text style={styles.orderId}>#{order.order_id}</Text>
+          </View>
+          <OrderStatusPill status={order.status} />
         </View>
-        <View style={[styles.cell, styles.stat]}>
-          <Text style={pillStyle(item.status)}>{item.status}</Text>
+
+        <View style={styles.orderCardBody}>
+          <View style={styles.rowBetween}>
+            <View style={styles.colFlex}>
+              <Text style={styles.fieldLabel}>DATE</Text>
+              <View style={styles.dateRow}>
+                <Feather name="calendar" size={12} color="#94a3b8" />
+                <Text style={styles.dateText}>{order.created_at}</Text>
+              </View>
+            </View>
+            <View style={[styles.colFlex, {alignItems: 'flex-end'}]}>
+              <Text style={styles.fieldLabel}>TOTAL</Text>
+              <Text style={styles.totalText}>£{order.total_price}</Text>
+            </View>
+          </View>
+
+          <View style={styles.divider} />
+
+          <Text style={styles.fieldLabel}>TREATMENT</Text>
+          <View style={styles.treatmentList}>
+            {treatments.map((t, i) => (
+              <Text key={`${t}-${i}`} style={styles.treatmentText}>
+                {t}
+              </Text>
+            ))}
+          </View>
+
+          <View style={{marginTop: 12}}>
+            <Text style={styles.fieldLabel}>ITEMS</Text>
+            <View style={styles.itemsList}>
+              {groupedItems.map((g, i) => (
+                <Text key={`${g.name}-${i}`} style={styles.itemText}>
+                  {g.name}
+                  <Text style={styles.itemQty}> × {g.quantity}</Text>
+                </Text>
+              ))}
+            </View>
+          </View>
+
+          <TouchableOpacity
+            style={styles.viewButton}
+            onPress={() => handleSendId(order?.id)}
+            activeOpacity={0.85}>
+            <Feather name="eye" size={15} color="#fff" />
+            <Text style={styles.viewButtonText}>View order</Text>
+          </TouchableOpacity>
         </View>
-        <Text style={[styles.cell, styles.totalAmount]} numberOfLines={1}>£{item.total_price}</Text>
-        <TouchableOpacity
-          style={[styles.cell, styles.eye]}
-          onPress={() => handleSendId(item.id)}>
-          <Ionicons name="eye" size={20} color="#47317c" />
-        </TouchableOpacity>
       </View>
     );
   };
 
+  const renderSkeleton = () => (
+    <View style={styles.orderCard}>
+      <View style={styles.orderCardHeader}>
+        <View style={{gap: 6}}>
+          <View style={[styles.skeletonBlock, {width: 60, height: 10}]} />
+          <View style={[styles.skeletonBlock, {width: 90, height: 16}]} />
+        </View>
+        <View style={[styles.skeletonBlock, {width: 80, height: 22, borderRadius: 11}]} />
+      </View>
+      <View style={styles.orderCardBody}>
+        <View style={[styles.skeletonBlock, {width: '100%', height: 60, borderRadius: 8}]} />
+      </View>
+    </View>
+  );
+
+  const renderPagination = () => {
+    if (isLoading || !data || !filteredOrders?.length) return null;
+
+    const lastPage = Number(data?.last_page) || 1;
+    if (lastPage <= 1) return null;
+
+    const pages = Array.from({length: lastPage}, (_, i) => i + 1);
+
+    return (
+      <View style={styles.paginationWrap}>
+        <Text style={styles.paginationInfo}>
+          Page <Text style={styles.paginationInfoBold}>{currentPage}</Text> of{' '}
+          <Text style={styles.paginationInfoBold}>{lastPage}</Text>
+        </Text>
+
+        <View style={styles.paginationControls}>
+          <TouchableOpacity
+            style={[
+              styles.pageButton,
+              currentPage === 1 && styles.pageButtonDisabled,
+            ]}
+            disabled={currentPage === 1}
+            onPress={() => goToPage(currentPage - 1)}>
+            <Feather name="chevron-left" size={16} color="#64748b" />
+          </TouchableOpacity>
+
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            style={styles.pageNumbersScroll}
+            contentContainerStyle={styles.pageNumbersRow}>
+            {pages.map(p => {
+              const isActive = p === currentPage;
+              return (
+                <TouchableOpacity
+                  key={p}
+                  style={[
+                    styles.pageButton,
+                    isActive && styles.pageButtonActive,
+                  ]}
+                  onPress={() => goToPage(p)}>
+                  <Text
+                    style={[
+                      styles.pageButtonText,
+                      isActive && styles.pageButtonTextActive,
+                    ]}>
+                    {p}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
+          </ScrollView>
+
+          <TouchableOpacity
+            style={[
+              styles.pageButton,
+              currentPage === lastPage && styles.pageButtonDisabled,
+            ]}
+            disabled={currentPage === lastPage}
+            onPress={() => goToPage(currentPage + 1)}>
+            <Feather name="chevron-right" size={16} color="#64748b" />
+          </TouchableOpacity>
+        </View>
+      </View>
+    );
+  };
+
+  const renderEmpty = () => (
+    <View style={styles.emptyWrap}>
+      <View style={styles.emptyIconBox}>
+        <Feather name="shopping-bag" size={24} color="#94a3b8" />
+      </View>
+      <Text style={styles.emptyTitle}>No orders found</Text>
+      <Text style={styles.emptyText}>No orders match your search or filter.</Text>
+    </View>
+  );
+
   return (
     <>
       <Header />
-      <View style={styles.container}>
-        <Text style={styles.heading}>My Orders</Text>
-        <Text style={styles.sub}>View your order history</Text>
-
-        {/* Search */}
-        <View style={styles.topRow}>
-          <View style={styles.searchWrap}>
-            <Ionicons name="search" size={18} color="#888" style={styles.searchIcon} />
-            <TextInput
-              placeholder="Search by Order ID"
-              placeholderTextColor="#9CA3AF"
-              value={searchValue}
-              onChangeText={setSearchValue}
-              style={styles.searchInput}
-            />
-          </View>
-        </View>
-
-        {/* Filter Dropdown */}
-        <View style={styles.filterRow}>
-          <Text style={styles.filterLabel}>Sort by status</Text>
-          <View style={[
-            styles.dropdownWrapper,
-            styles.statusTag,
-            status === 'all' && styles.defaultPill,
-            status === 'processing' && styles.processing,
-            status === 'incomplete' && styles.incomplete,
-            status === 'approved' && styles.approved,
-            status === 'cancelled' && styles.cancelled,
-          ]}>
-            <Picker
-              selectedValue={status}
-              onValueChange={setStatus}
-              style={styles.dropdown}
-              dropdownIconColor="white"
-              mode="dropdown">
-              <Picker.Item label="All" value="all" color="white" />
-              <Picker.Item label="Processing" value="processing" color="white" />
-              <Picker.Item label="Incomplete" value="incomplete" color="white" />
-              <Picker.Item label="Approved" value="approved" color="white" />
-              <Picker.Item label="Cancelled" value="cancelled" color="white" />
-            </Picker>
-          </View>
-        </View>
-
-        {/* Info Banner */}
-        <View style={styles.banner}>
-          <Ionicons name="bulb-outline" size={16} color="#2563eb" />
-          <Text style={styles.bannerText}>
-            Changes to your shipping address will only apply to future orders and will not affect previous ones
-          </Text>
-        </View>
-
-        {/* Orders Table */}
-        <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-          <View style={{ minWidth: 670, flex: 1 }}>
-            <View style={styles.headerRow}>
-              <Text style={[styles.hCell, styles.id]}>ORDER ID</Text>
-              <Text style={[styles.hCell, styles.date]}>ORDER DATE</Text>
-              <Text style={[styles.hCell, styles.treat]}>TREATMENT</Text>
-              <Text style={[styles.hCell, styles.items]}>ITEMS</Text>
-              <Text style={[styles.hCell, styles.stat]}>STATUS</Text>
-              <Text style={[styles.hCell, styles.total]}>TOTAL</Text>
-              <Text style={[styles.hCell, styles.total]}>ACTION</Text>
-              <Text style={[styles.hCell, styles.eye]} />
+      <FlatList
+        ref={listRef}
+        style={styles.list}
+        data={isLoading ? [] : filteredOrders}
+        keyExtractor={i => i.order_id.toString()}
+        renderItem={renderOrderCard}
+        contentContainerStyle={[
+          styles.container,
+          {paddingBottom: insets.bottom + 16},
+        ]}
+        ListHeaderComponent={
+          <>
+            {/* Page header card */}
+            <View style={styles.pageHeader}>
+              <View style={styles.pageHeaderTop}>
+                <View style={{flex: 1}}>
+                  <Text style={styles.pageLabel}>ORDERS</Text>
+                  <Text style={styles.pageTitle}>My Orders</Text>
+                  <Text style={styles.pageSubtitle}>
+                    Review your previous orders and complete order details.
+                  </Text>
+                </View>
+                {data?.total != null && (
+                  <View style={styles.totalBadge}>
+                    <Feather name="shopping-bag" size={13} color={PRIMARY} />
+                    <Text style={styles.totalBadgeText}>
+                      {data.total} Total Orders
+                    </Text>
+                  </View>
+                )}
+              </View>
             </View>
 
-            {/* Vertically Center Loader or Empty */}
-            {isLoading ? (
-              <View style={styles.centeredContent}>
-                <ActivityIndicator size="large" color="#47317c" />
-              </View>
-            ) : filteredOrders?.length === 0 ? (
-              <View style={styles.centeredContent}>
-                <Text style={{ color: '#6b7280' }}>No orders found</Text>
-              </View>
-            ) : (
-              <FlatList
-                data={filteredOrders}
-                keyExtractor={i => i.order_id.toString()}
-                renderItem={renderRow}
-                contentContainerStyle={{paddingBottom: insets.bottom + 16}}
+            {/* Search */}
+            <View style={styles.searchWrap}>
+              <Feather name="search" size={16} color="#94a3b8" style={styles.searchIcon} />
+              <TextInput
+                placeholder="Search by order ID or treatment…"
+                placeholderTextColor="#94a3b8"
+                value={searchValue}
+                onChangeText={setSearchValue}
+                style={styles.searchInput}
               />
+              {searchValue ? (
+                <TouchableOpacity
+                  style={styles.clearButton}
+                  onPress={() => setSearchValue('')}>
+                  <Text style={styles.clearButtonText}>Clear</Text>
+                </TouchableOpacity>
+              ) : null}
+            </View>
+
+            {/* Status filter chips */}
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              style={styles.chipsScroll}
+              contentContainerStyle={styles.chipsRow}>
+              {STATUS_OPTIONS.map(opt => {
+                const isActive = status === opt.value;
+                return (
+                  <TouchableOpacity
+                    key={opt.value}
+                    onPress={() => setStatus(opt.value)}
+                    style={[
+                      styles.chip,
+                      {
+                        backgroundColor: isActive ? opt.bg : '#fff',
+                        borderColor: isActive ? opt.border : '#e2e8f0',
+                      },
+                    ]}
+                    activeOpacity={0.8}>
+                    <View style={[styles.statusDot, {backgroundColor: opt.dot}]} />
+                    <Text
+                      style={[
+                        styles.chipText,
+                        {color: isActive ? opt.text : '#64748b'},
+                      ]}>
+                      {opt.label}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </ScrollView>
+
+            {/* Info notice */}
+            <View style={styles.infoNotice}>
+              <Feather name="info" size={13} color="#f59e0b" />
+              <Text style={styles.infoText}>
+                <Text style={styles.infoTextBold}>Note: </Text>
+                Changes to your shipping address will only apply to future
+                orders and will not affect previous ones.
+              </Text>
+            </View>
+
+            {isLoading && (
+              <>
+                {renderSkeleton()}
+                {renderSkeleton()}
+                {renderSkeleton()}
+              </>
             )}
-          </View>
-        </ScrollView>
-      </View>
+          </>
+        }
+        ListEmptyComponent={!isLoading ? renderEmpty() : null}
+        ItemSeparatorComponent={() => <View style={{height: 12}} />}
+        ListFooterComponent={renderPagination}
+        ListFooterComponentStyle={{marginTop: 16}}
+      />
     </>
   );
 };
 
-const COL_WIDTH = {
-  id: 70,
-  date: 90,
-  treat: 140,
-  items: 160,
-  stat: 90,
-  total: 80,
-  eye: 40,
-};
-
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#fff', padding: 16 },
-  heading: { fontSize: 24, fontWeight: 'bold', color: '#1f2937' },
-  sub: { color: '#4b5563', marginBottom: 12 },
+  list: {
+    backgroundColor: '#FBFBFD',
+  },
+  container: {
+    paddingHorizontal: 16,
+    paddingTop: 16,
+    paddingBottom: 32,
+    backgroundColor: '#FBFBFD',
+  },
 
-  topRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-between',
-    gap: 10,
+  // Page header
+  pageHeader: {
+    borderWidth: 1,
+    borderColor: '#e4e0f5',
+    borderRadius: 16,
+    backgroundColor: '#fbfaff',
+    padding: 18,
     marginBottom: 16,
   },
-  searchWrap: { flex: 1, minWidth: '60%', position: 'relative' },
-  searchIcon: { position: 'absolute', left: 12, top: 12, zIndex: 2 },
+  pageHeaderTop: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    justifyContent: 'space-between',
+    gap: 12,
+  },
+  pageLabel: {
+    fontSize: 10,
+    fontFamily: Fonts.semiBold,
+    color: 'rgba(71, 49, 124, 0.7)',
+    textTransform: 'uppercase',
+    letterSpacing: 1.4,
+    marginBottom: 6,
+  },
+  pageTitle: {
+    fontSize: 21,
+    fontFamily: Fonts.bold,
+    color: '#0f172a',
+    marginBottom: 4,
+  },
+  pageSubtitle: {
+    fontSize: 12.5,
+    fontFamily: Fonts.regular,
+    color: '#64748b',
+    lineHeight: 17,
+  },
+  totalBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    borderWidth: 1,
+    borderColor: '#e8e2f5',
+    backgroundColor: 'rgba(255,255,255,0.8)',
+    borderRadius: 12,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+  },
+  totalBadgeText: {
+    fontSize: 11.5,
+    fontFamily: Fonts.semiBold,
+    color: '#1e293b',
+  },
+
+  // Search
+  searchWrap: {
+    position: 'relative',
+    justifyContent: 'center',
+    marginBottom: 12,
+  },
+  searchIcon: {
+    position: 'absolute',
+    left: 14,
+    zIndex: 2,
+  },
   searchInput: {
     borderWidth: 1,
-    borderColor: '#d1d5db',
+    borderColor: '#e2e8f0',
     borderRadius: 12,
-    paddingVertical: 10,
-    paddingLeft: 38,
-    paddingRight: 12,
-    fontSize: 14,
-    color: '#111827',
-    backgroundColor: '#f9fafb',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
-    elevation: 2,
-  },
-
-  filterRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-    marginBottom: 16,
-  },
-  filterLabel: {
-    fontSize: 14,
-    color: '#000',
-    fontWeight: '500',
-  },
-  dropdownWrapper: {
-    flex: 1,
-    height: 36,
-    backgroundColor: 'white',
-    borderColor: '#d1d5db',
-    borderWidth: 1,
-    borderRadius: 10,
-    justifyContent: 'center',
-    paddingHorizontal: 4,
-  },
-  dropdown: {
-    color: 'black',
-  },
-
-  banner: {
-    flexDirection: 'row',
-    backgroundColor: '#eff6ff',
-    borderLeftWidth: 4,
-    borderLeftColor: '#2563eb',
-    padding: 10,
-    marginBottom: 12,
-    alignItems: 'center',
-    borderRadius: 8,
-  },
-  bannerText: {
-    marginLeft: 6,
+    backgroundColor: '#f8fafc',
+    paddingVertical: 12,
+    paddingLeft: 40,
+    paddingRight: 60,
     fontSize: 13,
-    color: '#2563eb',
-    flex: 1,
+    color: '#0f172a',
+    fontFamily: Fonts.regular,
   },
-
-  headerRow: {
-    flexDirection: 'row',
-    paddingVertical: 8,
-    borderBottomWidth: 1,
-    borderColor: '#e5e7eb',
-    backgroundColor: '#f3f4f6',
-  },
-  hCell: { fontSize: 11, fontWeight: '600', color: '#6b7280' },
-
-  row: {
-    flexDirection: 'row',
-    paddingVertical: 14,
-    borderBottomWidth: 1,
-    borderColor: '#e5e7eb',
-    backgroundColor: '#ffffff',
-  },
-  cell: { fontSize: 13, color: '#374151' },
-
-  id: { width: COL_WIDTH.id },
-  date: { width: COL_WIDTH.date },
-  treat: { width: COL_WIDTH.treat },
-  items: { width: COL_WIDTH.items },
-  stat: { width: COL_WIDTH.stat, justifyContent: 'center' },
-  total: { width: COL_WIDTH.total, alignItems: 'end', justifyContent: 'center' },
-  totalAmount: { width: COL_WIDTH.total, alignItems: 'end', justifyContent: 'center', margin: 28 },
-  eye: { width: COL_WIDTH.eye, alignItems: 'end', justifyContent: 'center' },
-
-  pill: {
+  clearButton: {
+    position: 'absolute',
+    right: 10,
+    backgroundColor: '#e2e8f0',
+    borderRadius: 6,
     paddingHorizontal: 8,
     paddingVertical: 4,
-    borderRadius: 999,
+  },
+  clearButtonText: {
     fontSize: 11,
+    fontFamily: Fonts.medium,
+    color: '#475569',
+  },
+
+  // Status chips
+  chipsScroll: {
+    marginBottom: 12,
+  },
+  chipsRow: {
+    gap: 8,
+    paddingRight: 4,
+  },
+  chip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    borderWidth: 1,
+    borderRadius: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+  },
+  chipText: {
+    fontSize: 12,
+    fontFamily: Fonts.medium,
+  },
+  statusDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+  },
+
+  // Info notice
+  infoNotice: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    borderWidth: 1,
+    borderColor: 'rgba(251, 191, 36, 0.4)',
+    backgroundColor: 'rgba(255, 251, 235, 0.6)',
+    borderRadius: 12,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    marginBottom: 16,
+  },
+  infoText: {
+    flex: 1,
+    fontSize: 12,
+    fontFamily: Fonts.regular,
+    color: '#64748b',
+    lineHeight: 16,
+  },
+  infoTextBold: {
+    fontFamily: Fonts.medium,
+    color: '#475569',
+  },
+
+  // Order card
+  orderCard: {
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+    borderRadius: 16,
+    backgroundColor: '#fff',
     overflow: 'hidden',
-    textAlign: 'center',
-    fontWeight: '600',
+  },
+  orderCardHeader: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    justifyContent: 'space-between',
+    borderBottomWidth: 1,
+    borderBottomColor: '#f1f5f9',
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+  },
+  orderLabel: {
+    fontSize: 10,
+    fontFamily: Fonts.medium,
+    color: '#94a3b8',
+    textTransform: 'uppercase',
+    letterSpacing: 1,
+  },
+  orderId: {
+    fontSize: 15,
+    fontFamily: Fonts.bold,
+    color: '#0f172a',
+    marginTop: 2,
+  },
+  statusPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    borderWidth: 1,
+    borderRadius: 999,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+  },
+  statusText: {
+    fontSize: 11,
+    fontFamily: Fonts.medium,
     textTransform: 'capitalize',
   },
-  processing: { backgroundColor: '#fef3c7', color: '#92400e' },
-  incomplete: { backgroundColor: '#ffedd5', color: '#c2410c' },
-  approved: { backgroundColor: '#d1fae5', color: '#065f46' },
-  cancelled: { backgroundColor: '#fee2e2', color: '#991b1b' },
-  defaultPill: { backgroundColor: '#e5e7eb', color: '#374151' },
+  orderCardBody: {
+    padding: 16,
+  },
+  rowBetween: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  colFlex: {
+    flex: 1,
+  },
+  fieldLabel: {
+    fontSize: 10,
+    fontFamily: Fonts.medium,
+    color: '#94a3b8',
+    textTransform: 'uppercase',
+    letterSpacing: 1,
+    marginBottom: 4,
+  },
+  dateRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+  },
+  dateText: {
+    fontSize: 12.5,
+    fontFamily: Fonts.medium,
+    color: '#334155',
+  },
+  totalText: {
+    fontSize: 16,
+    fontFamily: Fonts.bold,
+    color: '#0f172a',
+  },
+  divider: {
+    height: 1,
+    backgroundColor: '#f1f5f9',
+    marginVertical: 14,
+  },
+  treatmentList: {
+    marginTop: 4,
+    gap: 2,
+  },
+  treatmentText: {
+    fontSize: 13,
+    fontFamily: Fonts.medium,
+    color: '#0f172a',
+  },
+  itemsList: {
+    marginTop: 4,
+    gap: 2,
+  },
+  itemText: {
+    fontSize: 12,
+    fontFamily: Fonts.regular,
+    color: '#64748b',
+  },
+  itemQty: {
+    fontFamily: Fonts.medium,
+    color: '#334155',
+  },
+  viewButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    backgroundColor: '#0f172a',
+    borderRadius: 12,
+    minHeight: 42,
+    marginTop: 16,
+  },
+  viewButtonText: {
+    fontSize: 13,
+    fontFamily: Fonts.medium,
+    color: '#fff',
+  },
 
-  centeredContent: {
-    height: 400,
+  // Skeleton
+  skeletonBlock: {
+    backgroundColor: '#e2e8f0',
+    borderRadius: 6,
+    opacity: 0.6,
+  },
+
+  // Pagination
+  paginationWrap: {
+    gap: 10,
+  },
+  paginationInfo: {
+    fontSize: 12.5,
+    fontFamily: Fonts.regular,
+    color: '#94a3b8',
+    textAlign: 'center',
+  },
+  paginationInfoBold: {
+    fontFamily: Fonts.semiBold,
+    color: '#334155',
+  },
+  paginationControls: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+  },
+  pageNumbersScroll: {
+    flexGrow: 0,
+  },
+  pageNumbersRow: {
+    flexDirection: 'row',
+    gap: 6,
+  },
+  pageButton: {
+    minWidth: 34,
+    height: 34,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+    backgroundColor: '#fff',
     justifyContent: 'center',
     alignItems: 'center',
+    paddingHorizontal: 8,
+  },
+  pageButtonActive: {
+    backgroundColor: PRIMARY,
+    borderColor: PRIMARY,
+  },
+  pageButtonDisabled: {
+    opacity: 0.4,
+  },
+  pageButtonText: {
+    fontSize: 12.5,
+    fontFamily: Fonts.medium,
+    color: '#64748b',
+  },
+  pageButtonTextActive: {
+    color: '#fff',
+    fontFamily: Fonts.semiBold,
+  },
+
+  // Empty state
+  emptyWrap: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 48,
+    paddingHorizontal: 24,
+  },
+  emptyIconBox: {
+    width: 56,
+    height: 56,
+    borderRadius: 16,
+    backgroundColor: '#f1f5f9',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 14,
+  },
+  emptyTitle: {
+    fontSize: 15,
+    fontFamily: Fonts.bold,
+    color: '#0f172a',
+    marginBottom: 4,
+  },
+  emptyText: {
+    fontSize: 12.5,
+    fontFamily: Fonts.regular,
+    color: '#64748b',
+    textAlign: 'center',
   },
 });
 

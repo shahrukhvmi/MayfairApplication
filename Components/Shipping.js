@@ -18,7 +18,10 @@ import PostcodeSearchInput from './PostcodeSearchInput';
 import { useFocusEffect } from '@react-navigation/native';
 import NextButton from './NextButton';
 import SelectFields from './SelectFields';
+import {Fonts} from '../utils/fonts';
+import Feather from 'react-native-vector-icons/Feather';
 
+const PRIMARY = '#47317c';
 const GETADDRESS_KEY = '_UFb05P76EyMidU1VHIQ_A42976';
 
 // ✅ Helper to fetch addresses from getaddress.io
@@ -171,15 +174,23 @@ export default function Shipping({ shipmentCountries }) {
       <ScrollView
         contentContainerStyle={styles.container}
         keyboardShouldPersistTaps="handled">
-        {/* Header */}
-        <Text style={styles.title}>Shipping Information</Text>
-        <Text style={styles.subtitle}>
-          Update your shipping details — changes will apply to future orders
-          only.
-        </Text>
+        <View style={styles.card}>
+          {/* Header */}
+          <View style={styles.cardHeader}>
+            <View style={styles.iconBox}>
+              <Feather name="map-pin" size={19} color={PRIMARY} />
+            </View>
+            <View style={{flex: 1}}>
+              <Text style={styles.title}>Shipping information</Text>
+              <Text style={styles.subtitle}>
+                Update your shipping details — changes will apply to future
+                orders only.
+              </Text>
+            </View>
+          </View>
 
-        {/* Form */}
-        <View style={{ marginTop: 24 }}>
+          {/* Form */}
+          <View style={{ marginTop: 22 }}>
           {/* Country Dropdown */}
           <Controller
             name="shippingCountry"
@@ -312,8 +323,17 @@ export default function Shipping({ shipmentCountries }) {
           />
 
           {/* Submit Button */}
-          <NextButton disabled={!isValid} label='Update' onPress={handleSubmit(onSubmit)} loading={showLoader} />
+          <View style={styles.buttonWrap}>
+            <NextButton
+              disabled={!isValid}
+              label="Update shipping"
+              onPress={handleSubmit(onSubmit)}
+              loading={showLoader}
+              style={styles.submitButton}
+            />
+          </View>
 
+        </View>
         </View>
       </ScrollView>
     </>
@@ -321,16 +341,52 @@ export default function Shipping({ shipmentCountries }) {
 }
 
 const styles = StyleSheet.create({
-  container: { paddingBottom: 60 },
+  container: { paddingBottom: 20 },
+  card: {
+    borderWidth: 1,
+    borderColor: 'rgba(71, 49, 124, 0.1)',
+    borderRadius: 20,
+    backgroundColor: '#fff',
+    padding: 18,
+  },
+  cardHeader: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 14,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(71, 49, 124, 0.07)',
+    paddingBottom: 18,
+  },
+  iconBox: {
+    width: 44,
+    height: 44,
+    borderRadius: 14,
+    backgroundColor: 'rgba(71, 49, 124, 0.08)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  buttonWrap: {
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(71, 49, 124, 0.07)',
+    paddingTop: 18,
+    marginTop: 4,
+  },
+  submitButton: {
+    backgroundColor: PRIMARY,
+    borderRadius: 13,
+    minHeight: 46,
+  },
   title: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: '#000',
+    fontSize: 18,
+    color: '#0f172a',
+    fontFamily: Fonts.bold,
   },
   subtitle: {
-    fontSize: 14,
-    color: '#444',
-    marginTop: 6,
+    fontSize: 12.5,
+    color: '#64748b',
+    marginTop: 4,
+    lineHeight: 17,
+    fontFamily: Fonts.regular,
   },
   postcodeRow: {
     flexDirection: 'row',

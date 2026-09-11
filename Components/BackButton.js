@@ -1,6 +1,7 @@
 // components/BackButton.js
 import React from 'react';
 import { ActivityIndicator, Text, TouchableOpacity, StyleSheet, View } from 'react-native';
+import {Fonts} from '../utils/fonts';
 
 const BackButton = ({
   label = 'Back',
@@ -32,15 +33,15 @@ const BackButton = ({
 
 const styles = StyleSheet.create({
   text: {
-    color: '#4B0082',
+    color: '#47317c',
     textAlign: 'center',
-    fontSize: 14,
+    fontSize: 13,
     textDecorationLine: 'underline',
-    fontWeight: '500',
-    marginTop: 16,
+    marginTop: 14,
+    fontFamily: Fonts.medium,
   },
   disabled: {
-    opacity: 0.5,
+    opacity: 0.4,
   },
 });
 

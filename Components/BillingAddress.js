@@ -16,6 +16,7 @@ import useBillingCountries from '../store/useBillingCountriesStore';
 import useShippingOrBillingStore from '../store/shipingOrbilling';
 import {useFocusEffect} from '@react-navigation/native';
 import SelectFields from './SelectFields';
+import {Fonts} from '../utils/fonts';
 
 const GETADDRESS_KEY = '_UFb05P76EyMidU1VHIQ_A42976';
 
@@ -218,12 +219,7 @@ export default function BillingAddress({sameAsShipping, setIsBillingCheck}) {
   }
 
   return (
-    <ScrollView
-      contentContainerStyle={styles.container}
-      keyboardShouldPersistTaps="handled">
-      <View style={styles.card}>
-        <Text style={styles.title}>Billing Information</Text>
-
+    <View style={styles.container}>
         <Controller
           name="billingCountry"
           control={control}
@@ -352,27 +348,10 @@ export default function BillingAddress({sameAsShipping, setIsBillingCheck}) {
             />
           )}
         />
-      </View>
-    </ScrollView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {paddingBottom: 0},
-  card: {
-    backgroundColor: '#fff',
-    padding: 20,
-    borderRadius: 16,
-    marginBottom: 20,
-    shadowColor: '#000',
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    shadowOffset: {width: 0, height: 2},
-    elevation: 2,
-  },
-  title: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: '#000',
-  },
+  container: {},
 });

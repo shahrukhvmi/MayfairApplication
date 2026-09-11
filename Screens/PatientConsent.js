@@ -16,9 +16,9 @@ import useConfirmationInfoStore from '../store/confirmationInfoStore';
 import Header from '../Layout/header';
 import NextButton from '../Components/NextButton';
 import BackButton from '../Components/BackButton';
-import {MdCheckBox, MdCheckBoxOutlineBlank} from 'react-icons/md'; // ignore in RN
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
+import {Fonts} from '../utils/fonts';
 
 export default function PatientConsent() {
   const navigation = useNavigation();
@@ -157,202 +157,270 @@ export default function PatientConsent() {
   return (
     <>
       <Header />
-      <ScrollView contentContainerStyle={[styles.container, {paddingBottom: insets.bottom + 16}]}>
-        <View style={styles.progressContainer}>
-          <View style={styles.progressBar} />
+      <ScrollView
+        style={styles.screen}
+        contentContainerStyle={[styles.container, {paddingBottom: insets.bottom + 24}]}
+        showsVerticalScrollIndicator={false}>
+        {/* Progress bar */}
+        <View style={styles.progressTrack}>
+          <View style={[styles.progressFill, {width: '85%'}]} />
         </View>
-        <Text style={styles.progressText}>85% Completed</Text>
-        <Text style={styles.heading}>Patient Consent</Text>
 
-        <View>
-          {questions.map(q => {
-            const selectedAnswer = watch(`responses[${q.id}].answer`);
-            const items = q.checklist
-              ? extractListItemsWithLinks(q.checklist)
-              : [];
+        {/* Card */}
+        <View style={styles.card}>
+          <View style={styles.cardHeader}>
+            <Text style={styles.progressLabel}>85% COMPLETED</Text>
+            <Text style={styles.heading}>Patient Consent</Text>
+          </View>
 
-            return (
-              <View key={q.id} style={styles.card}>
-                <Text style={styles.cardTitle}>
-                  I confirm and understand that:
+          <View style={styles.cardBody}>
+            <Text style={styles.sectionTitle}>I confirm and understand that:</Text>
+
+            {questions.map(q => {
+              const selectedAnswer = watch(`responses[${q.id}].answer`);
+              const items = q.checklist
+                ? extractListItemsWithLinks(q.checklist)
+                : [];
+
+              return (
+                <View key={q.id} style={styles.questionBlock}>
+                  {items.length > 0 ? (
+                    <View style={styles.bulletList}>
+                      {items.map((segments, idx) => (
+                        <View key={`${q.id}-${idx}`} style={styles.bulletItem}>
+                          <Text style={styles.bulletIcon}>{'\u2022'}</Text>
+                          <Text style={styles.bulletText}>
+                            {segments.map((seg, i) =>
+                              seg.type === 'text' ? (
+                                <Text key={i}>{seg.text} </Text>
+                              ) : (
+                                <Text
+                                  key={i}
+                                  style={styles.linkText}
+                                  onPress={() => confirmAndOpenLink(seg.href)}>
+                                  {seg.text}
+                                </Text>
+                              ),
+                            )}
+                          </Text>
+                        </View>
+                      ))}
+                    </View>
+                  ) : null}
+
+                  <TouchableOpacity
+                    onPress={() => handleCheckboxChange(q.id, !selectedAnswer)}
+                    activeOpacity={0.8}
+                    style={styles.checkboxRow}>
+                    <View
+                      style={[
+                        styles.checkbox,
+                        selectedAnswer && styles.checkboxActive,
+                      ]}>
+                      {selectedAnswer && (
+                        <Ionicons name="checkmark" size={12} color="#fff" />
+                      )}
+                    </View>
+                    <Text
+                      style={[
+                        styles.checkboxLabel,
+                        selectedAnswer && styles.checkboxLabelActive,
+                      ]}>
+                      {q.question
+                        .replace('I confirm and understand that:', '')
+                        .replace('below', 'above')
+                        .trim()}
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+              );
+            })}
+
+            {!isNextEnabled && (
+              <View style={styles.warningBox}>
+                <Text style={styles.warningText}>
+                  You must confirm before proceeding.
                 </Text>
-
-                {items.length > 0 ? (
-                  <View style={styles.bulletList}>
-                    {items.map((segments, idx) => (
-                      <View key={`${q.id}-${idx}`} style={styles.bulletItem}>
-                        <Text style={styles.bulletIcon}>{'\u2022'}</Text>
-                        <Text style={styles.bulletText}>
-                          {segments.map((seg, i) =>
-                            seg.type === 'text' ? (
-                              <Text key={i}>{seg.text} </Text>
-                            ) : (
-                              <Text
-                                key={i}
-                                style={styles.linkText}
-                                onPress={() => confirmAndOpenLink(seg.href)}>
-                                {seg.text}
-                              </Text>
-                            ),
-                          )}
-                        </Text>
-                      </View>
-                    ))}
-                  </View>
-                ) : null}
-
-                <TouchableOpacity
-                  onPress={() => handleCheckboxChange(q.id, !selectedAnswer)}
-                  style={styles.checkboxRow}>
-                  <View
-                    style={[
-                      styles.radioCircle,
-                      selectedAnswer && styles.radioChecked,
-                    ]}>
-                    {selectedAnswer && (
-                      <Ionicons name="checkmark" size={14} color="#fff" />
-                    )}
-                  </View>
-                  <Text style={styles.checkboxLabel}>
-                    {q.question
-                      .replace('I confirm and understand that:', '')
-                      .replace('below', 'above')
-                      .trim()}
-                  </Text>
-                </TouchableOpacity>
               </View>
-            );
-          })}
+            )}
 
-          {!isNextEnabled && (
-            <Text style={styles.errorText}>
-              You must confirm before proceeding.
-            </Text>
-          )}
-
-          <NextButton
-            label="Next"
-            onPress={handleSubmit(onSubmit)}
-            disabled={!isNextEnabled}
-            style={{marginTop: 20}}
-          />
-          <BackButton
-            label="Back"
-            onPress={() => navigation.navigate('medical-questions')}
-          />
+            <View style={styles.buttonWrap}>
+              <NextButton
+                label="Next"
+                onPress={handleSubmit(onSubmit)}
+                disabled={!isNextEnabled}
+                style={styles.submitButton}
+              />
+              <BackButton
+                label="Back"
+                onPress={() => navigation.navigate('medical-questions')}
+              />
+            </View>
+          </View>
         </View>
-
       </ScrollView>
     </>
   );
 }
 
+const PRIMARY = '#47317c';
+
 const styles = StyleSheet.create({
+  screen: {
+    backgroundColor: '#FBFBFD',
+  },
   container: {
-    backgroundColor: '#f8f5ff',
+    padding: 16,
     flexGrow: 1,
-    padding: 20,
-    paddingBottom: 80,
   },
-  progressContainer: {
-    height: 4,
-    backgroundColor: '#eee',
+
+  // Progress bar
+  progressTrack: {
+    height: 3,
     borderRadius: 2,
+    backgroundColor: 'rgba(71, 49, 124, 0.08)',
+    marginBottom: 16,
     overflow: 'hidden',
-    marginBottom: 6,
   },
-  progressBar: {
-    width: '85%',
-    height: 4,
-    backgroundColor: '#4B0082',
+  progressFill: {
+    height: '100%',
+    borderRadius: 2,
+    backgroundColor: PRIMARY,
   },
-  progressText: {
-    textAlign: 'center',
-    fontSize: 12,
-    color: '#666',
-    marginBottom: 20,
-  },
-  heading: {
-    fontSize: 22,
-    fontWeight: 'bold',
-    marginBottom: 20,
-  },
+
+  // Card
   card: {
     borderWidth: 1,
-    borderColor: '#ddd',
+    borderColor: 'rgba(71, 49, 124, 0.1)',
+    borderRadius: 18,
     backgroundColor: '#fff',
-    borderRadius: 10,
-    padding: 16,
-    marginBottom: 10,
+    overflow: 'hidden',
+    shadowColor: 'rgba(71, 49, 124, 0.15)',
+    shadowOffset: {width: 0, height: 8},
+    shadowOpacity: 1,
+    shadowRadius: 20,
+    elevation: 3,
   },
-  cardTitle: {
-    fontSize: 15,
-    fontWeight: 'bold',
-    marginBottom: 10,
+  cardHeader: {
+    backgroundColor: '#f5f2fc',
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(71, 49, 124, 0.08)',
+    paddingHorizontal: 20,
+    paddingTop: 22,
+    paddingBottom: 20,
   },
-  checklistText: {
-    fontSize: 13,
-    color: '#333',
-    marginBottom: 10,
+  progressLabel: {
+    fontSize: 10.5,
+    fontFamily: Fonts.medium,
+    color: 'rgba(71, 49, 124, 0.7)',
+    letterSpacing: 1.4,
+    marginBottom: 8,
   },
+  heading: {
+    fontSize: 21,
+    fontFamily: Fonts.semiBold,
+    color: '#0f172a',
+  },
+  cardBody: {
+    paddingHorizontal: 20,
+    paddingTop: 20,
+    paddingBottom: 24,
+  },
+
+  sectionTitle: {
+    fontSize: 15.5,
+    fontFamily: Fonts.semiBold,
+    color: '#0f172a',
+    paddingBottom: 14,
+    marginBottom: 6,
+    borderBottomWidth: 1,
+    borderBottomColor: '#e2e8f0',
+  },
+
+  questionBlock: {
+    paddingVertical: 16,
+    borderTopWidth: 1,
+    borderTopColor: '#f1f5f9',
+  },
+
   checkboxRow: {
-    display: 'flex',
     flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 12,
+  },
+  checkbox: {
+    width: 20,
+    height: 20,
+    borderRadius: 5,
+    borderWidth: 2,
+    borderColor: '#cbd5e1',
+    backgroundColor: '#fff',
+    justifyContent: 'center',
     alignItems: 'center',
-    gap: 6,
+    marginTop: 1,
+  },
+  checkboxActive: {
+    borderColor: PRIMARY,
+    backgroundColor: PRIMARY,
   },
   checkboxLabel: {
     flex: 1,
-    fontSize: 14,
-    color: '#333',
+    fontSize: 13.5,
+    color: '#1e293b',
+    lineHeight: 20,
+    fontFamily: Fonts.medium,
   },
-  errorText: {
-    color: 'red',
-    fontSize: 13,
+  checkboxLabelActive: {
+    color: PRIMARY,
   },
-  loaderOverlay: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(255,255,255,0.6)',
-    justifyContent: 'center',
-    alignItems: 'center',
+
+  warningBox: {
+    marginTop: 4,
+    borderLeftWidth: 3,
+    borderLeftColor: '#fbbf24',
+    paddingLeft: 12,
+    paddingVertical: 4,
   },
-  radioCircle: {
-    width: 20,
-    height: 20,
-    borderRadius: 10,
-    borderWidth: 1,
-    borderColor: '#999',
-    marginRight: 8,
-    alignItems: 'center',
-    justifyContent: 'center',
+  warningText: {
+    fontSize: 12.5,
+    fontFamily: Fonts.regular,
+    color: '#b45309',
+    lineHeight: 18,
   },
-  radioChecked: {
-    backgroundColor: '#6D28D9',
-    borderColor: '#6D28D9',
-  },
+
   bulletList: {
-    marginBottom: 10,
+    marginBottom: 12,
     paddingLeft: 4,
   },
   bulletItem: {
     flexDirection: 'row',
     alignItems: 'flex-start',
-    marginBottom: 12,
+    marginBottom: 10,
   },
   bulletIcon: {
-    fontSize: 16,
-    color: '#4B0082',
-    marginTop: 0,
+    fontSize: 15,
+    color: PRIMARY,
     marginRight: 8,
   },
   bulletText: {
     flex: 1,
-    fontSize: 14,
-    color: '#333',
-    lineHeight: 20,
+    fontSize: 13,
+    fontFamily: Fonts.regular,
+    color: '#475569',
+    lineHeight: 19,
   },
   linkText: {
     textDecorationLine: 'underline',
-    color: '#1D4ED8',
+    color: PRIMARY,
+    fontFamily: Fonts.medium,
+  },
+
+  buttonWrap: {
+    marginTop: 20,
+  },
+  submitButton: {
+    backgroundColor: PRIMARY,
+    borderRadius: 12,
+    minHeight: 48,
   },
 });

@@ -20,5 +20,14 @@
 	<string>????</string>
 	<key>CFBundleVersion</key>
 	<string>1</string>
+	<key>UIAppFonts</key>
+	<array>
+		<string>InterMedium.ttf</string>
+		<string>InterLight.ttf</string>
+		<string>InterSemiBold.ttf</string>
+		<string>InterRegular.ttf</string>
+		<string>InterThin.ttf</string>
+		<string>InterBold.ttf</string>
+	</array>
 </dict>
 </plist>

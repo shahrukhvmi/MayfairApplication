@@ -207,11 +207,13 @@ export default GatherDataScreen;
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: "#fff",
+        backgroundColor: "#FBFBFD",
+        justifyContent: "center",
+        alignItems: "center",
     },
     loaderOverlay: {
         ...StyleSheet.absoluteFillObject,
-        backgroundColor: "rgba(255,255,255,0.7)",
+        backgroundColor: "#FBFBFD",
         justifyContent: "center",
         alignItems: "center",
         zIndex: 10,

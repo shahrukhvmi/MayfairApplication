@@ -9,6 +9,7 @@ import {
   StyleSheet,
 } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
+import {Fonts} from '../utils/fonts';
 
 const TextFields = ({
   label,
@@ -77,26 +78,27 @@ const TextFields = ({
 
 const styles = StyleSheet.create({
   container: {
-    marginBottom: 20,
+    marginBottom: 18,
   },
   labelRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 6,
+    marginBottom: 7,
   },
   label: {
-    fontSize: 14,
-    fontWeight: 'bold',
-    color: '#333',
+    fontSize: 13,
+    color: '#334155',
+    fontFamily: Fonts.medium,
   },
   required: {
-    color: 'red',
-    fontWeight: '600',
+    color: '#ef4444',
+    fontFamily: Fonts.medium,
     marginLeft: 4,
   },
   optional: {
-    color: '#888',
-    fontSize: 12,
+    color: '#94a3b8',
+    fontSize: 11.5,
+    fontFamily: Fonts.regular,
     marginLeft: 4,
   },
   inputWrapper: {
@@ -104,11 +106,14 @@ const styles = StyleSheet.create({
   },
   input: {
     borderWidth: 1,
-    borderColor: '#222',
-    borderRadius: 4,
-    padding: 12,
+    borderColor: 'rgba(71, 49, 124, 0.15)',
+    borderRadius: 14,
+    paddingVertical: 14,
+    paddingHorizontal: 14,
     backgroundColor: '#fff',
-    color: '#000',
+    color: '#0f172a',
+    fontSize: 13,
+    fontFamily: Fonts.regular,
   },
   multiline: {
     minHeight: 100,
@@ -125,7 +130,7 @@ const styles = StyleSheet.create({
     zIndex: 1,
   },
   disabled: {
-    backgroundColor: '#eee',
+    backgroundColor: '#f1f5f9',
   },
 });
 

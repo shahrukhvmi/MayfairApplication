@@ -94,7 +94,9 @@ const App = () => {
       type: params.type,
       eid,
     });
-    navigationRef.reset({index: 0, routes: [{name: 'Login'}]});
+    if (navigationRef.isReady()) {
+      navigationRef.reset({index: 0, routes: [{name: 'Login'}]});
+    }
     return true;
   };
 
@@ -131,7 +133,9 @@ const App = () => {
       } else if (data?.type === 'review') {
         setReview(true);
         if (data?.order_id) setOrderId(Number(data.order_id));
-        navigationRef.reset({index: 0, routes: [{name: 'Login'}]});
+        if (navigationRef.isReady()) {
+          navigationRef.reset({index: 0, routes: [{name: 'Login'}]});
+        }
       }
     };
     OneSignal.Notifications.addEventListener('click', handleNotificationClick);
@@ -169,15 +173,19 @@ const App = () => {
         const params = parseParams(url);
         setReview(true);
         if (params?.order_id) setOrderId(Number(params.order_id));
-        navigationRef.reset({index: 0, routes: [{name: 'Login'}]});
+        if (navigationRef.isReady()) {
+          navigationRef.reset({index: 0, routes: [{name: 'Login'}]});
+        }
         return;
       }
 
       // Handles both https App Links (Android) and mayfairapp:// custom scheme (iOS)
-      if (url.includes('payment-success')) {
-        navigationRef.reset({index: 0, routes: [{name: 'PaymentSuccess'}]});
-      } else if (url.includes('payment-failed')) {
-        navigationRef.reset({index: 0, routes: [{name: 'PaymentFailed'}]});
+      if (navigationRef.isReady()) {
+        if (url.includes('payment-success')) {
+          navigationRef.reset({index: 0, routes: [{name: 'PaymentSuccess'}]});
+        } else if (url.includes('payment-failed')) {
+          navigationRef.reset({index: 0, routes: [{name: 'PaymentFailed'}]});
+        }
       }
     };
 

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, {useState} from 'react';
 import {
   View,
   Text,
@@ -7,11 +7,10 @@ import {
   StyleSheet,
   ActivityIndicator,
 } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
-import { useMutation } from '@tanstack/react-query';
+import {useNavigation} from '@react-navigation/native';
+import {useMutation} from '@tanstack/react-query';
 import Toast from 'react-native-toast-message';
 
-// ✅ your stores (paths may differ)
 import useProductId from '../store/useProductIdStore';
 import useReorder from '../store/useReorderStore';
 import useBmiStore from '../store/bmiStore';
@@ -27,8 +26,10 @@ import useCouponStore from '../store/couponStore';
 import useSignupStore from '../store/signupStore';
 import userConsultationApi from '../api/consultationApi';
 import useReturning from '../store/useReturningPatient';
+import useAbandonCardStore from '../store/useAbandonCardStore';
+import {Fonts} from '../utils/fonts';
 
-// ✅ API
+const PRIMARY = '#47317c';
 
 const ProductCard = ({
   id,
@@ -40,32 +41,28 @@ const ProductCard = ({
   lastOrderDate,
   reorder = false,
 }) => {
-  /* ───────── hooks / stores ───────── */
   const navigation = useNavigation();
-  const { setProductId } = useProductId();
-  const { setReorder } = useReorder();
-  const { clearCoupon } = useCouponStore();
+  const {setProductId} = useProductId();
+  const {setReorder} = useReorder();
+  const {clearCoupon} = useCouponStore();
 
-  // many setters cleared/filled by API response
-  const { setBmi, clearBmi } = useBmiStore();
-  const { setCheckout, clearCheckout } = useCheckoutStore();
-  const { setConfirmationInfo, clearConfirmationInfo } =
+  const {setBmi, clearBmi} = useBmiStore();
+  const {setCheckout, clearCheckout} = useCheckoutStore();
+  const {setConfirmationInfo, clearConfirmationInfo} =
     useConfirmationInfoStore();
-  const { setGpDetails, clearGpDetails } = useGpDetailsStore();
-  const { setMedicalInfo, clearMedicalInfo } = useMedicalInfoStore();
-  const { setPatientInfo, clearPatientInfo } = usePatientInfoStore();
-  const { setAuthUserDetail, clearAuthUserDetail } = useAuthUserDetailStore();
-  const { setShipping, clearShipping, setBilling, clearBilling } =
+  const {setGpDetails, clearGpDetails} = useGpDetailsStore();
+  const {setMedicalInfo, clearMedicalInfo} = useMedicalInfoStore();
+  const {setPatientInfo, clearPatientInfo} = usePatientInfoStore();
+  const {setAuthUserDetail, clearAuthUserDetail} = useAuthUserDetailStore();
+  const {setShipping, clearShipping, setBilling, clearBilling} =
     useShippingOrBillingStore();
-  const { setLastBmi } = useLastBmi();
-  const { setFirstName, setLastName } = useSignupStore();
-  const { setIsReturningPatient } = useReturning();
+  const {setLastBmi} = useLastBmi();
+  const {setFirstName, setLastName} = useSignupStore();
+  const {setIsReturningPatient} = useReturning();
+  const {clearAbandonCard} = useAbandonCardStore();
 
-  /* ───────── local state ───────── */
   const [loading, setLoading] = useState(false);
 
-  /* ───────── mutation ───────── */
-  //Get Consultation Data
   const consultationMutation = useMutation(userConsultationApi, {
     onSuccess: data => {
       console.log(data, 'Dataaaaaaaaaa');
@@ -110,7 +107,6 @@ const ProductCard = ({
       return;
     },
     onError: error => {
-      // setLoading(false);
       console.log('error', error?.response?.data?.errors?.email);
       if (error) {
         setLoading(false);
@@ -119,6 +115,7 @@ const ProductCard = ({
   });
 
   const handlePress = () => {
+    clearAbandonCard();
     setProductId(id);
     setLoading(true);
     const formData = {
@@ -128,49 +125,53 @@ const ProductCard = ({
     consultationMutation.mutate(formData);
   };
 
-  /* ───────── UI ───────── */
   const disabled = status === false;
 
   return (
-    <View style={styles.card}>
-      {/* overlay if out-of-stock */}
-      {!status && <View style={styles.overlay} />}
-
-      {/* Out of stock ribbon */}
-      {!status && (
-        <View style={[styles.ribbon, styles.ribbonLeft]}>
-          <Text style={styles.ribbonText}>Out of stock</Text>
-        </View>
-      )}
-
-      {/* Price ribbon */}
-      {!!price && (
-        <View style={[styles.ribbon, styles.ribbonRight]}>
-          <Text style={styles.ribbonText}>{`From £${price}`}</Text>
-        </View>
-      )}
-
-      {/* product image */}
-      <View style={styles.imageWrap}>
-        <Image
-          source={{ uri: image }}
-          style={styles.image}
-          resizeMode="contain"
-        />
+    <View style={[styles.card, disabled && styles.cardDisabled]}>
+      {/* Image box */}
+      <View style={styles.imageBox}>
+        {disabled && (
+          <View style={styles.outOfStockOverlay}>
+            <Text style={styles.outOfStockBadge}>Out of stock</Text>
+          </View>
+        )}
+        {image ? (
+          <Image
+            key={image}
+            source={{uri: image}}
+            style={styles.image}
+            resizeMode="contain"
+          />
+        ) : (
+          <View style={styles.imagePlaceholder}>
+            <Text style={styles.imagePlaceholderText}>No Image</Text>
+          </View>
+        )}
       </View>
 
-      {/* details */}
-      <View style={styles.detailBox}>
-        <Text style={styles.title}>{title}</Text>
+      {/* Title */}
+      <View style={styles.titleWrap}>
+        <Text style={styles.title} numberOfLines={2}>
+          {title}
+        </Text>
         {lastOrderDate ? (
-          <Text
-            style={styles.lastOrder}>{`Last Ordered: ${lastOrderDate}`}</Text>
+          <Text style={styles.lastOrder}>Last Ordered: {lastOrderDate}</Text>
         ) : null}
+      </View>
+
+      {/* Price + Button */}
+      <View style={styles.rightSection}>
+        <View style={styles.priceWrap}>
+          <Text style={styles.fromLabel}>From</Text>
+          <Text style={styles.price}>£{price}</Text>
+        </View>
 
         <TouchableOpacity
           style={[styles.button, disabled && styles.buttonDisabled]}
           onPress={handlePress}
-          disabled={disabled || loading}>
+          disabled={disabled || loading}
+          activeOpacity={0.8}>
           {loading ? (
             <ActivityIndicator size="small" color="#fff" />
           ) : (
@@ -184,86 +185,127 @@ const ProductCard = ({
 
 export default ProductCard;
 
-/* ───────── styles ───────── */
-const PURPLE = '#4B0082';
-
 const styles = StyleSheet.create({
   card: {
+    flexDirection: 'row',
+    alignItems: 'center',
     backgroundColor: '#fff',
     borderRadius: 16,
-    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    marginBottom: 12,
+    gap: 14,
+    shadowColor: '#000',
+    shadowOpacity: 0.04,
+    shadowOffset: {width: 0, height: 1},
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  cardDisabled: {
+    opacity: 0.6,
+  },
+
+  // Image
+  imageBox: {
+    width: 64,
+    height: 64,
+    borderRadius: 12,
+    backgroundColor: '#f1f5f9',
+    justifyContent: 'center',
+    alignItems: 'center',
     overflow: 'hidden',
-    width: '100%', // two-column grid support
-    elevation: 3,
   },
-  overlay: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(119,136,153,0.4)',
-    zIndex: 10,
+  image: {
+    width: 54,
+    height: 54,
   },
-  ribbon: {
-    position: 'absolute',
-    top: 12,
-    paddingVertical: 4,
-    paddingHorizontal: 32,
-    backgroundColor: '#ff5555',
-    transform: [{ rotate: '-45deg' }],
-    zIndex: 20,
-  },
-  ribbonLeft: {
-    left: -40,
-  },
-  ribbonRight: {
-    right: -25,
-    backgroundColor: '#4285f4',
-    transform: [{ rotate: '45deg' }],
-  },
-  ribbonText: {
-    color: '#fff',
-    fontSize: 10,
-    fontWeight: 'bold',
-    position: 'relative',
-    left: 12,
-  },
-  imageWrap: {
-    height: 160,
-    backgroundColor: '#fff',
+  imagePlaceholder: {
     justifyContent: 'center',
     alignItems: 'center',
   },
-  image: {
-    width: '80%',
-    height: '80%',
+  imagePlaceholderText: {
+    fontSize: 10,
+    color: '#94a3b8',
+    fontFamily: Fonts.regular,
   },
-  detailBox: {
-    backgroundColor: '#EDE9FE',
-    padding: 16,
+  outOfStockOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(255,255,255,0.7)',
+    justifyContent: 'center',
     alignItems: 'center',
+    zIndex: 1,
+  },
+  outOfStockBadge: {
+    fontSize: 9,
+    color: '#ef4444',
+    fontFamily: Fonts.medium,
+    backgroundColor: '#fef2f2',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 10,
+    overflow: 'hidden',
+  },
+
+  // Title
+  titleWrap: {
+    flex: 1,
+    minWidth: 0,
   },
   title: {
-    fontSize: 16,
+    fontSize: 15,
+    color: '#0f172a',
+    fontFamily: Fonts.bold,
     fontWeight: '700',
-    color: '#222',
-    marginBottom: 8,
-    textAlign: 'center',
+    lineHeight: 20,
   },
   lastOrder: {
-    fontSize: 12,
-    color: '#555',
-    marginBottom: 12,
+    fontSize: 11,
+    color: '#94a3b8',
+    fontFamily: Fonts.regular,
+    marginTop: 3,
   },
+
+  // Price + Button
+  rightSection: {
+    alignItems: 'flex-end',
+    gap: 8,
+  },
+  priceWrap: {
+    alignItems: 'flex-end',
+  },
+  fromLabel: {
+    fontSize: 10,
+    color: '#94a3b8',
+    fontFamily: Fonts.regular,
+    textTransform: 'uppercase',
+    letterSpacing: 1.2,
+  },
+  price: {
+    fontSize: 18,
+    color: PRIMARY,
+    fontFamily: Fonts.bold,
+    fontWeight: '700',
+    lineHeight: 22,
+  },
+
+  // Button
   button: {
-    backgroundColor: PURPLE,
-    paddingVertical: 10,
-    paddingHorizontal: 24,
-    borderRadius: 24,
+    backgroundColor: PRIMARY,
+    minHeight: 36,
+    paddingVertical: 9,
+    paddingHorizontal: 16,
+    borderRadius: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   buttonDisabled: {
-    backgroundColor: '#8d83b4',
+    backgroundColor: '#94a3b8',
   },
   buttonText: {
     color: '#fff',
-    fontWeight: '600',
-    fontSize: 13,
+    fontSize: 12.5,
+    fontFamily: Fonts.medium,
   },
 });

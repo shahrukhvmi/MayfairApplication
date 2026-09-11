@@ -6,6 +6,7 @@ import {
   StyleSheet,
   View,
 } from 'react-native';
+import {Fonts} from '../utils/fonts';
 
 const NextButton = ({
   label = 'Next',
@@ -63,6 +64,7 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontWeight: 'bold',
     fontSize: 16,
+    fontFamily: Fonts.medium,
   },
   loadingContent: {
     flexDirection: 'row',

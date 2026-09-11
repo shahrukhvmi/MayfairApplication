@@ -24,6 +24,7 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import CustomCheckbox from '../Components/CustomCheckbox';
 import Header from '../Layout/header';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
+import {Fonts} from '../utils/fonts';
 
 export default function BmiDetail() {
   const [showLoader, setShowLoader] = useState(false);
@@ -167,239 +168,330 @@ export default function BmiDetail() {
     }, 500);
   };
 
-  // This is just the logic + hooks — UI rendering section would go below, similar to how it was structured in Next.js
   return (
     <>
       <Header />
 
-      <ScrollView contentContainerStyle={[styles.container, {paddingBottom: insets.bottom + 16}]}>
-        <View style={styles.bmiBox}>
-          <Text style={styles.bmiText}>BMI: {bmiValue}</Text>
+      <ScrollView
+        style={styles.screen}
+        contentContainerStyle={[styles.container, {paddingBottom: insets.bottom + 16}]}
+        showsVerticalScrollIndicator={false}>
+        {/* Progress bar */}
+        <View style={styles.progressTrack}>
+          <View style={[styles.progressFill, {width: '70%'}]} />
         </View>
 
-        {isReorderAndBmiLow && (
-          <View style={styles.alertBox}>
-            <Text style={styles.alertText}>
-              Your BMI is in the underweight category. Therefore, losing further weight is not safe and you are not able to proceed further. Please contact us to discuss your options with the clinical team.
-            </Text>
+        {/* Card */}
+        <View style={styles.card}>
+          <View style={styles.cardHeader}>
+            <Text style={styles.progressLabel}>70% COMPLETED</Text>
+            <Text style={styles.heading}>Your BMI:</Text>
           </View>
-        )}
 
-        {shouldShowInfoMessage && !isReturningPatient && (
-          <View style={styles.infoBox}>
-            <Text style={styles.infoText}>
-              As you have confirmed that you are from one of the following
-              family backgrounds: South Asian, Chinese, Other Asian, Middle
-              Eastern, Black African or African-Caribbean, your cardiometabolic
-              risk occurs at a lower BMI. You are, therefore, able to proceed
-              with a lower BMI.
-            </Text>
-          </View>
-        )}
+          <View style={styles.cardBody}>
+            <View style={styles.bmiBox}>
+              <Text style={styles.bmiLabel}>YOUR BMI</Text>
+              <Text style={styles.bmiValue}>{bmiValue}</Text>
+            </View>
 
-        {bmiError !== '' && (
-          <View style={styles.alertBox}>
-            <Text style={styles.alertText}>{bmiError}</Text>
-          </View>
-        )}
-
-        {shouldShowCheckboxes && !isReturningPatient && (
-          <View style={{ marginBottom: 24 }}>
-            {(patientInfo?.ethnicity === 'No' ||
-              patientInfo?.ethnicity === 'Prefer not to say') && (
-                <Text style={styles.paragraph}>
-                  Your BMI is between 27-29.9 which indicates you are overweight.
+            {isReorderAndBmiLow && (
+              <View style={styles.alertBox}>
+                <Text style={styles.alertText}>
+                  Your BMI is in the underweight category. Therefore, losing further weight is not safe and you are not able to proceed further. Please contact us to discuss your options with the clinical team.
                 </Text>
-              )}
-            <Text style={styles.paragraph}>
-              You should only continue with the consultation if you have tried
-              losing weight through a reduced-calorie diet and increased
-              physical activity but are still struggling to lose weight and
-              confirm that either:
-            </Text>
+              </View>
+            )}
 
-            <Controller
-              name="checkbox1"
-              control={control}
-              render={({ field }) => (
-                <CustomCheckbox
-                  label={getCheckbox1Label()}
-                  value={field.value}
-                  onChange={field.onChange}
+            {shouldShowInfoMessage && !isReturningPatient && (
+              <View style={styles.infoBox}>
+                <Text style={styles.infoText}>
+                  As you have confirmed that you are from one of the following
+                  family backgrounds: South Asian, Chinese, Other Asian, Middle
+                  Eastern, Black African or African-Caribbean, your cardiometabolic
+                  risk occurs at a lower BMI. You are, therefore, able to proceed
+                  with a lower BMI.
+                </Text>
+              </View>
+            )}
+
+            {bmiError !== '' && (
+              <View style={styles.alertBox}>
+                <Text style={styles.alertText}>{bmiError}</Text>
+              </View>
+            )}
+
+            {shouldShowCheckboxes && !isReturningPatient && (
+              <View style={{marginBottom: 8}}>
+                {(patientInfo?.ethnicity === 'No' ||
+                  patientInfo?.ethnicity === 'Prefer not to say') && (
+                    <Text style={styles.paragraph}>
+                      Your BMI is between 27-29.9 which indicates you are overweight.
+                    </Text>
+                  )}
+                <Text style={styles.paragraph}>
+                  You should only continue with the consultation if you have tried
+                  losing weight through a reduced-calorie diet and increased
+                  physical activity but are still struggling to lose weight and
+                  confirm that either:
+                </Text>
+
+                <Controller
+                  name="checkbox1"
+                  control={control}
+                  render={({ field }) => (
+                    <CustomCheckbox
+                      label={getCheckbox1Label()}
+                      value={field.value}
+                      onChange={field.onChange}
+                    />
+                  )}
                 />
-              )}
-            />
 
-            <Controller
-              name="checkbox2"
-              control={control}
-              render={({ field }) => (
-                <CustomCheckbox
-                  label="You have at least one weight-related comorbidity (e.g. PCOS, diabetes, etc.)"
-                  value={field.value}
-                  onChange={field.onChange}
+                <Controller
+                  name="checkbox2"
+                  control={control}
+                  render={({ field }) => (
+                    <CustomCheckbox
+                      label="You have at least one weight-related comorbidity (e.g. PCOS, diabetes, etc.)"
+                      value={field.value}
+                      onChange={field.onChange}
+                    />
+                  )}
                 />
-              )}
-            />
 
-            {checkbox2 && (
-              <Controller
-                name="weight_related_comorbidity_explanation"
-                control={control}
-                rules={{ required: 'Explanation is required' }}
-                render={({ field }) => (
-                  <TextInput
-                    value={field.value}
-                    onChangeText={field.onChange}
-                    onBlur={field.onBlur}
-                    placeholder="Explanation"
-                    multiline
-                    numberOfLines={4}
-                    style={styles.textArea}
+                {checkbox2 && (
+                  <Controller
+                    name="weight_related_comorbidity_explanation"
+                    control={control}
+                    rules={{ required: 'Explanation is required' }}
+                    render={({ field }) => (
+                      <View style={{marginBottom: 12}}>
+                        <Text style={styles.label}>
+                          Explanation <Text style={styles.required}>*</Text>
+                        </Text>
+                        <TextInput
+                          value={field.value}
+                          onChangeText={field.onChange}
+                          onBlur={field.onBlur}
+                          placeholder="Describe your condition(s)"
+                          placeholderTextColor="#94a3b8"
+                          multiline
+                          numberOfLines={4}
+                          style={styles.textArea}
+                        />
+                      </View>
+                    )}
                   />
                 )}
-              />
-            )}
 
-            <Controller
-              name="noneOfTheAbove"
-              control={control}
-              render={({ field }) => (
-                <CustomCheckbox
-                  label="None of the above"
-                  value={field.value}
-                  onChange={newValue => {
-                    field.onChange(newValue);
-                    if (newValue) {
-                      setValue('checkbox1', false);
-                      setValue('checkbox2', false);
-                      setValue('weight_related_comorbidity_explanation', '');
-                    }
-                  }}
+                <Controller
+                  name="noneOfTheAbove"
+                  control={control}
+                  render={({ field }) => (
+                    <CustomCheckbox
+                      label="None of the above"
+                      value={field.value}
+                      tone="danger"
+                      onChange={newValue => {
+                        field.onChange(newValue);
+                        if (newValue) {
+                          setValue('checkbox1', false);
+                          setValue('checkbox2', false);
+                          setValue('weight_related_comorbidity_explanation', '');
+                        }
+                      }}
+                    />
+                  )}
                 />
-              )}
-            />
 
-            {noneOfTheAbove && (
-              <Text style={styles.errorText}>
-                Your BMI in this range, weight loss treatment can only be
-                prescribed if you have either previously taken weight loss
-                medication, or you have at least one weight-related medical
-                condition.
-              </Text>
+                {noneOfTheAbove && (
+                  <View style={styles.alertBox}>
+                    <Text style={styles.alertText}>
+                      Your BMI in this range, weight loss treatment can only be
+                      prescribed if you have either previously taken weight loss
+                      medication, or you have at least one weight-related medical
+                      condition.
+                    </Text>
+                  </View>
+                )}
+              </View>
             )}
-          </View>
-        )}
 
-        <NextButton
-          label="Next"
-          onPress={handleSubmit(onSubmit)}
-          disabled={!!isNextDisabled}
-        />
-        <BackButton
-          label="Back"
-          onPress={() => navigation.navigate('calculate-bmi')}
-        />
+            <View style={styles.buttonWrap}>
+              <NextButton
+                label="Next"
+                onPress={handleSubmit(onSubmit)}
+                disabled={!!isNextDisabled}
+                style={styles.submitButton}
+              />
+              <BackButton
+                label="Back"
+                onPress={() => navigation.navigate('calculate-bmi')}
+              />
+            </View>
+          </View>
+        </View>
       </ScrollView>
     </>
   );
 }
 
+const PRIMARY = '#47317c';
+
 const styles = StyleSheet.create({
+  screen: {
+    backgroundColor: '#FBFBFD',
+  },
   container: {
-    padding: 24,
-    backgroundColor: '#f8f5ff',
+    padding: 16,
     flexGrow: 1,
   },
+
+  // Progress bar
+  progressTrack: {
+    height: 3,
+    borderRadius: 2,
+    backgroundColor: 'rgba(71, 49, 124, 0.08)',
+    marginBottom: 16,
+    overflow: 'hidden',
+  },
+  progressFill: {
+    height: '100%',
+    borderRadius: 2,
+    backgroundColor: PRIMARY,
+  },
+
+  // Card
+  card: {
+    borderWidth: 1,
+    borderColor: 'rgba(71, 49, 124, 0.1)',
+    borderRadius: 18,
+    backgroundColor: '#fff',
+    overflow: 'hidden',
+    shadowColor: 'rgba(71, 49, 124, 0.15)',
+    shadowOffset: {width: 0, height: 8},
+    shadowOpacity: 1,
+    shadowRadius: 20,
+    elevation: 3,
+  },
+  cardHeader: {
+    backgroundColor: '#f5f2fc',
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(71, 49, 124, 0.08)',
+    paddingHorizontal: 20,
+    paddingTop: 22,
+    paddingBottom: 20,
+  },
+  progressLabel: {
+    fontSize: 10.5,
+    fontFamily: Fonts.medium,
+    color: 'rgba(71, 49, 124, 0.7)',
+    letterSpacing: 1.4,
+    marginBottom: 8,
+  },
+  heading: {
+    fontSize: 21,
+    fontFamily: Fonts.semiBold,
+    color: '#0f172a',
+  },
+  cardBody: {
+    paddingHorizontal: 20,
+    paddingTop: 20,
+    paddingBottom: 24,
+  },
+
+  // BMI value box
   bmiBox: {
     paddingVertical: 32,
     marginBottom: 20,
-    backgroundColor: '#EDE9FE',
+    backgroundColor: '#f5f2fc',
     borderRadius: 16,
     borderWidth: 1,
-    borderColor: '#dcdcdc',
+    borderColor: 'rgba(71, 49, 124, 0.12)',
     alignItems: 'center',
-    shadowColor: '#000',
-    shadowOpacity: 0.1,
-    shadowOffset: { width: 0, height: 1 },
-    shadowRadius: 4,
-    elevation: 2,
   },
-  bmiText: {
-    fontSize: 28,
-    color: '#000',
-    fontWeight: 'bold',
+  bmiLabel: {
+    fontSize: 12,
+    fontFamily: Fonts.medium,
+    color: 'rgba(71, 49, 124, 0.6)',
+    textTransform: 'uppercase',
+    letterSpacing: 2,
+    marginBottom: 6,
   },
+  bmiValue: {
+    fontSize: 40,
+    fontFamily: Fonts.bold,
+    color: PRIMARY,
+  },
+
   alertBox: {
-    backgroundColor: '#FEE2E2',
-    borderColor: '#FCA5A5',
+    backgroundColor: '#fef2f2',
+    borderColor: '#fecaca',
     borderWidth: 1,
-    padding: 16,
-    borderRadius: 8,
+    padding: 15,
+    borderRadius: 14,
     marginBottom: 16,
   },
   alertText: {
-    color: '#B91C1C',
-    fontSize: 14,
+    color: '#b91c1c',
+    fontSize: 12.5,
+    fontFamily: Fonts.regular,
+    lineHeight: 18,
   },
   infoBox: {
-    backgroundColor: '#FFF3CD',
-    padding: 16,
-    borderRadius: 8,
-    marginTop: 24,
-    marginBottom: 24,
-    shadowColor: '#000',
-    shadowOpacity: 0.05,
-    shadowOffset: { width: 0, height: 1 },
-    shadowRadius: 4,
-    elevation: 2,
+    borderWidth: 1,
+    borderColor: 'rgba(251, 191, 36, 0.4)',
+    backgroundColor: 'rgba(255, 251, 235, 0.6)',
+    padding: 15,
+    borderRadius: 14,
+    marginBottom: 20,
   },
   infoText: {
-    fontSize: 14,
-    color: '#444',
+    fontSize: 12.5,
+    fontFamily: Fonts.regular,
+    color: '#92400e',
+    lineHeight: 18,
   },
   paragraph: {
-    fontSize: 14,
-    color: '#333',
+    fontSize: 12.5,
+    fontFamily: Fonts.regular,
+    color: '#334155',
+    lineHeight: 18,
     marginBottom: 12,
   },
-  checkboxContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 12,
+  label: {
+    fontSize: 13,
+    fontFamily: Fonts.medium,
+    color: '#334155',
+    marginBottom: 8,
   },
-  checkboxLabel: {
-    fontSize: 14,
-    color: '#333',
-    marginLeft: 8,
-    flex: 1,
-    flexWrap: 'wrap',
+  required: {
+    color: '#ef4444',
   },
   textArea: {
-    borderColor: '#ccc',
+    borderColor: 'rgba(71, 49, 124, 0.15)',
     borderWidth: 1,
-    borderRadius: 8,
-    padding: 12,
-    fontSize: 14,
-    color: '#333',
+    borderRadius: 14,
+    padding: 14,
+    fontSize: 13,
+    fontFamily: Fonts.regular,
+    color: '#0f172a',
     minHeight: 100,
-    marginBottom: 16,
     textAlignVertical: 'top',
   },
   errorText: {
-    fontSize: 14,
-    color: '#DC2626',
+    fontSize: 12.5,
+    fontFamily: Fonts.regular,
+    color: '#dc2626',
     marginTop: 8,
   },
-  loaderOverlay: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: 'rgba(255,255,255,0.6)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderRadius: 8,
+
+  buttonWrap: {
+    marginTop: 6,
+  },
+  submitButton: {
+    backgroundColor: PRIMARY,
+    borderRadius: 12,
+    minHeight: 48,
   },
 });

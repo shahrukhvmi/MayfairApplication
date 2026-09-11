@@ -2,6 +2,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, Platform } from 'react-native';
 import { Picker } from '@react-native-picker/picker'; // Make sure this is installed
+import {Fonts} from '../utils/fonts';
 
 const SelectField = ({
   label,
@@ -51,6 +52,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#333',
     marginBottom: 6,
+    fontFamily: Fonts.medium,
   },
   required: {
     color: 'red',

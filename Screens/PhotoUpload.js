@@ -10,12 +10,12 @@ import {
   Modal,
   PermissionsAndroid,
   Platform,
-  Alert,
 } from 'react-native';
 import {useForm, Controller} from 'react-hook-form';
 import {launchImageLibrary} from 'react-native-image-picker';
-import Ionicons from 'react-native-vector-icons/Ionicons';
+import Feather from 'react-native-vector-icons/Feather';
 import {useNavigation} from '@react-navigation/native';
+import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import Toast from 'react-native-toast-message';
 
 import useCartStore from '../store/useCartStore';
@@ -26,13 +26,15 @@ import GetImageIsUplaod from '../api/GetImageIsUplaod';
 import {GetIdVerification} from '../api/IdVerificationApi';
 import {ImageUplaodApi} from '../api/ImageUploadApi';
 import NextButton from '../Components/NextButton';
+import Header from '../Layout/header';
+import {Fonts} from '../utils/fonts';
 
-// Reference images
 import FullBody from '../assets/images/full-body-ok.png';
 import FaceX from '../assets/images/face-x.png';
 import HalfBodyX from '../assets/images/half-body-x.png';
-import Header from '../Layout/header';
-import {useSafeAreaInsets} from 'react-native-safe-area-context';
+
+const PRIMARY = '#47317c';
+const MAX_SIZE_MB = 30;
 
 export default function PhotoUpload() {
   const navigation = useNavigation();
@@ -44,15 +46,12 @@ export default function PhotoUpload() {
   const {control, setValue, handleSubmit, watch} = useForm();
   const {orderId} = useCartStore();
 
-  console.log(orderId, 'checking bmi photo order id');
-
   const {imageUploaded, setImageUploaded} = useImageUploadStore();
   const {idVerificationUpload, setIdVerificationUpload} =
     useIdVerificationUploadStore();
 
   const frontPhoto = watch('frontPhoto');
 
-  // ✅ Ask runtime permissions once on mount
   useEffect(() => {
     const askPermissions = async () => {
       if (Platform.OS === 'android') {
@@ -69,47 +68,39 @@ export default function PhotoUpload() {
     askPermissions();
   }, []);
 
-  const MAX_SIZE_MB = 30;
-
-  // pick image from gallery
   const handleUpload = async type => {
-    launchImageLibrary(
-      {
-        mediaType: 'photo',
-        quality: 0.8,
-      },
-      response => {
-        if (response.didCancel) {
-          console.log('User cancelled image picker');
-        } else if (response.errorCode) {
-          console.log('ImagePicker Error: ', response.errorMessage);
-        } else if (response.assets && response.assets.length > 0) {
-          const file = response.assets[0];
-          if (file.fileSize && file.fileSize > MAX_SIZE_MB * 1024 * 1024) {
-            Toast.show({
-              type: 'error',
-              text1: `File too large. Maximum allowed size is ${MAX_SIZE_MB} MB.`,
-            });
-            return;
-          }
-          setValue(type, file);
+    launchImageLibrary({mediaType: 'photo', quality: 0.8}, response => {
+      if (response.didCancel) {
+        return;
+      }
+      if (response.errorCode) {
+        console.log('ImagePicker Error: ', response.errorMessage);
+        return;
+      }
+      if (response.assets && response.assets.length > 0) {
+        const file = response.assets[0];
+        if (file.fileSize && file.fileSize > MAX_SIZE_MB * 1024 * 1024) {
+          Toast.show({
+            type: 'error',
+            text1: `File too large. Maximum allowed size is ${MAX_SIZE_MB} MB.`,
+          });
+          return;
         }
-      },
-    );
+        setValue(type, file);
+      }
+    });
   };
 
-  // fetch body photo status
   useEffect(() => {
     const fetchImageStatus = async () => {
       try {
         const res = await GetImageIsUplaod({order_id: orderId});
         setImageUploaded(res?.data?.status);
-
-        if (!idVerificationUpload) {
-          setButtonLabel('Upload ID verification photo');
-        } else {
-          setButtonLabel('Return to Dashboard');
-        }
+        setButtonLabel(
+          !idVerificationUpload
+            ? 'Upload ID verification photo'
+            : 'Return to Dashboard',
+        );
       } catch (error) {
         console.error('Failed to fetch image status:', error);
       }
@@ -117,7 +108,6 @@ export default function PhotoUpload() {
     if (orderId) fetchImageStatus();
   }, [orderId]);
 
-  // fetch id verification status
   useEffect(() => {
     const fetchIdStatus = async () => {
       try {
@@ -138,7 +128,6 @@ export default function PhotoUpload() {
       }
       setLoading(true);
 
-      // ✅ Multipart FormData (web jaisa) — base64 nahi
       const formData = new FormData();
       formData.append('front', {
         uri: data.frontPhoto.uri,
@@ -151,15 +140,14 @@ export default function PhotoUpload() {
 
       if (res?.status === 200) {
         setOpen(true);
-        if (!idVerificationUpload) {
-          setButtonLabel('Upload ID verification photo');
-        } else {
-          setButtonLabel('Return to Dashboard');
-        }
+        setButtonLabel(
+          !idVerificationUpload
+            ? 'Upload ID verification photo'
+            : 'Return to Dashboard',
+        );
       }
     } catch (error) {
       console.log('Upload error', error?.response?.data || error);
-
       const frontError = error?.response?.data?.errors?.front;
       const orderError = error?.response?.data?.errors?.Order;
       const pick = e => (Array.isArray(e) ? e[0] : e);
@@ -180,8 +168,6 @@ export default function PhotoUpload() {
           text1: 'Something went wrong. Please try again.',
         });
       }
-
-      // Error pe photo clear — user dobara select kare
       setValue('frontPhoto', null);
     } finally {
       setLoading(false);
@@ -189,44 +175,13 @@ export default function PhotoUpload() {
   };
 
   const handleRedirect = () => {
+    setOpen(false);
     if (!idVerificationUpload) {
-      setOpen(false);
       navigation.navigate('id-verification');
     } else {
-      setOpen(false);
       navigation.navigate('dashboard');
     }
   };
-
-  const renderUploadBox = (label, photo, type, suggestion) => (
-    <View style={styles.uploadBox}>
-      <TouchableOpacity
-        style={styles.uploadArea}
-        onPress={() => handleUpload(type)}>
-        {!photo ? (
-          <View style={{alignItems: 'center'}}>
-            <Ionicons name="cloud-upload-outline" size={40} color="#6D28D9" />
-            <Text style={styles.uploadText}>Tap to upload</Text>
-          </View>
-        ) : (
-          <View style={{width: '100%', alignItems: 'center'}}>
-            <Image
-              source={{uri: photo.uri}}
-              style={{width: '100%', height: 200, borderRadius: 8}}
-              resizeMode="contain"
-            />
-            <Ionicons
-              name="checkmark-circle"
-              size={22}
-              color="green"
-              style={styles.checkIcon}
-            />
-          </View>
-        )}
-      </TouchableOpacity>
-      <Text style={styles.helperText}>{suggestion}</Text>
-    </View>
-  );
 
   return (
     <>
@@ -236,186 +191,423 @@ export default function PhotoUpload() {
       <Modal visible={open} transparent animationType="fade">
         <View style={styles.modalOverlay}>
           <View style={styles.modalBox}>
-            <Ionicons
-              name="checkmark-circle"
-              size={80}
-              color="#6D28D9"
-              style={{alignSelf: 'center', marginBottom: 10}}
-            />
+            <View style={styles.modalIconCircle}>
+              <Feather name="check" size={34} color="#fff" />
+            </View>
             <Text style={styles.modalTitle}>Image successfully uploaded</Text>
             <Text style={styles.modalText}>
               {!idVerificationUpload
                 ? 'Your full body photo has been uploaded and is now under review. You need to complete ID verification to proceed.'
-                : 'Your full body photo has been uploaded and is under review. We’ll approve your order once the review is complete.'}
+                : "Your full body photo has been uploaded and is under review. We'll approve your order once the review is complete."}
             </Text>
-            <NextButton label={buttonLabel} onPress={handleRedirect} />
+            <NextButton
+              label={buttonLabel}
+              onPress={handleRedirect}
+              style={styles.modalButton}
+            />
           </View>
         </View>
       </Modal>
 
-      <ScrollView contentContainerStyle={[styles.container, {paddingBottom: insets.bottom + 16}]}>
-        <Text style={styles.heading}>
-          Submit your photo for prescriber review
-        </Text>
-        <Text style={styles.subtext}>
-          Please upload a <Text style={styles.bold}>full body</Text> picture of
-          yourself.
-        </Text>
-
-        {/* Info bullets */}
-        <View style={{marginVertical: 10}}>
-          <Text style={styles.bullet}>• We will only ask for this once.</Text>
-          <Text style={styles.bullet}>
-            • This is a regulatory requirement for your safety and to prevent
-            inappropriate use.
+      <ScrollView
+        style={styles.screen}
+        contentContainerStyle={[
+          styles.container,
+          {paddingBottom: insets.bottom + 24},
+        ]}
+        showsVerticalScrollIndicator={false}>
+        <View style={styles.card}>
+          {/* Heading */}
+          <Text style={styles.heading}>
+            Submit your photo for prescriber review
           </Text>
+          <Text style={styles.subtext}>
+            Please upload a <Text style={styles.bold}>full body</Text> picture
+            of yourself.
+          </Text>
+
+          {/* Why we need this */}
+          <View style={styles.infoBox}>
+            <Text style={styles.infoTitle}>Why we need this</Text>
+            <View style={styles.bulletRow}>
+              <View style={styles.bulletDot} />
+              <Text style={styles.bulletText}>
+                We will only ask for this once.
+              </Text>
+            </View>
+            <View style={styles.bulletRow}>
+              <View style={styles.bulletDot} />
+              <Text style={styles.bulletText}>
+                We realise it's inconvenient, but this is a regulatory
+                requirement designed for your safety and to prevent
+                inappropriate use.
+              </Text>
+            </View>
+          </View>
+
+          {/* Photo guidance */}
+          <Text style={styles.guidanceTitle}>Photo guidance</Text>
+          <View style={styles.examples}>
+            <View style={[styles.exampleItem, styles.exampleGood]}>
+              <Image source={FullBody} style={styles.exampleImg} />
+              <View style={[styles.exampleBadge, styles.exampleBadgeGood]}>
+                <Feather name="check" size={9} color="#047857" />
+                <Text style={styles.exampleBadgeGoodText}>Good</Text>
+              </View>
+            </View>
+            <View style={styles.exampleItem}>
+              <Image source={FaceX} style={styles.exampleImg} />
+            </View>
+            <View style={styles.exampleItem}>
+              <Image source={HalfBodyX} style={styles.exampleImg} />
+              <View style={[styles.exampleBadge, styles.exampleBadgeBad]}>
+                <Feather name="x" size={9} color="#dc2626" />
+                <Text style={styles.exampleBadgeBadText}>Avoid</Text>
+              </View>
+            </View>
+          </View>
+
+          {/* Upload box */}
+          <Controller
+            name="frontPhoto"
+            control={control}
+            defaultValue={null}
+            render={() => (
+              <View style={styles.uploadWrap}>
+                <TouchableOpacity
+                  style={styles.uploadArea}
+                  activeOpacity={0.8}
+                  onPress={() => handleUpload('frontPhoto')}>
+                  {!frontPhoto ? (
+                    <View style={styles.uploadEmpty}>
+                      <View style={styles.uploadIconCircle}>
+                        <Feather name="upload" size={20} color={PRIMARY} />
+                      </View>
+                      <Text style={styles.uploadTitle}>
+                        Choose a full-body photo
+                      </Text>
+                      <Text style={styles.uploadSub}>
+                        Tap to browse files from your device
+                      </Text>
+                    </View>
+                  ) : (
+                    <Image
+                      source={{uri: frontPhoto.uri}}
+                      style={styles.preview}
+                      resizeMode="contain"
+                    />
+                  )}
+                </TouchableOpacity>
+
+                {frontPhoto && (
+                  <TouchableOpacity
+                    style={styles.removeBtn}
+                    onPress={() => setValue('frontPhoto', null)}
+                    hitSlop={{top: 8, bottom: 8, left: 8, right: 8}}>
+                    <Feather name="x" size={16} color="#dc2626" />
+                  </TouchableOpacity>
+                )}
+                <Text style={styles.uploadHint}>
+                  JPEG, PNG, WEBP, HEIC or PDF · Maximum 30 MB
+                </Text>
+              </View>
+            )}
+          />
+
+          {/* Submit */}
+          <TouchableOpacity
+            style={[
+              styles.submitBtn,
+              (loading || !frontPhoto) && styles.submitBtnDisabled,
+            ]}
+            onPress={handleSubmit(onSubmit)}
+            disabled={loading || !frontPhoto}
+            activeOpacity={0.85}>
+            {loading ? (
+              <ActivityIndicator color="#fff" />
+            ) : (
+              <Text
+                style={[
+                  styles.submitText,
+                  (loading || !frontPhoto) && styles.submitTextDisabled,
+                ]}>
+                Upload
+              </Text>
+            )}
+          </TouchableOpacity>
         </View>
-
-        {/* Example Images */}
-        <View style={styles.examples}>
-          <Image source={FullBody} style={styles.exampleImg} />
-          <Image source={FaceX} style={styles.exampleImg} />
-          <Image source={HalfBodyX} style={styles.exampleImg} />
-        </View>
-
-        {/* Upload box */}
-        <Controller
-          name="frontPhoto"
-          control={control}
-          defaultValue={null}
-          render={() =>
-            renderUploadBox(
-              'Front Photo',
-              frontPhoto,
-              'frontPhoto',
-              'Stand straight with your full body visible.',
-            )
-          }
-        />
-
-        <TouchableOpacity
-          style={[
-            styles.submitBtn,
-            (loading || !frontPhoto) && styles.submitBtnDisabled,
-          ]}
-          onPress={handleSubmit(onSubmit)}
-          disabled={loading || !frontPhoto}>
-          {loading ? (
-            <ActivityIndicator color="#fff" />
-          ) : (
-            <Text style={styles.submitText}>Upload</Text>
-          )}
-        </TouchableOpacity>
       </ScrollView>
     </>
   );
 }
 
 const styles = StyleSheet.create({
+  screen: {
+    backgroundColor: '#FBFBFD',
+  },
   container: {
-    padding: 20,
-    backgroundColor: '#f7f4ff',
+    padding: 16,
     flexGrow: 1,
   },
+  card: {
+    backgroundColor: '#fff',
+    borderRadius: 18,
+    borderWidth: 1,
+    borderColor: 'rgba(71, 49, 124, 0.1)',
+    padding: 18,
+    shadowColor: 'rgba(71, 49, 124, 0.1)',
+    shadowOffset: {width: 0, height: 10},
+    shadowOpacity: 1,
+    shadowRadius: 24,
+    elevation: 3,
+  },
+
   heading: {
     fontSize: 20,
-    fontWeight: '700',
-    color: '#000',
-    marginBottom: 10,
+    fontFamily: Fonts.semiBold,
+    color: '#0f172a',
+    lineHeight: 27,
   },
   subtext: {
-    fontSize: 14,
-    color: '#555',
-    marginBottom: 15,
+    fontSize: 13.5,
+    fontFamily: Fonts.regular,
+    color: '#64748b',
+    marginTop: 8,
+    lineHeight: 21,
   },
   bold: {
-    fontWeight: 'bold',
+    fontFamily: Fonts.semiBold,
+    color: '#0f172a',
   },
-  bullet: {
+
+  // Info box
+  infoBox: {
+    marginTop: 18,
+    borderWidth: 1,
+    borderColor: 'rgba(71, 49, 124, 0.1)',
+    backgroundColor: '#f8f6fc',
+    borderRadius: 14,
+    padding: 14,
+    gap: 8,
+  },
+  infoTitle: {
     fontSize: 13,
-    color: '#444',
-    marginVertical: 2,
+    fontFamily: Fonts.semiBold,
+    color: '#1e293b',
+    marginBottom: 2,
+  },
+  bulletRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 8,
+  },
+  bulletDot: {
+    width: 5,
+    height: 5,
+    borderRadius: 2.5,
+    backgroundColor: PRIMARY,
+    marginTop: 7,
+  },
+  bulletText: {
+    flex: 1,
+    fontSize: 12.5,
+    fontFamily: Fonts.regular,
+    color: '#475569',
+    lineHeight: 18,
+  },
+
+  // Guidance
+  guidanceTitle: {
+    fontSize: 13,
+    fontFamily: Fonts.semiBold,
+    color: '#1e293b',
+    marginTop: 20,
+    marginBottom: 12,
   },
   examples: {
     flexDirection: 'row',
-    justifyContent: 'space-around',
-    marginVertical: 15,
+    gap: 8,
+  },
+  exampleItem: {
+    flex: 1,
+    aspectRatio: 3 / 4,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+    backgroundColor: '#fff',
+    overflow: 'hidden',
+  },
+  exampleGood: {
+    borderWidth: 2,
+    borderColor: '#34d399',
   },
   exampleImg: {
-    width: 80,
-    height: 120,
-    borderRadius: 8,
-    resizeMode: 'contain',
-  },
-  uploadBox: {
-    alignItems: 'center',
-    marginVertical: 12,
-  },
-  uploadArea: {
-    borderWidth: 1,
-    borderStyle: 'dashed',
-    borderColor: '#6D28D9',
-    borderRadius: 12,
-    padding: 20,
-    alignItems: 'center',
-    justifyContent: 'center',
     width: '100%',
-    minHeight: 150,
-    backgroundColor: '#fff',
+    height: '100%',
+    resizeMode: 'cover',
   },
-  uploadText: {
-    fontSize: 14,
-    color: '#555',
-    marginTop: 8,
-  },
-  checkIcon: {
+  exampleBadge: {
     position: 'absolute',
-    top: 4,
-    right: 4,
-  },
-  helperText: {
-    fontSize: 12,
-    color: '#666',
-    marginTop: 6,
-    textAlign: 'center',
-  },
-  submitBtn: {
-    backgroundColor: '#47317c',
-    padding: 14,
-    borderRadius: 25,
+    bottom: 6,
+    left: 6,
+    flexDirection: 'row',
     alignItems: 'center',
+    gap: 3,
+    backgroundColor: 'rgba(255,255,255,0.95)',
+    borderRadius: 6,
+    paddingHorizontal: 5,
+    paddingVertical: 3,
+  },
+  exampleBadgeGood: {},
+  exampleBadgeGoodText: {
+    fontSize: 9.5,
+    fontFamily: Fonts.semiBold,
+    color: '#047857',
+  },
+  exampleBadgeBad: {},
+  exampleBadgeBadText: {
+    fontSize: 9.5,
+    fontFamily: Fonts.semiBold,
+    color: '#dc2626',
+  },
+
+  // Upload box
+  uploadWrap: {
     marginTop: 20,
   },
+  uploadArea: {
+    minHeight: 164,
+    borderWidth: 2,
+    borderStyle: 'dashed',
+    borderColor: '#9b87c8',
+    borderRadius: 14,
+    backgroundColor: '#f8f6fc',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 18,
+  },
+  uploadEmpty: {
+    alignItems: 'center',
+  },
+  uploadIconCircle: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: '#fff',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(71, 49, 124, 0.1)',
+  },
+  uploadTitle: {
+    fontSize: 14,
+    fontFamily: Fonts.semiBold,
+    color: '#1e293b',
+  },
+  uploadSub: {
+    fontSize: 12,
+    fontFamily: Fonts.regular,
+    color: '#64748b',
+    marginTop: 3,
+  },
+  preview: {
+    width: '100%',
+    height: 200,
+    borderRadius: 10,
+  },
+  removeBtn: {
+    position: 'absolute',
+    top: -8,
+    right: -8,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: '#fff',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#fecaca',
+    shadowColor: '#000',
+    shadowOpacity: 0.12,
+    shadowOffset: {width: 0, height: 2},
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  uploadHint: {
+    fontSize: 11,
+    fontFamily: Fonts.regular,
+    color: '#64748b',
+    textAlign: 'center',
+    marginTop: 12,
+  },
+
+  // Submit
+  submitBtn: {
+    marginTop: 20,
+    minHeight: 52,
+    borderRadius: 14,
+    backgroundColor: PRIMARY,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
   submitBtnDisabled: {
-    backgroundColor: '#ccc',
+    backgroundColor: '#e2e8f0',
   },
   submitText: {
     color: '#fff',
-    fontWeight: '600',
+    fontSize: 15,
+    fontFamily: Fonts.semiBold,
   },
+  submitTextDisabled: {
+    color: '#94a3b8',
+  },
+
+  // Modal
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.6)',
+    backgroundColor: 'rgba(15,23,42,0.5)',
     alignItems: 'center',
     justifyContent: 'center',
+    paddingHorizontal: 24,
   },
   modalBox: {
     backgroundColor: '#fff',
-    borderRadius: 16,
-    padding: 20,
-    width: '80%',
+    borderRadius: 18,
+    padding: 26,
+    width: '100%',
+    maxWidth: 380,
+    borderWidth: 1,
+    borderColor: 'rgba(71, 49, 124, 0.1)',
+  },
+  modalIconCircle: {
+    width: 62,
+    height: 62,
+    borderRadius: 31,
+    backgroundColor: PRIMARY,
+    justifyContent: 'center',
+    alignItems: 'center',
+    alignSelf: 'center',
+    marginBottom: 16,
   },
   modalTitle: {
-    fontSize: 18,
-    fontWeight: '700',
+    fontSize: 19,
+    fontFamily: Fonts.semiBold,
     textAlign: 'center',
-    marginBottom: 8,
-    color: '#000',
+    color: '#0f172a',
   },
   modalText: {
-    fontSize: 14,
+    fontSize: 13.5,
+    fontFamily: Fonts.regular,
     textAlign: 'center',
-    color: '#333',
-    marginBottom: 20,
+    color: '#475569',
+    marginTop: 10,
+    marginBottom: 22,
+    lineHeight: 20,
+  },
+  modalButton: {
+    backgroundColor: PRIMARY,
+    borderRadius: 12,
+    minHeight: 48,
   },
 });

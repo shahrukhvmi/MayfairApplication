@@ -1,21 +1,24 @@
-// Dose.js
-import React, { useState } from 'react';
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  StyleSheet,
-  Modal,
-} from 'react-native';
+// addon.js
+import React, {useState} from 'react';
+import {View, Text, TouchableOpacity, StyleSheet, Modal} from 'react-native';
 import Toast from 'react-native-toast-message';
-import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
-
-import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
+import Feather from 'react-native-vector-icons/Feather';
 import useCartStore from '../store/useCartStore';
+import {Fonts} from '../utils/fonts';
 
-const Addon = ({ addon, onAdd, onIncrement, onDecrement, isSelected, quantity, totalSelectedQty }) => {
+const PRIMARY = '#47317c';
+
+const Addon = ({
+  addon,
+  onAdd,
+  onIncrement,
+  onDecrement,
+  isSelected,
+  quantity,
+  totalSelectedQty,
+}) => {
   const [showModal, setShowModal] = useState(false);
-  const { removeItemCompletely } = useCartStore();
+  const {removeItemCompletely} = useCartStore();
 
   const allowed = parseInt(addon?.allowed || 100);
   const doseStatus = addon?.stock?.status;
@@ -32,17 +35,29 @@ const Addon = ({ addon, onAdd, onIncrement, onDecrement, isSelected, quantity, t
     const totalQty = totalSelectedQty + 1;
 
     if (totalQty > allowed) {
-      Toast.show({ type: 'error', text1: 'Limit Exceeded', text2: `You can only select up to ${allowed} units.` });
+      Toast.show({
+        type: 'error',
+        text1: 'Limit Exceeded',
+        text2: `You can only select up to ${allowed} units.`,
+      });
       return;
     }
 
     if (addon.qty >= addon.stock.quantity) {
-      Toast.show({ type: 'error', text1: 'Out of Stock', text2: `Only ${addon.stock.quantity} units available.` });
+      Toast.show({
+        type: 'error',
+        text1: 'Out of Stock',
+        text2: `Only ${addon.stock.quantity} units available.`,
+      });
       return;
     }
 
     if (quantity >= allowed) {
-      Toast.show({ type: 'error', text1: 'Limit Exceeded', text2: `Max ${allowed} units allowed.` });
+      Toast.show({
+        type: 'error',
+        text1: 'Limit Exceeded',
+        text2: `Max ${allowed} units allowed.`,
+      });
       return;
     }
 
@@ -62,11 +77,16 @@ const Addon = ({ addon, onAdd, onIncrement, onDecrement, isSelected, quantity, t
     removeItemCompletely(addon?.id, 'addon');
   };
 
+  const isDisabledLook = isOutOfStock || (!isSelected && isAllowExceeded);
 
   return (
     <>
       <View style={styles.wrapper}>
-
+        {isOutOfStock && (
+          <View style={styles.outOfStockBadge}>
+            <Text style={styles.outOfStockBadgeText}>Out of stock</Text>
+          </View>
+        )}
 
         <TouchableOpacity
           activeOpacity={0.9}
@@ -77,36 +97,23 @@ const Addon = ({ addon, onAdd, onIncrement, onDecrement, isSelected, quantity, t
             isOutOfStock
               ? styles.cardOut
               : isSelected
-                ? styles.cardSelected
-                : isAllowExceeded
-                  ? styles.cardDisabled
-                  : styles.cardDefault,
-          ]}
-        >
-          {isOutOfStock && <Text style={styles.stockBadge}>Out of stock</Text>}
-
-          {isSelected && (
-            <View style={styles.tick}>
-              <FontAwesome5 name="check" size={10} color="#fff" />
+              ? styles.cardSelected
+              : isAllowExceeded
+              ? styles.cardDisabled
+              : styles.cardDefault,
+          ]}>
+          <View style={[styles.left, isDisabledLook && styles.dimmed]}>
+            <View
+              style={[styles.checkbox, isSelected && styles.checkboxActive]}>
+              {isSelected && <Feather name="check" size={11} color="#fff" />}
             </View>
-          )}
-
-          <View style={styles.left}>
-            <FontAwesome5
-              name={isSelected ? 'dot-circle' : 'circle'}
-              size={14}
-              color={isSelected ? '#7c3aed' : '#374151'}
-              style={styles.radio}
-            />
-
-            <View>
-              {/* <Text style={styles.productName}>{addon?.product_name}</Text> */}
-              <Text style={styles.doseName}>{addon.name}</Text>
-
-            </View>
+            <Text
+              style={[styles.doseName, isSelected && styles.doseNameActive]}>
+              {addon.name}
+            </Text>
           </View>
 
-          <View style={styles.right}>
+          <View style={[styles.right, isDisabledLook && styles.dimmed]}>
             <Text style={[styles.price, isSelected && styles.priceSelected]}>
               £{parseFloat(addon.price).toFixed(2)}
             </Text>
@@ -114,21 +121,27 @@ const Addon = ({ addon, onAdd, onIncrement, onDecrement, isSelected, quantity, t
             {isSelected && (
               <View style={styles.actionRow}>
                 <View style={styles.qtyBox}>
-                  <TouchableOpacity style={styles.qtyBtn} onPress={handleDecrement}>
-                    <FontAwesome5 name="minus" size={12} />
+                  <TouchableOpacity
+                    style={styles.qtyBtn}
+                    onPress={handleDecrement}>
+                    <Feather name="minus" size={11} color="#475569" />
                   </TouchableOpacity>
                   <Text style={styles.qtyTxt}>{quantity}</Text>
                   <TouchableOpacity
-                    style={[styles.qtyBtn, quantity >= allowed && styles.qtyBtnDisabled]}
+                    style={[
+                      styles.qtyBtn,
+                      quantity >= allowed && styles.qtyBtnDisabled,
+                    ]}
                     disabled={quantity >= allowed}
-                    onPress={handleIncrement}
-                  >
-                    <FontAwesome5 name="plus" size={12} />
+                    onPress={handleIncrement}>
+                    <Feather name="plus" size={11} color="#475569" />
                   </TouchableOpacity>
                 </View>
 
-                <TouchableOpacity onPress={() => setShowModal(true)} >
-                  <MaterialIcons name="delete" size={18} color="#fff" style={styles.deleteBtn} />
+                <TouchableOpacity
+                  style={styles.deleteBtn}
+                  onPress={() => setShowModal(true)}>
+                  <Feather name="trash-2" size={14} color="#ef4444" />
                 </TouchableOpacity>
               </View>
             )}
@@ -140,27 +153,24 @@ const Addon = ({ addon, onAdd, onIncrement, onDecrement, isSelected, quantity, t
         transparent
         animationType="fade"
         visible={showModal}
-        onRequestClose={() => setShowModal(false)}
-      >
+        onRequestClose={() => setShowModal(false)}>
         <View style={styles.modalOverlay}>
           <View style={styles.modalBox}>
-            <Text style={styles.modalTitle}>Remove Dose?</Text>
+            <Text style={styles.modalTitle}>Remove Add-on?</Text>
             <Text style={styles.modalMessage}>
-              Are you sure you want to remove this dose from your selection?
+              Are you sure you want to remove this add-on from your selection?
             </Text>
 
             <View style={styles.modalActions}>
               <TouchableOpacity
                 onPress={() => setShowModal(false)}
-                style={[styles.modalBtn, styles.cancelBtn]}
-              >
+                style={[styles.modalBtn, styles.cancelBtn]}>
                 <Text style={styles.cancelTxt}>Cancel</Text>
               </TouchableOpacity>
 
               <TouchableOpacity
                 onPress={handleDelete}
-                style={[styles.modalBtn, styles.deleteBtnModal]}
-              >
+                style={[styles.modalBtn, styles.deleteBtnModal]}>
                 <Text style={styles.deleteTxt}>Delete</Text>
               </TouchableOpacity>
             </View>
@@ -174,171 +184,148 @@ const Addon = ({ addon, onAdd, onIncrement, onDecrement, isSelected, quantity, t
 const styles = StyleSheet.create({
   wrapper: {
     marginTop: 14,
-    paddingHorizontal: 6,
+    position: 'relative',
   },
-  notifyBtn: {
+  outOfStockBadge: {
     position: 'absolute',
-    right: 10,
-    top: -8,
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#e0fce5',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 5,
+    left: 12,
+    top: -12,
     zIndex: 20,
+    borderWidth: 1,
+    borderColor: '#fecdd3',
+    backgroundColor: '#fff1f2',
+    borderRadius: 8,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
   },
-  notifyTxt: {
-    marginLeft: 4,
+  outOfStockBadgeText: {
     fontSize: 11,
-    fontWeight: '600',
-    color: '#15803d',
+    fontFamily: Fonts.semiBold,
+    color: '#be123c',
   },
   card: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    padding: 16,
-    borderWidth: 1.5,
+    padding: 14,
+    borderWidth: 1,
     borderRadius: 14,
     backgroundColor: '#fff',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.06,
-    shadowRadius: 4,
-    elevation: 2,
   },
-  cardDefault: { borderColor: '#ccc' },
+  cardDefault: {borderColor: '#e2e8f0'},
   cardSelected: {
-    borderColor: '#7c3aed',
-    backgroundColor: '#ffffff',
-    borderWidth: 1.8,
-    borderRadius: 16,
-    shadowColor: '#7c3aed',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 6,
-    elevation: 3,
+    borderColor: PRIMARY,
+    backgroundColor: 'rgba(71, 49, 124, 0.04)',
   },
-  cardOut: { borderColor: '#e5e7eb', backgroundColor: '#F8F9FA', opacity: 0.5 },
-  cardDisabled: { borderColor: '#ddd', opacity: 0.5 },
-  stockBadge: {
-    position: 'absolute',
-    top: -8,
-    left: 16,
-    backgroundColor: '#9333ea',
-    color: '#fff',
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-    fontSize: 10,
-    fontWeight: '600',
-    borderRadius: 5,
-    overflow: 'hidden',
-  },
-  tick: {
-    position: 'absolute',
-    top: -12,
-    right: -12,
-    backgroundColor: '#6D28D9',
-    padding: 8,
-    borderRadius: 999,
-    elevation: 4,
-    borderWidth: 2,
-    borderColor: '#fff',
-  },
+  cardOut: {borderColor: '#e2e8f0', backgroundColor: '#f8fafc'},
+  cardDisabled: {borderColor: '#e2e8f0', backgroundColor: '#f8fafc'},
+  dimmed: {opacity: 0.55},
   left: {
     flex: 1,
     flexDirection: 'row',
-    alignItems: 'flex-start',
+    alignItems: 'center',
     gap: 10,
   },
-  radio: { marginTop: 4 },
-  productName: {
-    textTransform: 'capitalize',
-    fontWeight: 'bold',
-    fontSize: 15,
-    color: '#1f2937',
+  checkbox: {
+    width: 18,
+    height: 18,
+    borderRadius: 5,
+    borderWidth: 2,
+    borderColor: '#cbd5e1',
+    backgroundColor: '#fff',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  checkboxActive: {
+    borderColor: PRIMARY,
+    backgroundColor: PRIMARY,
   },
   doseName: {
     fontSize: 14,
-    color: '#4b5563',
-    fontWeight: '600',
-    marginTop: 2,
+    color: '#334155',
+    fontFamily: Fonts.medium,
   },
-  expiry: {
-    fontSize: 12,
-    color: '#6b7280',
-    marginTop: 2,
+  doseNameActive: {
+    color: PRIMARY,
   },
   right: {
     alignItems: 'flex-end',
   },
   price: {
-    fontWeight: '600',
-    fontSize: 16,
-    color: '#374151',
+    fontSize: 15,
+    fontFamily: Fonts.semiBold,
+    color: '#334155',
   },
   priceSelected: {
-    color: '#6D28D9',
-    fontWeight: 'bold',
-    fontSize: 17,
-  },
-  qtyBox: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#f3f4f6',
-    borderRadius: 999,
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-  },
-  qtyBtn: {
-    backgroundColor: '#e5e7eb',
-    padding: 6,
-    borderRadius: 999,
-  },
-  qtyBtnDisabled: { opacity: 0.4 },
-  qtyTxt: {
-    marginHorizontal: 10,
-    fontSize: 14,
-    fontWeight: '700',
-    color: '#111827',
-
+    color: PRIMARY,
   },
   actionRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 10,
-    marginTop: 6,
+    gap: 8,
+    marginTop: 8,
+  },
+  qtyBox: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 2,
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+    backgroundColor: '#fff',
+    borderRadius: 999,
+    paddingHorizontal: 4,
+    paddingVertical: 4,
+  },
+  qtyBtn: {
+    width: 26,
+    height: 26,
+    borderRadius: 13,
+    backgroundColor: '#f1f5f9',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  qtyBtnDisabled: {opacity: 0.4},
+  qtyTxt: {
+    width: 22,
+    textAlign: 'center',
+    fontSize: 13,
+    fontFamily: Fonts.semiBold,
+    color: '#0f172a',
   },
   deleteBtn: {
-    color: '#ef4444',
-    fontSize: 22,
-    // padding: 8,
-    // borderRadius: 999,
+    width: 30,
+    height: 30,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: '#fecaca',
+    backgroundColor: '#fef2f2',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   modalOverlay: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: 'rgba(0,0,0,0.45)',
+    backgroundColor: 'rgba(15, 23, 42, 0.5)',
   },
   modalBox: {
     backgroundColor: '#fff',
     width: '84%',
     padding: 22,
-    borderRadius: 16,
-    elevation: 6,
+    borderRadius: 18,
   },
   modalTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#1e1e1e',
+    fontSize: 17,
+    fontFamily: Fonts.semiBold,
+    color: '#0f172a',
     marginBottom: 8,
   },
   modalMessage: {
-    fontSize: 14,
-    color: '#374151',
+    fontSize: 13.5,
+    fontFamily: Fonts.regular,
+    color: '#475569',
     marginBottom: 20,
+    lineHeight: 19,
   },
   modalActions: {
     flexDirection: 'row',
@@ -351,18 +338,20 @@ const styles = StyleSheet.create({
     marginLeft: 10,
   },
   cancelBtn: {
-    backgroundColor: '#f3f4f6',
+    backgroundColor: '#f1f5f9',
   },
   deleteBtnModal: {
     backgroundColor: '#dc2626',
   },
   cancelTxt: {
-    color: '#111827',
-    fontWeight: '600',
+    color: '#334155',
+    fontFamily: Fonts.semiBold,
+    fontSize: 13,
   },
   deleteTxt: {
     color: '#fff',
-    fontWeight: '600',
+    fontFamily: Fonts.semiBold,
+    fontSize: 13,
   },
 });
 

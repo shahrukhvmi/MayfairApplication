@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, Text, TextInput, StyleSheet } from 'react-native';
+import {Fonts} from '../utils/fonts';
 
 const BmiTextField = ({
   required,
@@ -11,12 +12,13 @@ const BmiTextField = ({
   onBlur,
   readOnly = false,
   disabled = false,
+  style,
 }) => {
   const showError = !!errors[name];
   const editable = !readOnly && !disabled;
 
   return (
-    <View style={styles.fieldWrapper}>
+    <View style={[styles.fieldWrapper, style]}>
       {label && (
         <Text style={styles.label}>
           {label}
@@ -52,43 +54,47 @@ const BmiTextField = ({
 
 const styles = StyleSheet.create({
   fieldWrapper: {
-    marginBottom: 16,
+    marginBottom: 18,
   },
   label: {
-    fontWeight: '600',
-    fontSize: 14,
-    marginBottom: 4,
-    color: '#000',
+    fontSize: 13,
+    marginBottom: 8,
+    color: '#334155',
+    fontFamily: Fonts.medium,
   },
   required: {
     color: '#ef4444',
   },
   optional: {
-    color: '#6b7280',
-    fontSize: 12,
-    fontWeight: '400',
+    color: '#94a3b8',
+    fontSize: 11.5,
+    fontFamily: Fonts.regular,
     marginLeft: 4,
   },
   input: {
     width: '100%',
     backgroundColor: '#fff',
-    color: '#000',
-    paddingHorizontal: 12,
-    paddingVertical: 12,
-    borderRadius: 6,
+    color: '#0f172a',
+    fontSize: 13,
+    fontFamily: Fonts.regular,
+    paddingHorizontal: 14,
+    paddingVertical: 14,
+    borderRadius: 14,
     borderWidth: 1,
-    borderColor: '#CBCBCB66',
+    borderColor: 'rgba(71, 49, 124, 0.15)',
   },
   errorInput: {
     borderColor: '#ef4444',
   },
   disabledInput: {
     opacity: 0.5,
+    backgroundColor: '#f1f5f9',
   },
   errorText: {
     color: '#ef4444',
     fontSize: 12,
-    marginTop: 4,
+    fontFamily: Fonts.regular,
+    marginTop: 6,
   },
 });
 

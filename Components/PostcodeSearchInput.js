@@ -9,7 +9,10 @@ import {
   ActivityIndicator,
   StyleSheet,
 } from 'react-native';
-import Ionicons from 'react-native-vector-icons/Ionicons';
+import Feather from 'react-native-vector-icons/Feather';
+import {Fonts} from '../utils/fonts';
+
+const PRIMARY = '#47317c';
 
 const PostcodeSearchInput = ({
   label,
@@ -20,7 +23,7 @@ const PostcodeSearchInput = ({
   addressSearchLoading,
   required = false,
   errors,
-  isSearchAllowed = true, // New prop to control if the search button should appear
+  isSearchAllowed = true,
   style,
 }) => {
   return (
@@ -29,7 +32,7 @@ const PostcodeSearchInput = ({
       {label && (
         <View style={styles.labelRow}>
           <Text style={styles.label}>{label}</Text>
-          {required && <Text style={styles.required}>*</Text>}
+          {required && <Text style={styles.required}> *</Text>}
         </View>
       )}
 
@@ -37,21 +40,25 @@ const PostcodeSearchInput = ({
       <View style={styles.inputWrapper}>
         <TextInput
           placeholder={placeholder}
+          placeholderTextColor="#94a3b8"
           value={value}
           onChangeText={onChangeText}
-          style={styles.input}
+          style={[styles.input, isSearchAllowed && styles.inputWithButton]}
         />
 
-        {/* Search Icon - Conditionally rendered */}
         {isSearchAllowed && (
           <TouchableOpacity
-            style={styles.icon}
+            style={styles.searchButton}
             onPress={handleSearch}
-            disabled={addressSearchLoading}>
+            disabled={addressSearchLoading}
+            activeOpacity={0.85}>
             {addressSearchLoading ? (
-              <ActivityIndicator color="#fff" />
+              <ActivityIndicator size="small" color="#fff" />
             ) : (
-              <Ionicons name="search" size={18} color="#fff" />
+              <>
+                <Feather name="search" size={13} color="#fff" />
+                <Text style={styles.searchButtonText}>Search</Text>
+              </>
             )}
           </TouchableOpacity>
         )}
@@ -65,52 +72,60 @@ const PostcodeSearchInput = ({
 
 const styles = StyleSheet.create({
   container: {
-    marginBottom: 20,
+    marginBottom: 18,
   },
   labelRow: {
     flexDirection: 'row',
-    marginBottom: 6,
+    marginBottom: 7,
   },
   label: {
-    fontSize: 14,
-    fontWeight: 'bold',
-    color: '#333',
+    fontSize: 13,
+    color: '#334155',
+    fontFamily: Fonts.medium,
   },
   required: {
-    color: 'red',
-    marginLeft: 4,
+    color: '#ef4444',
+    fontFamily: Fonts.medium,
   },
   inputWrapper: {
     position: 'relative',
-    flexDirection: 'row',
-    alignItems: 'center',
+    justifyContent: 'center',
   },
   input: {
-    flex: 1,
     borderWidth: 1,
-    borderColor: '#222',
-    borderRadius: 4,
-    padding: 12,
+    borderColor: 'rgba(71, 49, 124, 0.15)',
+    borderRadius: 14,
+    paddingVertical: 14,
+    paddingHorizontal: 14,
     backgroundColor: '#fff',
-    color: '#000',
+    color: '#0f172a',
+    fontSize: 13,
+    fontFamily: Fonts.regular,
   },
-  icon: {
+  inputWithButton: {
+    paddingRight: 96,
+  },
+  searchButton: {
     position: 'absolute',
-    right: 0,
-    top: 0,
-    zIndex: 1,
-    padding: 10,
-    backgroundColor: '#4B0082',
-    borderRadius: 4,
-    justifyContent: 'center',
+    right: 6,
+    flexDirection: 'row',
     alignItems: 'center',
-    height: '100%',
-    width: 50,
+    gap: 5,
+    backgroundColor: PRIMARY,
+    borderRadius: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 9,
+  },
+  searchButtonText: {
+    fontSize: 12,
+    color: '#fff',
+    fontFamily: Fonts.medium,
   },
   error: {
-    color: 'red',
+    color: '#ef4444',
     fontSize: 12,
-    marginTop: 5,
+    marginTop: 6,
+    fontFamily: Fonts.regular,
   },
 });
 

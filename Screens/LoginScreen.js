@@ -1,10 +1,9 @@
-import React, {useState} from 'react';
+import React, {useState, useCallback} from 'react';
 import {
   View,
   Text,
   Image,
   StyleSheet,
-  TextInput,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
@@ -13,13 +12,13 @@ import {
   Keyboard,
   ActivityIndicator,
 } from 'react-native';
-
 import {useForm, Controller} from 'react-hook-form';
-import {useNavigation} from '@react-navigation/native';
-import Ionicons from 'react-native-vector-icons/Ionicons';
+import {useNavigation, useFocusEffect} from '@react-navigation/native';
 import {useMutation} from '@tanstack/react-query';
-import {Login} from '../api/loginApi';
+import {useSafeAreaInsets} from 'react-native-safe-area-context';
+import {OneSignal} from 'react-native-onesignal';
 
+import {Login} from '../api/loginApi';
 import {logApiError, logApiSuccess} from '../utils/logApiDebug';
 import useAuthStore from '../store/authStore';
 import useAuthUserDetailStore from '../store/useAuthUserDetailStore';
@@ -31,21 +30,16 @@ import useReturning from '../store/useReturningPatient';
 import usePlayerStore from '../store/usePlayerStore';
 import useAbandonCardStore from '../store/useAbandonCardStore';
 import useReviewStore from '../store/useReviewStore';
-import {useFocusEffect} from '@react-navigation/native';
-import {useCallback} from 'react';
-import {OneSignal} from 'react-native-onesignal';
-import {useSafeAreaInsets} from 'react-native-safe-area-context';
+import Header from '../Layout/header';
+import TextFields from '../Components/TextFields';
+import {Fonts} from '../utils/fonts';
+
+const PRIMARY = '#47317c';
 
 const LoginScreen = () => {
   const navigation = useNavigation();
   const insets = useSafeAreaInsets();
-  const {
-    control,
-    handleSubmit,
-    watch,
-    formState: {errors},
-  } = useForm();
-  const [showPassword, setShowPassword] = useState(false);
+  const {control, handleSubmit, watch} = useForm();
   const [loading, setLoading] = useState(false);
   const {setIsReturningPatient} = useReturning();
 
@@ -59,31 +53,21 @@ const LoginScreen = () => {
 
   useFocusEffect(
     useCallback(() => {
-      console.log('🟣 LoginScreen focused');
-
       const fetchPlayerId = async () => {
         try {
           const latestPlayerId =
             await OneSignal.User.pushSubscription.getIdAsync();
           if (latestPlayerId) {
             usePlayerStore.getState().setPlayerId(latestPlayerId);
-            console.log(
-              '📲 Refetched Player ID in LoginScreen:',
-              latestPlayerId,
-            );
-          } else {
-            console.log('🚫 Player ID still not available on LoginScreen');
           }
         } catch (e) {
-          console.error('❌ Error fetching player ID:', e);
+          console.error('Error fetching player id:', e);
         }
       };
-
       fetchPlayerId();
     }, []),
   );
 
-  // Pehle se logged-in hai aur abandoned-cart deep link se aaye → seedha gathering-data
   useFocusEffect(
     useCallback(() => {
       if (token && abandonCard?.type === 'abandoned-cart') {
@@ -95,17 +79,11 @@ const LoginScreen = () => {
   );
 
   const loginMutation = useMutation(Login, {
-    onMutate: () => {
-      setLoading(true); // start loading
-    },
+    onMutate: () => setLoading(true),
     onSuccess: data => {
-      logApiSuccess(data, 'zdksdjjkjsdk');
+      logApiSuccess(data);
       const user = data?.data?.data;
-      Toast.show({
-        type: 'success',
-        text1: 'Login',
-        text2: 'Login Successful',
-      });
+      Toast.show({type: 'success', text1: 'Login', text2: 'Login Successful'});
 
       if (!user?.token) {
         Toast.show({
@@ -135,15 +113,13 @@ const LoginScreen = () => {
 
       setIsPasswordReset(false);
       setShowResetPassword(user?.show_password_reset);
-      // setShowResetPassword(false);
       setLoading(false);
     },
-
     onError: error => {
       logApiError(error);
       const apiErrors = error?.response?.data?.errors;
-      const userError = error?.response?.data?.errors?.user;
-      const loginError = error?.response?.data?.errors?.login;
+      const userError = apiErrors?.user;
+      const loginError = apiErrors?.login;
 
       if (userError) {
         Toast.show({
@@ -152,7 +128,6 @@ const LoginScreen = () => {
           text2: Array.isArray(userError) ? userError[0] : userError,
         });
       }
-
       if (loginError) {
         Toast.show({
           type: 'error',
@@ -160,15 +135,10 @@ const LoginScreen = () => {
           text2: Array.isArray(loginError) ? loginError[0] : loginError,
         });
       }
-
       if (apiErrors && typeof apiErrors === 'object') {
         const messages = Object.values(apiErrors).flat();
         messages.forEach(msg =>
-          Toast.show({
-            type: 'error',
-            text1: 'Login Error',
-            text2: msg,
-          }),
+          Toast.show({type: 'error', text1: 'Login Error', text2: msg}),
         );
       } else {
         Toast.show({
@@ -178,18 +148,15 @@ const LoginScreen = () => {
         });
       }
     },
-    onSettled: () => {
-      setLoading(false); // always runs, after success or error
-    },
+    onSettled: () => setLoading(false),
   });
 
   const onSubmit = data => {
-    console.log('🔒 Submitting:', data);
     const formData = {
       email: data.email,
       password: data.password,
       company_id: 1,
-      player_id: playerId, // Use playerId from Zustand store
+      player_id: playerId,
     };
     setEmail(data?.email);
     loginMutation.mutate(formData);
@@ -200,79 +167,62 @@ const LoginScreen = () => {
   const isDisabled = !email || !password || loginMutation.isLoading;
 
   return (
-    <KeyboardAvoidingView
-      style={{flex: 1}}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
-      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-        <ScrollView contentContainerStyle={{flexGrow: 1, paddingBottom: insets.bottom + 16}}>
-          <View style={styles.container}>
-            <View style={styles.logoContainer}>
-              <Image
-                source={require('../assets/images/logo-white.png')}
-                style={styles.image}
-              />
-            </View>
+    <>
+      <Header />
+      <KeyboardAvoidingView
+        style={{flex: 1, backgroundColor: '#FBFBFD'}}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+        <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+          <ScrollView
+            style={styles.screen}
+            contentContainerStyle={[
+              styles.container,
+              {paddingBottom: insets.bottom + 24},
+            ]}
+            showsVerticalScrollIndicator={false}>
+            <View style={styles.card}>
+              <Text style={styles.heading}>Login</Text>
+              <Text style={styles.description}>
+                Returning patient? Login now to re-order your treatment.
+              </Text>
 
-            <View style={styles.subView}>
-              <Text style={styles.subTxt}>Login</Text>
-
-              {/* Email */}
               <Controller
                 control={control}
                 name="email"
-                rules={{required: 'Email is required'}}
+                rules={{required: true}}
                 render={({field: {onChange, value}}) => (
-                  <TextInput
-                    style={styles.nameInput}
-                    editable={!loginMutation.isLoading}
-                    placeholder="Email"
+                  <TextFields
+                    label="Email Address"
+                    placeholder="name@example.com"
+                    required
                     value={value}
                     onChangeText={onChange}
-                    keyboardType="email-address"
-                    autoCapitalize="none"
-                    placeholderTextColor="#aaa"
+                    disabled={loginMutation.isLoading}
                   />
                 )}
               />
-              {errors.email && (
-                <Text style={styles.errorText}>{errors.email.message}</Text>
-              )}
 
-              {/* Password */}
-              <View style={styles.passwordContainer}>
-                <Controller
-                  control={control}
-                  name="password"
-                  rules={{required: 'Password is required'}}
-                  render={({field: {onChange, value}}) => (
-                    <TextInput
-                      editable={!loginMutation.isLoading}
-                      style={styles.passwordInput}
-                      placeholder="Password"
-                      value={value}
-                      onChangeText={onChange}
-                      secureTextEntry={!showPassword}
-                      placeholderTextColor="#aaa"
-                    />
-                  )}
-                />
-                <TouchableOpacity
-                  onPress={() => setShowPassword(!showPassword)}>
-                  <Ionicons
-                    name={showPassword ? 'eye' : 'eye-off'}
-                    size={24}
-                    color="gray"
+              <Controller
+                control={control}
+                name="password"
+                rules={{required: true}}
+                render={({field: {onChange, value}}) => (
+                  <TextFields
+                    label="Password"
+                    placeholder="Enter your password"
+                    type="password"
+                    required
+                    value={value}
+                    onChangeText={onChange}
+                    disabled={loginMutation.isLoading}
                   />
-                </TouchableOpacity>
-              </View>
-              {errors.password && (
-                <Text style={styles.errorText}>{errors.password.message}</Text>
-              )}
+                )}
+              />
 
-              {/* Login Button (inline version of NextButton) */}
               <TouchableOpacity
                 onPress={handleSubmit(onSubmit)}
                 disabled={isDisabled}
+                activeOpacity={0.85}
                 style={[
                   styles.btn,
                   isDisabled ? styles.btnDisabled : styles.btnEnabled,
@@ -287,139 +237,107 @@ const LoginScreen = () => {
                 )}
               </TouchableOpacity>
 
-              {/* Signup */}
-              <View style={styles.endView}>
-                <TouchableOpacity
-                  onPress={() => navigation.navigate('ForgotPassword')}>
-                  <Text style={styles.forgotTxt}>Forgot Password?</Text>
-                </TouchableOpacity>
-              </View>
+              <Text style={styles.newPatient}>
+                Are you a new patient?{' '}
+                <Text
+                  style={styles.link}
+                  onPress={() => navigation.navigate('Acknowledgment')}>
+                  Get started with the consultation
+                </Text>
+              </Text>
 
-              <View style={styles.endView}>
-                <Text style={styles.endTxt}>Create an account?</Text>
-                <TouchableOpacity
-                  onPress={() => navigation.navigate('Register')}>
-                  <Text style={styles.loginTxt}>Sign up</Text>
-                </TouchableOpacity>
-              </View>
+              <TouchableOpacity
+                style={styles.forgotWrap}
+                onPress={() => navigation.navigate('ForgotPassword')}>
+                <Text style={styles.forgotText}>Forgot password</Text>
+              </TouchableOpacity>
             </View>
-          </View>
-        </ScrollView>
-      </TouchableWithoutFeedback>
-    </KeyboardAvoidingView>
+          </ScrollView>
+        </TouchableWithoutFeedback>
+      </KeyboardAvoidingView>
+    </>
   );
 };
 
 export default LoginScreen;
 
 const styles = StyleSheet.create({
+  screen: {
+    backgroundColor: '#FBFBFD',
+  },
   container: {
-    backgroundColor: '#4B0082',
-    flex: 1,
-    justifyContent: 'flex-start',
-    alignItems: 'center',
+    padding: 16,
+    flexGrow: 1,
   },
-  subView: {
-    flex: 1,
-    marginTop: 50,
-    backgroundColor: 'white',
-    width: '100%',
-    borderTopLeftRadius: 40,
-    borderTopRightRadius: 40,
-    alignItems: 'center',
-    paddingVertical: 30,
+  card: {
+    backgroundColor: '#fff',
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(71, 49, 124, 0.1)',
+    padding: 20,
+    shadowColor: 'rgba(71, 49, 124, 0.09)',
+    shadowOffset: {width: 0, height: 10},
+    shadowOpacity: 1,
+    shadowRadius: 24,
+    elevation: 3,
   },
-  subTxt: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    marginBottom: 20,
-    fontFamily: 'Comic Sans MS',
+  heading: {
+    fontSize: 24,
+    fontFamily: Fonts.semiBold,
+    color: '#0f172a',
+    marginBottom: 6,
   },
-  nameInput: {
-    height: 40,
-    width: '80%',
-    borderBottomWidth: 1,
-    marginBottom: 10,
-    textAlign: 'start',
-    fontSize: 16,
-    color: '#000',
-  },
-  passwordContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    borderBottomWidth: 1,
-    width: '80%',
-    marginBottom: 10,
-    justifyContent: 'space-between',
-  },
-  forgotTxt: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#4B0082',
-    textAlign: 'center',
-  },
-
-  passwordInput: {
-    height: 40,
-    width: '85%',
-    textAlign: 'start',
-    fontSize: 16,
-    color: '#000',
+  description: {
+    fontSize: 13.5,
+    fontFamily: Fonts.regular,
+    color: '#64748b',
+    marginBottom: 22,
+    lineHeight: 20,
   },
   btn: {
-    marginTop: 20,
+    marginTop: 6,
     height: 50,
-    width: '80%',
-    borderRadius: 30,
+    borderRadius: 12,
     justifyContent: 'center',
     alignItems: 'center',
   },
   btnEnabled: {
-    backgroundColor: '#4B0082',
+    backgroundColor: PRIMARY,
   },
   btnDisabled: {
-    backgroundColor: '#aaa',
+    backgroundColor: '#cbd5e1',
   },
   btnText: {
     color: '#fff',
-    fontWeight: 'bold',
-    fontSize: 16,
+    fontSize: 15,
+    fontFamily: Fonts.semiBold,
   },
   loadingContent: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 10,
+    gap: 8,
   },
-  endView: {
-    flexDirection: 'row',
+  newPatient: {
+    fontSize: 13,
+    fontFamily: Fonts.regular,
+    color: '#334155',
+    textAlign: 'center',
     marginTop: 20,
-    justifyContent: 'center',
+    lineHeight: 20,
+  },
+  link: {
+    color: PRIMARY,
+    fontFamily: Fonts.medium,
+    textDecorationLine: 'underline',
+  },
+  forgotWrap: {
+    marginTop: 16,
     alignItems: 'center',
   },
-  endTxt: {
-    fontSize: 16,
-    fontWeight: '600',
-    marginRight: 8,
-  },
-  loginTxt: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#4B0082',
-  },
-  logoContainer: {
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  image: {
-    width: 200,
-    height: 200,
-    resizeMode: 'contain',
-  },
-  errorText: {
-    color: 'red',
-    fontSize: 12,
-    marginBottom: 8,
-    width: '80%',
-    textAlign: 'left',
+  forgotText: {
+    fontSize: 13,
+    fontFamily: Fonts.medium,
+    color: PRIMARY,
+    textDecorationLine: 'underline',
   },
 });

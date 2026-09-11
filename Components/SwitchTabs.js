@@ -8,10 +8,11 @@ import {
   Animated,
   useWindowDimensions,
 } from 'react-native';
+import {Fonts} from '../utils/fonts';
 
 const SwitchTabs = ({ tabs, selectedTab, onTabChange }) => {
   const { width } = useWindowDimensions();
-  const tabWidth = (width - 36) / tabs.length; // subtract padding (16 left + 16 right)
+  const tabWidth = (width - 72) / tabs.length; // subtract card + screen padding
   const translateX = useRef(new Animated.Value(0)).current;
 
   useFocusEffect(
@@ -57,42 +58,38 @@ const SwitchTabs = ({ tabs, selectedTab, onTabChange }) => {
 
 const styles = StyleSheet.create({
   wrapper: {
-    paddingHorizontal: 16,
-    marginBottom: 24,
-    alignItems: 'center',
+    marginBottom: 22,
+    alignItems: 'flex-start',
   },
   container: {
     flexDirection: 'row',
-    backgroundColor: '#e0e0e0ff',
-    borderRadius: 30,
+    backgroundColor: '#f1f0f7',
+    borderRadius: 12,
     position: 'relative',
     overflow: 'hidden',
   },
   tab: {
-    paddingVertical: 10,
+    paddingVertical: 9,
     alignItems: 'center',
     justifyContent: 'center',
   },
   slider: {
     position: 'absolute',
     height: '100%',
-    backgroundColor: '#4B0082',
-    borderRadius: 30,
+    backgroundColor: '#47317c',
+    borderRadius: 9,
     top: 0,
-
   },
 
   tabText: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#4B0082',
-    textTransform: 'capitalize'
-
+    fontSize: 13,
+    color: '#64748b',
+    textTransform: 'capitalize',
+    fontFamily: Fonts.medium,
   },
   activeTabText: {
     color: '#ffffff',
-    textTransform: 'capitalize'
-
+    textTransform: 'capitalize',
   },
 });
 
