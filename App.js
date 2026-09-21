@@ -42,10 +42,16 @@ import PhotoUpload from './Screens/PhotoUpload';
 import IdVerification from './Screens/IdVerification';
 import ReviewScreen from './Screens/ReviewScreen';
 import useReviewStore from './store/useReviewStore';
+import useAuthStore from './store/authStore';
 
 const Stack = createNativeStackNavigator();
 
 const App = () => {
+  /* Auth gate: logged-out users can only reach Splash/Login/Register/
+     ForgotPassword/ResetPassword. All protected screens (dashboard,
+     consultation flow, etc.) mount only when a token exists. */
+  const {token} = useAuthStore();
+
   /* _________________Deep Linking here ______________*/
 
   const linking = {
@@ -254,6 +260,8 @@ const App = () => {
             options={{headerShown: false}}
           />
 
+          {token && (
+            <>
           <Stack.Screen
             name="Initial"
             component={InitialScreen}
@@ -402,6 +410,8 @@ const App = () => {
             component={ReviewScreen}
             options={{headerShown: false}}
           />
+            </>
+          )}
         </Stack.Navigator>
       </NavigationContainer>
 

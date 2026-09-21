@@ -23,25 +23,21 @@ const PRIMARY = '#47317c';
 
 const VerificationCard = ({icon, title, description, label, onPress}) => (
   <View style={styles.verifyCard}>
-    <View style={styles.verifyIconBox}>
-      <Feather name={icon} size={18} color="#d97706" />
+    <View style={styles.verifyBadge}>
+      <Feather name={icon} size={12} color="#d97706" />
+      <Text style={styles.verifyBadgeText}>ACTION REQUIRED</Text>
     </View>
-    <View style={styles.verifyContent}>
-      <View style={styles.verifyBadge}>
-        <Text style={styles.verifyBadgeText}>ACTION REQUIRED</Text>
-      </View>
-      <Text style={styles.verifyTitle}>{title}</Text>
-      <Text style={styles.verifyDesc}>{description}</Text>
+    <Text style={styles.verifyTitle}>{title}</Text>
+    <Text style={styles.verifyDesc}>{description}</Text>
 
-      <TouchableOpacity
-        style={styles.verifyButton}
-        activeOpacity={0.85}
-        onPress={onPress}>
-        <Feather name="upload-cloud" size={14} color="#d97706" />
-        <Text style={styles.verifyButtonText}>{label}</Text>
-        <Feather name="chevron-right" size={13} color="#d97706" />
-      </TouchableOpacity>
-    </View>
+    <TouchableOpacity
+      style={styles.verifyButton}
+      activeOpacity={0.85}
+      onPress={onPress}>
+      <Feather name="upload-cloud" size={14} color="#fff" />
+      <Text style={styles.verifyButtonText}>{label}</Text>
+      <Feather name="chevron-right" size={13} color="#fff" />
+    </TouchableOpacity>
   </View>
 );
 
@@ -414,39 +410,24 @@ const styles = StyleSheet.create({
     lineHeight: 18,
   },
   verifyCard: {
-    flexDirection: 'row',
-    gap: 12,
     borderWidth: 1,
     borderColor: 'rgba(217, 119, 6, 0.3)',
     backgroundColor: 'rgba(255, 251, 235, 0.6)',
     borderRadius: 16,
     padding: 14,
   },
-  verifyIconBox: {
-    width: 40,
-    height: 40,
-    borderRadius: 12,
-    backgroundColor: '#fffbeb',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  verifyContent: {
-    flex: 1,
-  },
   verifyBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
     alignSelf: 'flex-start',
-    borderWidth: 1,
-    borderColor: '#fde68a',
-    backgroundColor: '#fffbeb',
-    borderRadius: 20,
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-    marginBottom: 5,
+    gap: 5,
+    marginBottom: 8,
   },
   verifyBadgeText: {
-    fontSize: 9,
+    fontSize: 10,
     fontFamily: Fonts.medium,
     color: '#d97706',
+    textTransform: 'uppercase',
     letterSpacing: 1,
   },
   verifyTitle: {
@@ -466,17 +447,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: 6,
-    borderWidth: 1,
-    borderColor: '#fde68a',
-    backgroundColor: '#fffbeb',
+    backgroundColor: '#f59e0b',
     borderRadius: 12,
-    paddingVertical: 10,
+    paddingVertical: 12,
     marginTop: 12,
   },
   verifyButtonText: {
-    fontSize: 12.5,
-    fontFamily: Fonts.medium,
-    color: '#d97706',
+    fontSize: 13,
+    fontFamily: Fonts.semiBold,
+    color: '#fff',
   },
   secureNote: {
     flexDirection: 'row',

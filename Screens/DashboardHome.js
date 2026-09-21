@@ -23,7 +23,6 @@ import UploadTopPrompt from '../Components/UploadTopPrompt';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {Fonts} from '../utils/fonts';
 import useSignupStore from '../store/signupStore';
-import Feather from 'react-native-vector-icons/Feather';
 
 const DashboardHome = () => {
   const insets = useSafeAreaInsets();
@@ -148,34 +147,8 @@ const DashboardHome = () => {
           Welcome back{firstName ? `,\n${firstName}` : ''}
         </Text>
         <Text style={styles.welcomeSubtitle}>
-          Your health journey continues here.
+          Your weight loss journey continues here.
         </Text>
-
-        <View style={styles.badgeRow}>
-          <View style={styles.badgeItem}>
-            <View style={styles.badgeIconCircle}>
-              <Feather name="shield" size={16} color="#fff" />
-            </View>
-            <Text style={styles.badgeTitle}>Safe & Trusted</Text>
-            <Text style={styles.badgeSubtitle}>UK Regulated</Text>
-          </View>
-
-          <View style={styles.badgeItem}>
-            <View style={styles.badgeIconCircle}>
-              <Feather name="users" size={16} color="#fff" />
-            </View>
-            <Text style={styles.badgeTitle}>Expert Support</Text>
-            <Text style={styles.badgeSubtitle}>Clinical Team</Text>
-          </View>
-
-          <View style={styles.badgeItem}>
-            <View style={styles.badgeIconCircle}>
-              <Feather name="truck" size={16} color="#fff" />
-            </View>
-            <Text style={styles.badgeTitle}>Discreet Delivery</Text>
-            <Text style={styles.badgeSubtitle}>To Your Door</Text>
-          </View>
-        </View>
       </ImageBackground>
 
       {(!imageUploaded || !idVerificationUpload) && <UploadTopPrompt />}
@@ -274,9 +247,10 @@ const styles = StyleSheet.create({
   welcomeHeader: {
     marginHorizontal: -16,
     paddingHorizontal: 20,
-    paddingTop: 28,
-    paddingBottom: 24,
+    paddingVertical: 36,
     marginBottom: 12,
+    minHeight: 200,
+    justifyContent: 'center',
     backgroundColor: '#3d2a68',
     overflow: 'hidden',
   },
@@ -308,45 +282,11 @@ const styles = StyleSheet.create({
     color: 'rgba(255,255,255,0.9)',
     fontFamily: Fonts.regular,
     lineHeight: 19,
-    marginBottom: 22,
+    marginBottom: 0,
     zIndex: 1,
     textShadowColor: 'rgba(0,0,0,0.35)',
     textShadowOffset: {width: 0, height: 1},
     textShadowRadius: 4,
-  },
-  badgeRow: {
-    flexDirection: 'row',
-    justifyContent: 'flex-start',
-    gap: 22,
-    zIndex: 1,
-  },
-  badgeItem: {
-    alignItems: 'center',
-    width: 84,
-  },
-  badgeIconCircle: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.3)',
-    backgroundColor: 'rgba(255,255,255,0.1)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 8,
-  },
-  badgeTitle: {
-    fontSize: 11.5,
-    color: '#ffffff',
-    fontFamily: Fonts.semiBold,
-    textAlign: 'center',
-  },
-  badgeSubtitle: {
-    fontSize: 10,
-    color: 'rgba(255,255,255,0.6)',
-    fontFamily: Fonts.regular,
-    textAlign: 'center',
-    marginTop: 2,
   },
 
   // Sections

@@ -68,12 +68,17 @@ const LoginScreen = () => {
     }, []),
   );
 
+  // Once a token exists (login success or already logged in), the protected
+  // screens are mounted — land the user on the right screen.
   useFocusEffect(
     useCallback(() => {
-      if (token && abandonCard?.type === 'abandoned-cart') {
+      if (!token) return;
+      if (abandonCard?.type === 'abandoned-cart') {
         navigation.reset({index: 0, routes: [{name: 'gathering-data'}]});
-      } else if (token && review) {
+      } else if (review) {
         navigation.navigate('review-feedback');
+      } else {
+        navigation.reset({index: 0, routes: [{name: 'dashboard'}]});
       }
     }, [token, abandonCard?.type, review]),
   );
@@ -103,13 +108,8 @@ const LoginScreen = () => {
       setEmail(user?.email);
       setIsReturningPatient(user?.isReturning);
 
-      if (abandonCard?.type === 'abandoned-cart') {
-        navigation.reset({index: 0, routes: [{name: 'gathering-data'}]});
-      } else if (review) {
-        navigation.navigate('review-feedback');
-      } else {
-        navigation.navigate('dashboard');
-      }
+      // Navigation is handled by the token-driven useFocusEffect above, which
+      // fires once the protected screens are mounted (avoids a mount race).
 
       setIsPasswordReset(false);
       setShowResetPassword(user?.show_password_reset);
@@ -238,11 +238,11 @@ const LoginScreen = () => {
               </TouchableOpacity>
 
               <Text style={styles.newPatient}>
-                Are you a new patient?{' '}
+                Don't have an account?{' '}
                 <Text
                   style={styles.link}
-                  onPress={() => navigation.navigate('Acknowledgment')}>
-                  Get started with the consultation
+                  onPress={() => navigation.navigate('Register')}>
+                  Create an account
                 </Text>
               </Text>
 

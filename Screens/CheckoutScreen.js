@@ -87,7 +87,11 @@ export default function CheckoutSteps({navigation}) {
           {paddingBottom: insets.bottom + 32},
         ]}
         showsVerticalScrollIndicator={false}>
-        <Text style={styles.heading}>
+        <Text
+          style={styles.heading}
+          numberOfLines={1}
+          adjustsFontSizeToFit
+          minimumFontScale={0.7}>
           Checkout to kick-start your weight loss journey
         </Text>
 
@@ -164,11 +168,10 @@ const styles = StyleSheet.create({
     padding: 16,
   },
   heading: {
-    fontSize: 19,
+    fontSize: 18,
     fontFamily: Fonts.semiBold,
     color: '#0f172a',
     marginBottom: 18,
     textAlign: 'center',
-    lineHeight: 25,
   },
 });

@@ -33,21 +33,14 @@ const UploadTopPrompt = () => {
 
   return (
     <View style={styles.container}>
-      <View style={styles.content}>
-        {/* Icon */}
-        <View style={styles.iconBox}>
-          <Feather name="camera" size={18} color="#d97706" />
-        </View>
-
-        {/* Text */}
-        <View style={styles.textWrap}>
-          <View style={styles.badgeRow}>
-            <Text style={styles.badge}>ACTION REQUIRED</Text>
-          </View>
-          <Text style={styles.title}>{title}</Text>
-          <Text style={styles.description}>{description}</Text>
-        </View>
+      {/* Badge row with small inline icon */}
+      <View style={styles.badgeRow}>
+        <Feather name="camera" size={12} color="#d97706" />
+        <Text style={styles.badge}>ACTION REQUIRED</Text>
       </View>
+
+      <Text style={styles.title}>{title}</Text>
+      <Text style={styles.description}>{description}</Text>
 
       {/* Button */}
       <TouchableOpacity
@@ -72,32 +65,18 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     backgroundColor: 'rgba(255, 251, 235, 0.5)',
     padding: 16,
-    gap: 14,
     shadowColor: 'rgba(180, 83, 9, 0.06)',
     shadowOpacity: 1,
     shadowOffset: {width: 0, height: 1},
     shadowRadius: 4,
     elevation: 2,
   },
-  content: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    gap: 12,
-  },
-  iconBox: {
-    width: 40,
-    height: 40,
-    borderRadius: 12,
-    backgroundColor: '#fffbeb',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  textWrap: {
-    flex: 1,
-  },
   badgeRow: {
     flexDirection: 'row',
-    marginBottom: 4,
+    alignItems: 'center',
+    alignSelf: 'flex-start',
+    gap: 5,
+    marginBottom: 8,
   },
   badge: {
     fontSize: 10,
@@ -105,25 +84,19 @@ const styles = StyleSheet.create({
     color: '#d97706',
     textTransform: 'uppercase',
     letterSpacing: 1,
-    backgroundColor: '#fffbeb',
-    borderWidth: 1,
-    borderColor: '#fde68a',
-    borderRadius: 10,
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-    overflow: 'hidden',
   },
   title: {
-    fontSize: 14,
+    fontSize: 15,
     fontFamily: Fonts.semiBold,
     color: '#0f172a',
-    marginBottom: 2,
+    marginBottom: 3,
   },
   description: {
     fontSize: 12.5,
     fontFamily: Fonts.regular,
     color: '#64748b',
     lineHeight: 17,
+    marginBottom: 14,
   },
   button: {
     flexDirection: 'row',

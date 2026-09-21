@@ -129,56 +129,55 @@ const ProductCard = ({
 
   return (
     <View style={[styles.card, disabled && styles.cardDisabled]}>
-      {/* Image box */}
-      <View style={styles.imageBox}>
-        {disabled && (
-          <View style={styles.outOfStockOverlay}>
-            <Text style={styles.outOfStockBadge}>Out of stock</Text>
-          </View>
-        )}
-        {image ? (
-          <Image
-            key={image}
-            source={{uri: image}}
-            style={styles.image}
-            resizeMode="contain"
-          />
-        ) : (
-          <View style={styles.imagePlaceholder}>
-            <Text style={styles.imagePlaceholderText}>No Image</Text>
-          </View>
-        )}
-      </View>
+      {/* Top row: image, name, price */}
+      <View style={styles.topRow}>
+        <View style={styles.imageBox}>
+          {disabled && (
+            <View style={styles.outOfStockOverlay}>
+              <Text style={styles.outOfStockBadge}>Out of stock</Text>
+            </View>
+          )}
+          {image ? (
+            <Image
+              key={image}
+              source={{uri: image}}
+              style={styles.image}
+              resizeMode="contain"
+            />
+          ) : (
+            <View style={styles.imagePlaceholder}>
+              <Text style={styles.imagePlaceholderText}>No Image</Text>
+            </View>
+          )}
+        </View>
 
-      {/* Title */}
-      <View style={styles.titleWrap}>
-        <Text style={styles.title} numberOfLines={2}>
-          {title}
-        </Text>
-        {lastOrderDate ? (
-          <Text style={styles.lastOrder}>Last Ordered: {lastOrderDate}</Text>
-        ) : null}
-      </View>
+        <View style={styles.titleWrap}>
+          <Text style={styles.title} numberOfLines={2}>
+            {title}
+          </Text>
+          {lastOrderDate ? (
+            <Text style={styles.lastOrder}>Last Ordered: {lastOrderDate}</Text>
+          ) : null}
+        </View>
 
-      {/* Price + Button */}
-      <View style={styles.rightSection}>
         <View style={styles.priceWrap}>
           <Text style={styles.fromLabel}>From</Text>
           <Text style={styles.price}>£{price}</Text>
         </View>
-
-        <TouchableOpacity
-          style={[styles.button, disabled && styles.buttonDisabled]}
-          onPress={handlePress}
-          disabled={disabled || loading}
-          activeOpacity={0.8}>
-          {loading ? (
-            <ActivityIndicator size="small" color="#fff" />
-          ) : (
-            <Text style={styles.buttonText}>{buttonText}</Text>
-          )}
-        </TouchableOpacity>
       </View>
+
+      {/* Full-width button */}
+      <TouchableOpacity
+        style={[styles.button, disabled && styles.buttonDisabled]}
+        onPress={handlePress}
+        disabled={disabled || loading}
+        activeOpacity={0.8}>
+        {loading ? (
+          <ActivityIndicator size="small" color="#fff" />
+        ) : (
+          <Text style={styles.buttonText}>{buttonText}</Text>
+        )}
+      </TouchableOpacity>
     </View>
   );
 };
@@ -187,8 +186,6 @@ export default ProductCard;
 
 const styles = StyleSheet.create({
   card: {
-    flexDirection: 'row',
-    alignItems: 'center',
     backgroundColor: '#fff',
     borderRadius: 16,
     borderWidth: 1,
@@ -196,7 +193,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 14,
     marginBottom: 12,
-    gap: 14,
     shadowColor: '#000',
     shadowOpacity: 0.04,
     shadowOffset: {width: 0, height: 1},
@@ -205,6 +201,12 @@ const styles = StyleSheet.create({
   },
   cardDisabled: {
     opacity: 0.6,
+  },
+  topRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 14,
+    marginBottom: 14,
   },
 
   // Image
@@ -267,11 +269,7 @@ const styles = StyleSheet.create({
     marginTop: 3,
   },
 
-  // Price + Button
-  rightSection: {
-    alignItems: 'flex-end',
-    gap: 8,
-  },
+  // Price
   priceWrap: {
     alignItems: 'flex-end',
   },
@@ -292,9 +290,10 @@ const styles = StyleSheet.create({
 
   // Button
   button: {
+    width: '100%',
     backgroundColor: PRIMARY,
-    minHeight: 36,
-    paddingVertical: 9,
+    minHeight: 44,
+    paddingVertical: 12,
     paddingHorizontal: 16,
     borderRadius: 12,
     justifyContent: 'center',
@@ -305,7 +304,7 @@ const styles = StyleSheet.create({
   },
   buttonText: {
     color: '#fff',
-    fontSize: 12.5,
-    fontFamily: Fonts.medium,
+    fontSize: 14,
+    fontFamily: Fonts.semiBold,
   },
 });

@@ -47,7 +47,7 @@ export default function IdVerification() {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [buttonLabel, setButtonLabel] = useState('Return to Dashboard');
-  const [selectedId, setSelectedId] = useState('passport');
+  const [selectedId, setSelectedId] = useState('id_card');
   const [showIdDropdown, setShowIdDropdown] = useState(false);
 
   const {control, setValue, handleSubmit, watch} = useForm();

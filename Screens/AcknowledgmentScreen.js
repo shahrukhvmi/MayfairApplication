@@ -36,6 +36,7 @@ export default function AcknowledgmentScreen() {
   const insets = useSafeAreaInsets();
   const [answers, setAnswers] = useState({personalUse: null, decisionCapacity: null});
   const [confirmChecked, setConfirmChecked] = useState(false);
+  const [attempted, setAttempted] = useState(false);
 
   const {personalUse, decisionCapacity} = answers;
   const isNoSelected = personalUse === 'no' || decisionCapacity === 'no';
@@ -111,6 +112,12 @@ export default function AcknowledgmentScreen() {
                 style={[styles.questionBlock, idx === 0 && styles.questionBlockFirst]}>
                 <Text style={styles.questionText}>{q.text}</Text>
                 {renderYesNo(q.id, q.id === 'personalUse' ? personalUse : decisionCapacity)}
+                {attempted &&
+                  !(q.id === 'personalUse' ? personalUse : decisionCapacity) && (
+                    <Text style={styles.fieldError}>
+                      Please select an option to continue.
+                    </Text>
+                  )}
               </View>
             ))}
 
@@ -157,12 +164,23 @@ export default function AcknowledgmentScreen() {
               </View>
             )}
 
+            {attempted && showConsentBox && !confirmChecked && (
+              <Text style={styles.fieldError}>
+                Please tick the box to confirm before continuing.
+              </Text>
+            )}
+
             <View style={styles.buttonWrap}>
               <NextButton
                 label="I Confirm"
                 loading={false}
-                disabled={!canConfirm}
-                onPress={() => navigation.navigate('signup')}
+                onPress={() => {
+                  if (!canConfirm) {
+                    setAttempted(true);
+                    return;
+                  }
+                  navigation.navigate('signup');
+                }}
                 style={styles.submitButton}
               />
             </View>
@@ -381,6 +399,14 @@ const styles = StyleSheet.create({
     fontFamily: Fonts.regular,
     color: '#475569',
     lineHeight: 18,
+  },
+
+  // Errors
+  fieldError: {
+    marginTop: 10,
+    fontSize: 12.5,
+    fontFamily: Fonts.medium,
+    color: '#dc2626',
   },
 
   // Button

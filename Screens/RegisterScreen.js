@@ -12,6 +12,7 @@ import {
   Alert,
 } from 'react-native';
 
+import {useEffect} from 'react';
 import {useForm, Controller} from 'react-hook-form';
 import {useNavigation} from '@react-navigation/native';
 import {useMutation} from '@tanstack/react-query';
@@ -21,6 +22,7 @@ import useAuthUserDetailStore from '../store/useAuthUserDetailStore';
 import usePasswordReset from '../store/usePasswordReset';
 import useAuthStore from '../store/authStore';
 import useUserDataStore from '../store/userDataStore';
+import usePlayerStore from '../store/usePlayerStore';
 import {logApiError, logApiSuccess} from '../utils/logApiDebug';
 import Toast from 'react-native-toast-message';
 import useSignupStore from '../store/signupStore';
@@ -47,9 +49,17 @@ const RegisterScreen = () => {
 
   const {setAuthUserDetail} = useAuthUserDetailStore();
   const {setIsPasswordReset} = usePasswordReset();
-  const {setToken} = useAuthStore();
+  const {token, setToken} = useAuthStore();
   const {setUserData} = useUserDataStore();
+  const {playerId} = usePlayerStore();
   const {setEmail} = useSignupStore();
+
+  // Once registered (token set), protected screens mount — go to dashboard.
+  useEffect(() => {
+    if (token) {
+      navigation.reset({index: 0, routes: [{name: 'dashboard'}]});
+    }
+  }, [token]);
 
   const registerMutation = useMutation(RegisterApi, {
     onSuccess: data => {
@@ -59,10 +69,11 @@ const RegisterScreen = () => {
       if (user?.token) {
         setAuthUserDetail(user);
         setUserData(user);
-        setToken(user?.token);
         setIsPasswordReset(true);
         Fetcher.axiosSetup.defaults.headers.common.Authorization = `Bearer ${user?.token}`;
-        navigation.navigate('dashboard');
+        // Set token last; the token-driven effect lands the user on dashboard
+        // once the protected screens have mounted (avoids a mount race).
+        setToken(user?.token);
       }
 
       setLoading(false);
@@ -93,6 +104,7 @@ const RegisterScreen = () => {
       password: data.password,
       confirm_password: data.confirmPassword,
       company_id: 1,
+      player_id: playerId,
     };
     setLoading(true);
     registerMutation.mutate(formData);

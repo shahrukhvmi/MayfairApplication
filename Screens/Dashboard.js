@@ -1,6 +1,7 @@
 import React, {useEffect, useRef, useState} from 'react';
 import {
   View,
+  Text,
   TouchableOpacity,
   StyleSheet,
   Animated,
@@ -10,40 +11,15 @@ import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {useIsFocused, useRoute} from '@react-navigation/native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 
+import {Fonts} from '../utils/fonts';
 import DashboardHome from './DashboardHome';
 import OrdersScreen from './OrdersScreen';
 import AddressBookScreen from './AddressBookScreen';
 import ChangePasswordScreen from './ChangePasswordScreen';
 import WeightLossJourneyScreen from './WeightLossJourneyScreen';
 
-const TABS = [
-  {
-    icon: 'home-outline',
-    activeIcon: 'home',
-    label: 'Dashboard',
-  },
-  {
-    icon: 'list-outline',
-    activeIcon: 'list',
-    label: 'Orders',
-  },
-  {
-    icon: 'location-outline',
-    activeIcon: 'location',
-    label: 'Address Book',
-  },
-  {
-    icon: 'trending-up-outline',
-    activeIcon: 'trending-up',
-    label: 'Weight Loss Journey',
-  },
-  {
-    icon: 'key-outline',
-    activeIcon: 'key',
-    label: 'Change Password',
-  },
-];
-
+// All screens stay mounted so the header dropdown can still deep-link into
+// Address Book (index 2) and Change Password (index 4) via {tab: n}.
 const SCREENS = [
   DashboardHome,
   OrdersScreen,
@@ -52,9 +28,43 @@ const SCREENS = [
   ChangePasswordScreen,
 ];
 
+const SCREEN_LABELS = [
+  'Dashboard',
+  'Orders',
+  'Address Book',
+  'Weight Loss Journey',
+  'Change Password',
+];
+
+// Only these appear in the bottom bar (Address Book + Change Password removed).
+const NAV_TABS = [
+  {
+    screenIndex: 0,
+    icon: 'home-outline',
+    activeIcon: 'home',
+    label: 'Dashboard',
+    short: 'Dashboard',
+  },
+  {
+    screenIndex: 1,
+    icon: 'list-outline',
+    activeIcon: 'list',
+    label: 'Orders',
+    short: 'Orders',
+  },
+  {
+    screenIndex: 3,
+    icon: 'trending-up-outline',
+    activeIcon: 'trending-up',
+    label: 'Weight Loss Journey',
+    short: 'Journey',
+  },
+];
+
 const TAB_BAR_MARGIN = 12;
-const TAB_BAR_HEIGHT = 62;
-const ACTIVE_CIRCLE_SIZE = 48;
+const TAB_BAR_HEIGHT = 68;
+const ACTIVE_CIRCLE_SIZE = 40;
+const ICON_SLOT_TOP = 8;
 
 const Dashboard = () => {
   const {width} = useWindowDimensions();
@@ -73,30 +83,40 @@ const Dashboard = () => {
    * not from the complete screen width.
    */
   const tabBarWidth = Math.max(width - TAB_BAR_MARGIN * 2, 0);
-  const tabWidth = tabBarWidth / TABS.length;
+  const tabWidth = tabBarWidth / NAV_TABS.length;
 
-  const handleTabPress = index => {
-    if (index === activeIndexRef.current) {
-      return;
+  const slotForScreen = screenIndex =>
+    NAV_TABS.findIndex(t => t.screenIndex === screenIndex);
+
+  const goToScreen = (screenIndex, animate = true) => {
+    activeIndexRef.current = screenIndex;
+    setActiveIndex(screenIndex);
+
+    const slot = slotForScreen(screenIndex);
+
+    if (animate) {
+      Animated.parallel([
+        Animated.timing(screenTranslateX, {
+          toValue: -width * screenIndex,
+          duration: 280,
+          useNativeDriver: true,
+        }),
+        Animated.spring(sliderTranslateX, {
+          toValue: tabWidth * (slot >= 0 ? slot : 0),
+          speed: 18,
+          bounciness: 5,
+          useNativeDriver: true,
+        }),
+      ]).start();
+    } else {
+      screenTranslateX.setValue(-width * screenIndex);
+      sliderTranslateX.setValue(tabWidth * (slot >= 0 ? slot : 0));
     }
+  };
 
-    activeIndexRef.current = index;
-    setActiveIndex(index);
-
-    Animated.parallel([
-      Animated.timing(screenTranslateX, {
-        toValue: -width * index,
-        duration: 280,
-        useNativeDriver: true,
-      }),
-
-      Animated.spring(sliderTranslateX, {
-        toValue: tabWidth * index,
-        speed: 18,
-        bounciness: 5,
-        useNativeDriver: true,
-      }),
-    ]).start();
+  const handleTabPress = screenIndex => {
+    if (screenIndex === activeIndexRef.current) return;
+    goToScreen(screenIndex, true);
   };
 
   /*
@@ -104,15 +124,13 @@ const Dashboard = () => {
    * width changes, for example after device rotation.
    */
   useEffect(() => {
-    const currentIndex = activeIndexRef.current;
-
-    screenTranslateX.setValue(-width * currentIndex);
-    sliderTranslateX.setValue(tabWidth * currentIndex);
-  }, [width, tabWidth, screenTranslateX, sliderTranslateX]);
+    goToScreen(activeIndexRef.current, false);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [width, tabWidth]);
 
   /*
    * Allow other screens (e.g. the header dropdown) to deep-link into a
-   * specific tab via navigation.navigate('dashboard', {tab: 1}).
+   * specific tab via navigation.navigate('dashboard', {tab: n}).
    */
   useEffect(() => {
     if (!isFocused) return;
@@ -121,11 +139,11 @@ const Dashboard = () => {
     if (requestedTab === undefined || requestedTab === null) return;
     if (requestedTab === activeIndexRef.current) return;
 
-    activeIndexRef.current = requestedTab;
-    setActiveIndex(requestedTab);
-    screenTranslateX.setValue(-width * requestedTab);
-    sliderTranslateX.setValue(tabWidth * requestedTab);
-  }, [isFocused, route?.params?.tab, width, tabWidth, screenTranslateX, sliderTranslateX]);
+    goToScreen(requestedTab, false);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isFocused, route?.params?.tab, width, tabWidth]);
+
+  const activeSlot = slotForScreen(activeIndex);
 
   return (
     <View style={styles.container}>
@@ -141,7 +159,7 @@ const Dashboard = () => {
           ]}>
           {SCREENS.map((Component, index) => (
             <View
-              key={TABS[index].label}
+              key={SCREEN_LABELS[index]}
               style={[
                 styles.screen,
                 {
@@ -169,20 +187,22 @@ const Dashboard = () => {
               width: tabBarWidth,
             },
           ]}>
-          {/* Animated active circle */}
+          {/* Animated active circle — hidden when the active screen isn't a
+              bottom-bar tab (e.g. Address Book / Change Password via dropdown) */}
           <Animated.View
             pointerEvents="none"
             style={[
               styles.activeSlider,
               {
                 left: (tabWidth - ACTIVE_CIRCLE_SIZE) / 2,
+                opacity: activeSlot >= 0 ? 1 : 0,
                 transform: [{translateX: sliderTranslateX}],
               },
             ]}
           />
 
-          {TABS.map((item, index) => {
-            const isActive = activeIndex === index;
+          {NAV_TABS.map(item => {
+            const isActive = activeIndex === item.screenIndex;
 
             return (
               <TouchableOpacity
@@ -191,13 +211,20 @@ const Dashboard = () => {
                 accessibilityRole="button"
                 accessibilityLabel={item.label}
                 accessibilityState={{selected: isActive}}
-                onPress={() => handleTabPress(index)}
+                onPress={() => handleTabPress(item.screenIndex)}
                 style={styles.tab}>
-                <Ionicons
-                  name={isActive ? item.activeIcon : item.icon}
-                  size={isActive ? 23 : 22}
-                  color={isActive ? '#FFFFFF' : '#5B347D'}
-                />
+                <View style={styles.iconSlot}>
+                  <Ionicons
+                    name={isActive ? item.activeIcon : item.icon}
+                    size={isActive ? 22 : 21}
+                    color={isActive ? '#FFFFFF' : '#5B347D'}
+                  />
+                </View>
+                <Text
+                  style={[styles.tabLabel, isActive && styles.tabLabelActive]}
+                  numberOfLines={1}>
+                  {item.short}
+                </Text>
               </TouchableOpacity>
             );
           })}
@@ -250,12 +277,28 @@ const styles = StyleSheet.create({
     flex: 1,
     zIndex: 2,
     alignItems: 'center',
+    justifyContent: 'flex-start',
+    paddingTop: ICON_SLOT_TOP,
+  },
+  iconSlot: {
+    height: ACTIVE_CIRCLE_SIZE,
     justifyContent: 'center',
+    alignItems: 'center',
+  },
+  tabLabel: {
+    marginTop: 2,
+    fontSize: 10.5,
+    fontFamily: Fonts.medium,
+    color: '#5B347D',
+  },
+  tabLabelActive: {
+    color: '#4B006E',
+    fontFamily: Fonts.semiBold,
   },
 
   activeSlider: {
     position: 'absolute',
-    top: (TAB_BAR_HEIGHT - ACTIVE_CIRCLE_SIZE) / 2,
+    top: ICON_SLOT_TOP,
     width: ACTIVE_CIRCLE_SIZE,
     height: ACTIVE_CIRCLE_SIZE,
     zIndex: 1,

@@ -131,8 +131,8 @@ const OrderSummary = ({isNextDisabled}) => {
         setLoading(false);
         setTimeout(() => {
           Alert.alert(
-            'Leave App?',
-            'You will be redirected to a secure external payment page.',
+            'Complete Your Payment',
+            'You’ll be redirected to Lloyds to securely complete your payment. Once finished, you’ll return to the Mayfair app.',
             [
               {text: 'Cancel', style: 'cancel'},
               {

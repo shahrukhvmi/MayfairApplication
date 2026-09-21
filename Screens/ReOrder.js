@@ -16,7 +16,7 @@ import useReorderButtonStore from '../store/useReorderButton';
 
 import Header from '../Layout/header';
 import NextButton from '../Components/NextButton';
-import PageLoader from '../Components/PageLoader';
+import AnimatedLogoLoader from '../Components/AnimatedLogoLoader';
 import {Fonts} from '../utils/fonts';
 
 const PRIMARY = '#47317c';
@@ -153,7 +153,7 @@ export default function ReOrder() {
 
           {showLoader && (
             <View style={styles.loaderOverlay}>
-              <PageLoader />
+              <AnimatedLogoLoader />
             </View>
           )}
         </View>

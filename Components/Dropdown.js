@@ -41,10 +41,6 @@ const Dropdown = ({token, userFirstName, email, handleLogout}) => {
   const [visible, setVisible] = useState(false);
   const translateX = useRef(new Animated.Value(-PANEL_WIDTH)).current;
 
-  const handleNavigationDashboard = () => {
-    navigation.navigate('dashboard');
-  };
-
   const openDrawer = () => {
     setVisible(true);
   };
@@ -81,22 +77,24 @@ const Dropdown = ({token, userFirstName, email, handleLogout}) => {
 
   const initial = (userFirstName || 'P').trim().charAt(0).toUpperCase();
 
+  // Logged out: no account icon/name in the header.
   if (!token) {
-    return (
-      <TouchableOpacity onPress={handleNavigationDashboard}>
-        <View style={styles.avatar}>
-          <Feather name="user" size={16} color="#fff" />
-        </View>
-      </TouchableOpacity>
-    );
+    return null;
   }
 
   return (
     <>
-      <TouchableOpacity activeOpacity={0.8} onPress={openDrawer}>
-        <View style={styles.avatar}>
-          <Feather name="user" size={16} color="#fff" />
-        </View>
+      <TouchableOpacity
+        activeOpacity={0.8}
+        onPress={openDrawer}
+        style={styles.trigger}>
+        <Feather name="user" size={20} color={PRIMARY} />
+        {!!userFirstName && (
+          <Text style={styles.triggerName} numberOfLines={1}>
+            {userFirstName}
+          </Text>
+        )}
+        <Feather name="chevron-right" size={18} color="#94a3b8" />
       </TouchableOpacity>
 
       <Modal
@@ -183,6 +181,13 @@ const Dropdown = ({token, userFirstName, email, handleLogout}) => {
 export default Dropdown;
 
 const styles = StyleSheet.create({
+  trigger: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingVertical: 4,
+    paddingLeft: 4,
+  },
   avatar: {
     width: 34,
     height: 34,
@@ -190,6 +195,13 @@ const styles = StyleSheet.create({
     backgroundColor: PRIMARY,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  triggerName: {
+    fontSize: 14,
+    fontFamily: Fonts.semiBold,
+    color: '#0f172a',
+    maxWidth: 110,
+    textTransform: 'capitalize',
   },
 
   backdrop: {
