@@ -1,6 +1,7 @@
 import React, {useEffect, useState} from 'react';
 import {useNavigation} from '@react-navigation/native';
-import {ScrollView, StyleSheet, Text, View} from 'react-native';
+import {StyleSheet, Text, View} from 'react-native';
+import {KeyboardAwareScrollView} from 'react-native-keyboard-aware-scroll-view';
 import {useForm, Controller} from 'react-hook-form';
 
 import Header from '../Layout/header';
@@ -143,12 +144,15 @@ export default function ResidentialAddressScreen() {
   return (
     <>
       <Header />
-      <ScrollView
+      <KeyboardAwareScrollView
         style={styles.screen}
         contentContainerStyle={[
           styles.container,
           {paddingBottom: insets.bottom + 24},
         ]}
+        enableOnAndroid
+        extraScrollHeight={20}
+        keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}>
         {/* Progress bar */}
         <View style={styles.progressTrack}>
@@ -159,9 +163,7 @@ export default function ResidentialAddressScreen() {
         <View style={styles.card}>
           <View style={styles.cardHeader}>
             <Text style={styles.progressLabel}>{PERCENTAGE}% COMPLETED</Text>
-            <Text style={styles.heading}>
-              Mention Your Residential Address
-            </Text>
+            <Text style={styles.heading}>Mention Your Residential Address</Text>
             <Text style={styles.description}>
               Required for age verification purpose
             </Text>
@@ -288,7 +290,7 @@ export default function ResidentialAddressScreen() {
             </View>
           </View>
         </View>
-      </ScrollView>
+      </KeyboardAwareScrollView>
 
       <Toast />
     </>
@@ -297,6 +299,7 @@ export default function ResidentialAddressScreen() {
 
 const styles = StyleSheet.create({
   screen: {
+    flex: 1,
     backgroundColor: '#FBFBFD',
   },
   container: {
@@ -366,9 +369,9 @@ const styles = StyleSheet.create({
 
   buttonWrap: {
     marginTop: 6,
+    marginBottom: 24,
   },
   submitButton: {
-    backgroundColor: PRIMARY,
     borderRadius: 12,
     minHeight: 48,
   },

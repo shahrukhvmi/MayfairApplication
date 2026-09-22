@@ -519,7 +519,7 @@ const styles = StyleSheet.create({
     marginTop: 24,
   },
   submitButton: {
-    backgroundColor: PRIMARY,
+    // backgroundColor: PRIMARY,
     borderRadius: 12,
     minHeight: 48,
   },

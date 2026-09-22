@@ -174,6 +174,7 @@ export default function AcknowledgmentScreen() {
               <NextButton
                 label="I Confirm"
                 loading={false}
+                disabled={!canConfirm}
                 onPress={() => {
                   if (!canConfirm) {
                     setAttempted(true);
@@ -414,7 +415,6 @@ const styles = StyleSheet.create({
     marginTop: 22,
   },
   submitButton: {
-    backgroundColor: PRIMARY,
     borderRadius: 12,
     minHeight: 48,
   },

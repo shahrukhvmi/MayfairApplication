@@ -1,5 +1,7 @@
 import React, {useState} from 'react';
 import {
+  KeyboardAvoidingView,
+  Platform,
   ScrollView,
   Text,
   TextInput,
@@ -100,119 +102,127 @@ export default function MedicalQuestions() {
   return (
     <>
       <Header />
-      <ScrollView
+      <KeyboardAvoidingView
         style={styles.screen}
-        contentContainerStyle={[
-          styles.container,
-          {paddingBottom: insets.bottom + 24},
-        ]}
-        showsVerticalScrollIndicator={false}>
-        {/* Progress bar */}
-        <View style={styles.progressTrack}>
-          <View style={[styles.progressFill, {width: `${PERCENTAGE}%`}]} />
-        </View>
-
-        {/* Card */}
-        <View style={styles.card}>
-          <View style={styles.cardHeader}>
-            <Text style={styles.progressLabel}>{PERCENTAGE}% COMPLETED</Text>
-            <Text style={styles.heading}>Medical Questions</Text>
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+        <ScrollView
+          contentContainerStyle={[
+            styles.container,
+            {paddingBottom: Math.max(insets.bottom, 24) + 40},
+          ]}
+          showsVerticalScrollIndicator={false}>
+          {/* Progress bar */}
+          <View style={styles.progressTrack}>
+            <View style={[styles.progressFill, {width: `${PERCENTAGE}%`}]} />
           </View>
 
-          <View style={styles.cardBody}>
-            {questions.map(q => {
-              const selectedAnswer = watch(`responses[${q.id}].answer`);
-              const subfieldValue = watch(
-                `responses[${q.id}].subfield_response`,
-              );
-              const showValidationError =
-                selectedAnswer === 'yes' &&
-                !q.has_sub_field &&
-                q.validation_error_msg;
+          {/* Card */}
+          <View style={styles.card}>
+            <View style={styles.cardHeader}>
+              <Text style={styles.progressLabel}>{PERCENTAGE}% COMPLETED</Text>
+              <Text style={styles.heading}>Medical Questions</Text>
+            </View>
 
-              return (
-                <View
-                  key={q.id}
-                  style={[
-                    styles.questionCard,
-                    showValidationError && styles.questionCardError,
-                  ]}>
-                  <Text style={styles.questionText}>
-                    {q.question.replace(/<[^>]*>/g, '')}
-                  </Text>
+            <View style={styles.cardBody}>
+              {questions.map(q => {
+                const selectedAnswer = watch(`responses[${q.id}].answer`);
+                const subfieldValue = watch(
+                  `responses[${q.id}].subfield_response`,
+                );
+                const showValidationError =
+                  selectedAnswer === 'yes' &&
+                  !q.has_sub_field &&
+                  q.validation_error_msg;
 
-                  <View style={styles.optionsRow}>
-                    {q.options.map(option => {
-                      const isSelected = selectedAnswer === option;
-                      return (
-                        <TouchableOpacity
-                          key={option}
-                          activeOpacity={0.8}
-                          style={[
-                            styles.optionPill,
-                            isSelected && styles.optionPillActive,
-                          ]}
-                          onPress={() => handleAnswerChange(q.id, option)}>
-                          <View
+                return (
+                  <View
+                    key={q.id}
+                    style={[
+                      styles.questionCard,
+                      showValidationError && styles.questionCardError,
+                    ]}>
+                    <Text style={styles.questionText}>
+                      {q.question.replace(/<[^>]*>/g, '')}
+                    </Text>
+
+                    <View style={styles.optionsRow}>
+                      {q.options.map(option => {
+                        const isSelected = selectedAnswer === option;
+                        return (
+                          <TouchableOpacity
+                            key={option}
+                            activeOpacity={0.8}
                             style={[
-                              styles.radioCircle,
-                              isSelected && styles.radioCircleActive,
-                            ]}>
-                            {isSelected && <View style={styles.radioDot} />}
-                          </View>
-                          <Text
-                            style={[
-                              styles.optionLabel,
-                              isSelected && styles.optionLabelActive,
-                            ]}>
-                            {option.charAt(0).toUpperCase() + option.slice(1)}
-                          </Text>
-                        </TouchableOpacity>
-                      );
-                    })}
-                  </View>
-
-                  {showValidationError && (
-                    <View style={styles.errorBox}>
-                      <Text style={styles.errorBoxText}>
-                        {q.validation_error_msg}
-                      </Text>
+                              styles.optionPill,
+                              isSelected && styles.optionPillActive,
+                            ]}
+                            onPress={() => handleAnswerChange(q.id, option)}>
+                            <View
+                              style={[
+                                styles.radioCircle,
+                                isSelected && styles.radioCircleActive,
+                              ]}>
+                              {isSelected && <View style={styles.radioDot} />}
+                            </View>
+                            <Text
+                              style={[
+                                styles.optionLabel,
+                                isSelected && styles.optionLabelActive,
+                              ]}>
+                              {option.charAt(0).toUpperCase() + option.slice(1)}
+                            </Text>
+                          </TouchableOpacity>
+                        );
+                      })}
                     </View>
-                  )}
 
-                  {q.has_sub_field && selectedAnswer === 'yes' && (
-                    <TextInput
-                      placeholder={q.sub_field_prompt}
-                      placeholderTextColor="#94a3b8"
-                      value={subfieldValue}
-                      onChangeText={text => handleSubFieldChange(q.id, text)}
-                      style={styles.textArea}
-                      multiline
-                      numberOfLines={4}
-                    />
-                  )}
-                </View>
-              );
-            })}
+                    {showValidationError && (
+                      <View style={styles.errorBox}>
+                        <Text style={styles.errorBoxText}>
+                          {q.validation_error_msg}
+                        </Text>
+                      </View>
+                    )}
 
-            <View style={styles.buttonWrap}>
-              <NextButton
-                disabled={!isNextEnabled}
-                onPress={handleSubmit(onSubmit)}
-                label="Next"
-                style={styles.submitButton}
-              />
-              <BackButton label="Back" onPress={() => navigation.navigate('bmi')} />
+                    {q.has_sub_field && selectedAnswer === 'yes' && (
+                      <TextInput
+                        placeholder={q.sub_field_prompt}
+                        placeholderTextColor="#94a3b8"
+                        value={subfieldValue}
+                        onChangeText={text => handleSubFieldChange(q.id, text)}
+                        style={styles.textArea}
+                        multiline
+                        numberOfLines={4}
+                      />
+                    )}
+                  </View>
+                );
+              })}
+
+              <View style={styles.buttonWrap}>
+                <NextButton
+                  disabled={!isNextEnabled}
+                  onPress={handleSubmit(onSubmit)}
+                  label="Next"
+                  style={styles.submitButton}
+                />
+                <BackButton
+                  label="Back"
+                  onPress={() => navigation.navigate('bmi')}
+                  style={styles.backButton}
+                />
+              </View>
             </View>
           </View>
-        </View>
-      </ScrollView>
+        </ScrollView>
+      </KeyboardAvoidingView>
     </>
   );
 }
 
 const styles = StyleSheet.create({
   screen: {
+    flex: 1,
     backgroundColor: '#FBFBFD',
   },
   container: {
@@ -373,9 +383,12 @@ const styles = StyleSheet.create({
 
   buttonWrap: {
     marginTop: 6,
+    marginBottom: 24,
+  },
+  backButton: {
+    marginBottom: 8,
   },
   submitButton: {
-    backgroundColor: PRIMARY,
     borderRadius: 12,
     minHeight: 48,
   },

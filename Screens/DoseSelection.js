@@ -9,6 +9,7 @@ import {
   TouchableOpacity,
   TextInput,
   Platform,
+  KeyboardAvoidingView,
 } from 'react-native';
 import Modal from 'react-native-modal';
 import DateTimePicker from '@react-native-community/datetimepicker';
@@ -174,9 +175,10 @@ export default function DoseSelection({navigation}) {
         isSelected: true,
       });
 
-      abandonCart({eid: dose.id, pid: productId || abandonCard?.productId}).catch(
-        () => {},
-      );
+      abandonCart({
+        eid: dose.id,
+        pid: productId || abandonCard?.productId,
+      }).catch(() => {});
     } else {
       const product_concent = generateProductConcent(
         variation.variations,
@@ -197,9 +199,10 @@ export default function DoseSelection({navigation}) {
         isSelected: true,
       });
 
-      abandonCart({eid: dose.id, pid: productId || abandonCard?.productId}).catch(
-        () => {},
-      );
+      abandonCart({
+        eid: dose.id,
+        pid: productId || abandonCard?.productId,
+      }).catch(() => {});
 
       setSelectedDose({...dose, product_concent});
       setShowDoseModal(true);
@@ -445,10 +448,7 @@ export default function DoseSelection({navigation}) {
         <View style={[styles.footer, {paddingBottom: insets.bottom + 10}]}>
           <View style={styles.footerSummaryRow}>
             <View style={styles.footerProduct}>
-              <Image
-                source={{uri: variation.img}}
-                style={styles.footerImg}
-              />
+              <Image source={{uri: variation.img}} style={styles.footerImg} />
               <Text style={styles.footerName} numberOfLines={1}>
                 {variation.name}
               </Text>
@@ -492,93 +492,99 @@ export default function DoseSelection({navigation}) {
       <Modal
         isVisible={showDoseModal}
         onBackdropPress={closeDoseModalWithoutConsent}
-        style={styles.modal}
-        avoidKeyboard>
-        <View style={styles.modalContent}>
-          <View style={styles.modalHeader}>
-            <Text style={styles.modalTitle}>Dosage Confirmation</Text>
+        style={styles.modal}>
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Dosage Confirmation</Text>
+              <TouchableOpacity
+                style={styles.modalCloseButton}
+                onPress={closeDoseModalWithoutConsent}>
+                <Feather name="x" size={16} color="#64748b" />
+              </TouchableOpacity>
+            </View>
+
+            <ScrollView
+              style={{maxHeight: 420}}
+              showsVerticalScrollIndicator={false}>
+              {selectedDose?.product_concent && (
+                <Text style={styles.modalDescription}>
+                  {selectedDose.product_concent}
+                </Text>
+              )}
+
+              <View style={styles.modalField}>
+                <Text style={styles.modalLabel}>Previous medication name</Text>
+                <TextInput
+                  value={prevMedication}
+                  onChangeText={setPrevMedication}
+                  placeholder="e.g. Ozempic, Mounjaro, Wegovy"
+                  placeholderTextColor="#94a3b8"
+                  style={styles.modalInput}
+                />
+              </View>
+
+              <View style={styles.modalField}>
+                <Text style={styles.modalLabel}>
+                  What dose were you on? (mg)
+                </Text>
+                <TextInput
+                  value={prevDose}
+                  onChangeText={setPrevDose}
+                  placeholder="e.g. 2.5"
+                  placeholderTextColor="#94a3b8"
+                  style={styles.modalInput}
+                />
+              </View>
+
+              <View style={styles.modalField}>
+                <Text style={styles.modalLabel}>
+                  When did you last take it?
+                </Text>
+                <TouchableOpacity
+                  style={styles.modalDateInput}
+                  activeOpacity={0.8}
+                  onPress={() => setShowDatePicker(true)}>
+                  <Text
+                    style={[
+                      styles.modalDateText,
+                      !lastTakenDate && styles.modalDatePlaceholder,
+                    ]}>
+                    {lastTakenDate
+                      ? lastTakenDate.toLocaleDateString('en-GB')
+                      : 'DD/MM/YYYY'}
+                  </Text>
+                  <Feather name="calendar" size={16} color="#94a3b8" />
+                </TouchableOpacity>
+                {showDatePicker && (
+                  <DateTimePicker
+                    value={lastTakenDate || new Date()}
+                    mode="date"
+                    display={Platform.OS === 'android' ? 'calendar' : 'spinner'}
+                    maximumDate={new Date()}
+                    onChange={(event, selectedDate) => {
+                      setShowDatePicker(false);
+                      if (selectedDate) setLastTakenDate(selectedDate);
+                    }}
+                  />
+                )}
+              </View>
+            </ScrollView>
+
             <TouchableOpacity
-              style={styles.modalCloseButton}
-              onPress={closeDoseModalWithoutConsent}>
-              <Feather name="x" size={16} color="#64748b" />
+              style={[
+                styles.modalConfirmButton,
+                isConfirmDisabled && styles.modalConfirmButtonDisabled,
+              ]}
+              disabled={isConfirmDisabled}
+              onPress={confirmDoseConsent}>
+              <Text style={styles.modalConfirmButtonText}>
+                {isWegovyPill ? 'I confirm this dose' : 'I Confirm'}
+              </Text>
             </TouchableOpacity>
           </View>
-
-          <ScrollView
-            style={{maxHeight: 420}}
-            showsVerticalScrollIndicator={false}>
-            {selectedDose?.product_concent && (
-              <Text style={styles.modalDescription}>
-                {selectedDose.product_concent}
-              </Text>
-            )}
-
-            <View style={styles.modalField}>
-              <Text style={styles.modalLabel}>Previous medication name</Text>
-              <TextInput
-                value={prevMedication}
-                onChangeText={setPrevMedication}
-                placeholder="e.g. Ozempic, Mounjaro, Wegovy"
-                placeholderTextColor="#94a3b8"
-                style={styles.modalInput}
-              />
-            </View>
-
-            <View style={styles.modalField}>
-              <Text style={styles.modalLabel}>What dose were you on? (mg)</Text>
-              <TextInput
-                value={prevDose}
-                onChangeText={setPrevDose}
-                placeholder="e.g. 2.5"
-                placeholderTextColor="#94a3b8"
-                style={styles.modalInput}
-              />
-            </View>
-
-            <View style={styles.modalField}>
-              <Text style={styles.modalLabel}>When did you last take it?</Text>
-              <TouchableOpacity
-                style={styles.modalDateInput}
-                activeOpacity={0.8}
-                onPress={() => setShowDatePicker(true)}>
-                <Text
-                  style={[
-                    styles.modalDateText,
-                    !lastTakenDate && styles.modalDatePlaceholder,
-                  ]}>
-                  {lastTakenDate
-                    ? lastTakenDate.toLocaleDateString('en-GB')
-                    : 'DD/MM/YYYY'}
-                </Text>
-                <Feather name="calendar" size={16} color="#94a3b8" />
-              </TouchableOpacity>
-              {showDatePicker && (
-                <DateTimePicker
-                  value={lastTakenDate || new Date()}
-                  mode="date"
-                  display={Platform.OS === 'android' ? 'calendar' : 'spinner'}
-                  maximumDate={new Date()}
-                  onChange={(event, selectedDate) => {
-                    setShowDatePicker(false);
-                    if (selectedDate) setLastTakenDate(selectedDate);
-                  }}
-                />
-              )}
-            </View>
-          </ScrollView>
-
-          <TouchableOpacity
-            style={[
-              styles.modalConfirmButton,
-              isConfirmDisabled && styles.modalConfirmButtonDisabled,
-            ]}
-            disabled={isConfirmDisabled}
-            onPress={confirmDoseConsent}>
-            <Text style={styles.modalConfirmButtonText}>
-              {isWegovyPill ? 'I confirm this dose' : 'I Confirm'}
-            </Text>
-          </TouchableOpacity>
-        </View>
+        </KeyboardAvoidingView>
       </Modal>
 
       <Toast />
@@ -807,7 +813,6 @@ const styles = StyleSheet.create({
     color: '#64748b',
   },
   submitButton: {
-    backgroundColor: PRIMARY,
     borderRadius: 12,
     minHeight: 48,
   },

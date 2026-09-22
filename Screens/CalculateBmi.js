@@ -1,6 +1,8 @@
-import { useNavigation } from '@react-navigation/native';
-import { useEffect, useState } from 'react';
+import {useNavigation} from '@react-navigation/native';
+import {useEffect, useState} from 'react';
 import {
+  KeyboardAvoidingView,
+  Platform,
   ScrollView,
   StyleSheet,
   Text,
@@ -14,7 +16,7 @@ import BackButton from '../Components/BackButton';
 import useLastBmi from '../store/useLastBmiStore';
 import useReorder from '../store/useReorderStore';
 import useBmiStore from '../store/bmiStore';
-import { Controller, useForm } from 'react-hook-form';
+import {Controller, useForm} from 'react-hook-form';
 import SwitchTabs from '../Components/SwitchTabs';
 import BmiTextField from '../Components/BmiTextField';
 import Ionicons from 'react-native-vector-icons/Ionicons';
@@ -38,14 +40,14 @@ export default function CalculateBmi() {
   const [showLoader, setShowLoader] = useState(false);
   const [heightUnitKey, setHeightUnitKey] = useState(''); // Will be "imperial" or "metrics"
   const [weightUnitKey, setWeightUnitKey] = useState('');
-  const { reorder, reorderStatus } = useReorder();
-  const { lastBmi } = useLastBmi();
-  const { reorderBackProcess } = useReorderBackProcessStore();
+  const {reorder, reorderStatus} = useReorder();
+  const {lastBmi} = useLastBmi();
+  const {reorderBackProcess} = useReorderBackProcessStore();
 
-  const { bmi, setBmi } = useBmiStore();
+  const {bmi, setBmi} = useBmiStore();
   const navigation = useNavigation();
   const insets = useSafeAreaInsets();
-  const { isReturningPatient } = useReturning();
+  const {isReturningPatient} = useReturning();
   const {
     register,
     handleSubmit,
@@ -54,7 +56,7 @@ export default function CalculateBmi() {
     watch,
     getValues,
     control,
-    formState: { errors },
+    formState: {errors},
   } = useForm({
     mode: 'onChange',
     defaultValues: {
@@ -125,15 +127,43 @@ export default function CalculateBmi() {
   const isStepValid = () => {
     if (localStep === 1) {
       if (heightUnit === 'imperial') {
-        return !errors.heightFt && !errors.heightIn;
+        return (
+          !errors.heightFt &&
+          !errors.heightIn &&
+          heightFt !== '' &&
+          heightFt !== undefined &&
+          heightFt !== null &&
+          heightIn !== '' &&
+          heightIn !== undefined &&
+          heightIn !== null
+        );
       } else {
-        return !errors.heightCm;
+        return (
+          !errors.heightCm &&
+          heightCm !== '' &&
+          heightCm !== undefined &&
+          heightCm !== null
+        );
       }
     } else {
       if (weightUnit === 'metrics') {
-        return !errors.weightKg;
+        return (
+          !errors.weightKg &&
+          weightKg !== '' &&
+          weightKg !== undefined &&
+          weightKg !== null
+        );
       } else {
-        return !errors.weightSt && !errors.weightLbs;
+        return (
+          !errors.weightSt &&
+          !errors.weightLbs &&
+          weightSt !== '' &&
+          weightSt !== undefined &&
+          weightSt !== null &&
+          weightLbs !== '' &&
+          weightLbs !== undefined &&
+          weightLbs !== null
+        );
       }
     }
   };
@@ -145,8 +175,8 @@ export default function CalculateBmi() {
           ? ['heightFt', 'heightIn']
           : ['heightCm']
         : weightUnit === 'imperial'
-          ? ['weightSt', 'weightLbs']
-          : ['weightKg'];
+        ? ['weightSt', 'weightLbs']
+        : ['weightKg'];
 
     // Validate
     const isValid = await trigger(fields);
@@ -311,7 +341,6 @@ export default function CalculateBmi() {
   //   }
   // };
 
-
   const back = () => {
     if (reorderBackProcess == true) {
       navigation.navigate('re-order');
@@ -325,405 +354,419 @@ export default function CalculateBmi() {
   return (
     <>
       <Header />
-      <ScrollView contentContainerStyle={[styles.container, {paddingBottom: insets.bottom + 16}]} showsVerticalScrollIndicator={false}>
-        {/* Progress bar */}
-        <View style={styles.progressTrack}>
-          <View style={[styles.progressFill, {width: '70%'}]} />
-        </View>
-
-        {/* Card */}
-        <View style={styles.card}>
-          <View style={styles.cardHeader}>
-            <Text style={styles.progressLabel}>70% COMPLETED</Text>
-            <Text style={styles.heading}>{localStep === 1
-              ? "What is your height?"
-              : "What is your current weight?"}</Text>
-            <Text style={styles.description}>
-              Your Body Mass Index (BMI) is an important factor in assessing your
-              eligibility for treatment. Please enter your {localStep === 1 ? 'height' : 'weight'} below to allow us
-              to calculate your BMI.
-            </Text>
+      <KeyboardAvoidingView
+        style={styles.screen}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+        <ScrollView
+          contentContainerStyle={[
+            styles.container,
+            {paddingBottom: insets.bottom + 16},
+          ]}
+          showsVerticalScrollIndicator={false}>
+          {/* Progress bar */}
+          <View style={styles.progressTrack}>
+            <View style={[styles.progressFill, {width: '70%'}]} />
           </View>
 
-          <View style={styles.cardBody}>
-        {/* Unit Switch */}
-        <SwitchTabs
-          tabs={
-            localStep === 1
-              ? [
-                { label: 'cm', value: 'metrics' },
-                { label: 'ft/inch', value: 'imperial' },
-              ]
-              : [
-                { label: 'kg', value: 'metrics' },
-                { label: 'st/lb', value: 'imperial' },
-              ]
-          }
-          selectedTab={localStep === 1 ? heightUnit : weightUnit}
-          onTabChange={value => {
-            if (localStep === 1) {
-              if (value === 'metrics') {
-                const ft = parseFloat(watch('heightFt')) || 0;
-                const inch = parseFloat(watch('heightIn')) || 0;
-                const cm = ft * 30.48 + inch * 2.54;
+          {/* Card */}
+          <View style={styles.card}>
+            <View style={styles.cardHeader}>
+              <Text style={styles.progressLabel}>70% COMPLETED</Text>
+              <Text style={styles.heading}>
+                {localStep === 1
+                  ? 'What is your height?'
+                  : 'What is your current weight?'}
+              </Text>
+              <Text style={styles.description}>
+                Your Body Mass Index (BMI) is an important factor in assessing
+                your eligibility for treatment. Please enter your{' '}
+                {localStep === 1 ? 'height' : 'weight'} below to allow us to
+                calculate your BMI.
+              </Text>
+            </View>
 
-                // console.log(ft);
+            <View style={styles.cardBody}>
+              {/* Unit Switch */}
+              <SwitchTabs
+                tabs={
+                  localStep === 1
+                    ? [
+                        {label: 'cm', value: 'metrics'},
+                        {label: 'ft/inch', value: 'imperial'},
+                      ]
+                    : [
+                        {label: 'kg', value: 'metrics'},
+                        {label: 'st/lb', value: 'imperial'},
+                      ]
+                }
+                selectedTab={localStep === 1 ? heightUnit : weightUnit}
+                onTabChange={value => {
+                  if (localStep === 1) {
+                    if (value === 'metrics') {
+                      const ft = parseFloat(watch('heightFt')) || 0;
+                      const inch = parseFloat(watch('heightIn')) || 0;
+                      const cm = ft * 30.48 + inch * 2.54;
 
-                console.log(
-                  cm,
-                  'cm value in tabs saving in hidden before round If metrics',
-                );
-                setValue('hiddenCm', cm);
-                setValue('heightCm', cm ? Math.round(cm) : '');
-              } else {
-                const cm = parseFloat(watch('heightCm')) || 0;
-                const totalInches = cm / 2.54;
-                const ft = Math.floor(totalInches / 12);
-                const inch = totalInches % 12;
-                console.log(
-                  cm,
-                  'cm value in tabs saving in hidden before round If imperial',
-                );
-                setValue('hiddenCm', cm);
-                setValue('heightFt', ft ? Math.round(ft) : '');
-                setValue('heightIn', inch ? Math.round(inch) : '');
-              }
-              setHeightUnit(value);
-              setHeightUnitKey(value);
-            } else {
-              if (value === 'metrics') {
-                const st = parseFloat(watch('weightSt')) || 0;
-                const lbs = parseFloat(watch('weightLbs')) || 0;
-                const kg = st * 6.35029 + lbs * 0.453592;
-                setValue('hiddenKg', kg);
-                setValue('weightKg', kg ? Math.round(kg) : '');
-              } else {
-                const kg = parseFloat(watch('weightKg')) || 0;
-                const totalLbs = kg / 0.453592;
-                const st = Math.floor(totalLbs / 14);
-                const lbs = totalLbs % 14;
-                setValue('hiddenKg', kg);
-                setValue('weightSt', st ? Math.round(st) : '');
-                setValue('weightLbs', lbs ? Math.round(lbs) : '');
-              }
-              setWeightUnit(value);
-              setWeightUnitKey(value);
-            }
-          }}
-        />
+                      // console.log(ft);
 
-        {/* Input Fields */}
-        <View>
-          {localStep === 1 &&
-            (heightUnit === 'imperial' ? (
-              <View style={styles.row}>
-                <Controller
-                  control={control}
-                  name="heightFt"
-                  rules={{
-                    required: 'This field is required',
-                    validate: value =>
-                      validateRange(
-                        value,
-                        4,
-                        10,
-                        true,
-                        'Only numbers from 4 to 10 are allowed',
-                      ),
-                  }}
-                  render={({ field: { onChange, onBlur, value } }) => (
-                    <BmiTextField
-                      required
-                      label="Feet (ft)"
-                      name="heightFt"
-                      disabled={isReturningPatient}
-                      readOnly={isReturningPatient}
-                      style={{flex: 1}}
-                      fieldProps={{
-                        value:
-                          value !== undefined && value !== null
-                            ? value.toString()
-                            : '',
-                        onChangeText: val => {
-                          onChange(val);
-                          if (val !== '') setHeightUnitKey('imperial');
-                        },
-                        onEndEditing: () => {
-                          onBlur(); // RHF internal blur
-                          handleHeightBlur(); // Your custom conversion
-                        },
-                      }}
-                      errors={errors}
-                    />
-                  )}
-                />
-                <Controller
-                  control={control}
-                  name="heightIn"
-                  rules={{
-                    required: 'This field is required',
-                    validate: value =>
-                      validateRange(
-                        value,
-                        0,
-                        11,
-                        true,
-                        'Only valid numbers (0–11) are allowed',
-                      ),
-                  }}
-                  render={({ field: { onChange, onBlur, value } }) => (
-                    <BmiTextField
-                      required
-                      label="Inches (in)"
-                      name="heightIn"
-                      disabled={isReturningPatient}
-                      readOnly={isReturningPatient}
-                      style={{flex: 1}}
-                      fieldProps={{
-                        value:
-                          value !== undefined && value !== null
-                            ? value.toString()
-                            : '',
-                        onChangeText: val => {
-                          onChange(val);
-                          if (val !== '') setHeightUnitKey('imperial');
-                        },
-                        onEndEditing: () => {
-                          onBlur();
-                          handleHeightBlur();
-                        },
-                      }}
-                      errors={errors}
-                    />
-                  )}
-                />
-              </View>
-            ) : (
-              <Controller
-                control={control}
-                name="heightCm"
-                rules={{
-                  required: 'This field is required',
-                  validate: value => {
-                    const num = Number(value);
-                    if (!Number.isInteger(num))
-                      return 'Only whole numbers from 122 to 300 are allowed';
-                    if (num < 122 || num > 300)
-                      return 'Only whole numbers from 122 to 300 are allowed';
-                    return true;
-                  },
+                      console.log(
+                        cm,
+                        'cm value in tabs saving in hidden before round If metrics',
+                      );
+                      setValue('hiddenCm', cm);
+                      setValue('heightCm', cm ? Math.round(cm) : '');
+                    } else {
+                      const cm = parseFloat(watch('heightCm')) || 0;
+                      const totalInches = cm / 2.54;
+                      const ft = Math.floor(totalInches / 12);
+                      const inch = totalInches % 12;
+                      console.log(
+                        cm,
+                        'cm value in tabs saving in hidden before round If imperial',
+                      );
+                      setValue('hiddenCm', cm);
+                      setValue('heightFt', ft ? Math.round(ft) : '');
+                      setValue('heightIn', inch ? Math.round(inch) : '');
+                    }
+                    setHeightUnit(value);
+                    setHeightUnitKey(value);
+                  } else {
+                    if (value === 'metrics') {
+                      const st = parseFloat(watch('weightSt')) || 0;
+                      const lbs = parseFloat(watch('weightLbs')) || 0;
+                      const kg = st * 6.35029 + lbs * 0.453592;
+                      setValue('hiddenKg', kg);
+                      setValue('weightKg', kg ? Math.round(kg) : '');
+                    } else {
+                      const kg = parseFloat(watch('weightKg')) || 0;
+                      const totalLbs = kg / 0.453592;
+                      const st = Math.floor(totalLbs / 14);
+                      const lbs = totalLbs % 14;
+                      setValue('hiddenKg', kg);
+                      setValue('weightSt', st ? Math.round(st) : '');
+                      setValue('weightLbs', lbs ? Math.round(lbs) : '');
+                    }
+                    setWeightUnit(value);
+                    setWeightUnitKey(value);
+                  }
                 }}
-                render={({ field: { onChange, onBlur, value } }) => (
-                  <BmiTextField
-                    required
-                    label="Centimetres (cm)"
-                    disabled={isReturningPatient}
-                    readOnly={isReturningPatient}
-                    name="heightCm"
-                    fieldProps={{
-                      value:
-                        value !== undefined && value !== null
-                          ? value.toString()
-                          : '',
-
-                      // value,
-                      onChangeText: val => {
-                        onChange(val);
-                        if (val !== '') setHeightUnitKey('metrics');
-                      },
-                      onBlur: () => {
-                        onBlur();
-                        handleCmBlur();
-                      },
-                    }}
-                    errors={errors}
-                  />
-                )}
               />
-            ))}
 
-          {localStep === 2 && (
-            <>
-              {weightUnit === 'imperial' ? (
-                <View style={styles.row}>
-                  <Controller
-                    control={control}
-                    name="weightSt"
-                    rules={{
-                      required: 'This field is required',
-                      validate: value =>
-                        validateRange(
-                          value,
-                          4,
-                          80,
-                          false,
-                          'Only valid numbers (4–80) are allowed',
-                        ),
-                    }}
-                    render={({ field: { onChange, onBlur, value } }) => (
-                      <BmiTextField
-                        required
-                        label="Stone (st)"
-                        name="weightSt"
-                        style={{flex: 1}}
-                        fieldProps={{
-                          value:
-                            value !== undefined && value !== null
-                              ? value.toString()
-                              : '',
-                          onChangeText: val => {
-                            onChange(val);
-                            if (val !== '') setWeightUnitKey('imperial');
-                          },
-                          onEndEditing: () => {
-                            onBlur(); // RHF's internal blur
-                            handleWeightBlur(); // Your custom conversion logic
-                          },
+              {/* Input Fields */}
+              <View>
+                {localStep === 1 &&
+                  (heightUnit === 'imperial' ? (
+                    <View style={styles.row}>
+                      <Controller
+                        control={control}
+                        name="heightFt"
+                        rules={{
+                          required: 'This field is required',
+                          validate: value =>
+                            validateRange(
+                              value,
+                              4,
+                              10,
+                              true,
+                              'Only numbers from 4 to 10 are allowed',
+                            ),
                         }}
-                        errors={errors}
+                        render={({field: {onChange, onBlur, value}}) => (
+                          <BmiTextField
+                            required
+                            label="Feet (ft)"
+                            name="heightFt"
+                            disabled={isReturningPatient}
+                            readOnly={isReturningPatient}
+                            style={{flex: 1}}
+                            fieldProps={{
+                              value:
+                                value !== undefined && value !== null
+                                  ? value.toString()
+                                  : '',
+                              onChangeText: val => {
+                                onChange(val);
+                                if (val !== '') setHeightUnitKey('imperial');
+                              },
+                              onEndEditing: () => {
+                                onBlur(); // RHF internal blur
+                                handleHeightBlur(); // Your custom conversion
+                              },
+                            }}
+                            errors={errors}
+                          />
+                        )}
                       />
-                    )}
-                  />
-                  <Controller
-                    control={control}
-                    name="weightLbs"
-                    rules={{
-                      required: 'This field is required',
-                      validate: value =>
-                        validateRange(
-                          value,
-                          0,
-                          20,
-                          false,
-                          'Only valid numbers (0–20) are allowed',
-                        ),
-                    }}
-                    render={({ field: { onChange, onBlur, value } }) => (
-                      <BmiTextField
-                        required
-                        label="Pounds (lb)"
-                        name="weightLbs"
-                        style={{flex: 1}}
-                        fieldProps={{
-                          value:
-                            value !== undefined && value !== null
-                              ? value.toString()
-                              : '',
-                          onChangeText: val => {
-                            onChange(val);
-                            if (val !== '') setWeightUnitKey('imperial');
-                          },
-                          onEndEditing: () => {
-                            onBlur();
-                            handleWeightBlur();
-                          },
+                      <Controller
+                        control={control}
+                        name="heightIn"
+                        rules={{
+                          required: 'This field is required',
+                          validate: value =>
+                            validateRange(
+                              value,
+                              0,
+                              11,
+                              true,
+                              'Only valid numbers (0–11) are allowed',
+                            ),
                         }}
-                        errors={errors}
+                        render={({field: {onChange, onBlur, value}}) => (
+                          <BmiTextField
+                            required
+                            label="Inches (in)"
+                            name="heightIn"
+                            disabled={isReturningPatient}
+                            readOnly={isReturningPatient}
+                            style={{flex: 1}}
+                            fieldProps={{
+                              value:
+                                value !== undefined && value !== null
+                                  ? value.toString()
+                                  : '',
+                              onChangeText: val => {
+                                onChange(val);
+                                if (val !== '') setHeightUnitKey('imperial');
+                              },
+                              onEndEditing: () => {
+                                onBlur();
+                                handleHeightBlur();
+                              },
+                            }}
+                            errors={errors}
+                          />
+                        )}
                       />
-                    )}
-                  />
-                </View>
-              ) : (
-                <Controller
-                  control={control}
-                  name="weightKg"
-                  rules={{
-                    required: 'This field is required',
-                    validate: value =>
-                      validateRange(
-                        value,
-                        40,
-                        500,
-                        true,
-                        'Only whole numbers from 40 to 500 are allowed',
-                      ),
-                  }}
-                  render={({ field: { onChange, onBlur, value } }) => (
-                    <BmiTextField
-                      required
-                      label="Kilograms (kg)"
-                      name="weightKg"
-                      fieldProps={{
-                        value:
-                          value !== undefined && value !== null
-                            ? value.toString()
-                            : '',
-                        onChangeText: val => {
-                          onChange(val);
-                          if (val !== '') setWeightUnitKey('metrics');
-                        },
-                        onEndEditing: () => {
-                          onBlur(); // RHF blur tracking
-                          handleKgBlur(); // Your conversion to st/lbs
+                    </View>
+                  ) : (
+                    <Controller
+                      control={control}
+                      name="heightCm"
+                      rules={{
+                        required: 'This field is required',
+                        validate: value => {
+                          const num = Number(value);
+                          if (!Number.isInteger(num))
+                            return 'Only whole numbers from 122 to 300 are allowed';
+                          if (num < 122 || num > 300)
+                            return 'Only whole numbers from 122 to 300 are allowed';
+                          return true;
                         },
                       }}
-                      errors={errors}
+                      render={({field: {onChange, onBlur, value}}) => (
+                        <BmiTextField
+                          required
+                          label="Centimetres (cm)"
+                          disabled={isReturningPatient}
+                          readOnly={isReturningPatient}
+                          name="heightCm"
+                          fieldProps={{
+                            value:
+                              value !== undefined && value !== null
+                                ? value.toString()
+                                : '',
+
+                            // value,
+                            onChangeText: val => {
+                              onChange(val);
+                              if (val !== '') setHeightUnitKey('metrics');
+                            },
+                            onBlur: () => {
+                              onBlur();
+                              handleCmBlur();
+                            },
+                          }}
+                          errors={errors}
+                        />
+                      )}
                     />
-                  )}
-                />
-              )}
+                  ))}
 
-              {lastBmi ? (
-                lastBmi?.weight_unit == 'metrics' ||
-                  lastBmi?.weight_unit == 'metric' ? (
-                  <View style={styles.infoBox}>
-                    <View style={styles.infoRow}>
-                      <Ionicons
-                        name="information-circle"
-                        size={20}
-                        color="#856404"
+                {localStep === 2 && (
+                  <>
+                    {weightUnit === 'imperial' ? (
+                      <View style={styles.row}>
+                        <Controller
+                          control={control}
+                          name="weightSt"
+                          rules={{
+                            required: 'This field is required',
+                            validate: value =>
+                              validateRange(
+                                value,
+                                4,
+                                80,
+                                false,
+                                'Only valid numbers (4–80) are allowed',
+                              ),
+                          }}
+                          render={({field: {onChange, onBlur, value}}) => (
+                            <BmiTextField
+                              required
+                              label="Stone (st)"
+                              name="weightSt"
+                              style={{flex: 1}}
+                              fieldProps={{
+                                value:
+                                  value !== undefined && value !== null
+                                    ? value.toString()
+                                    : '',
+                                onChangeText: val => {
+                                  onChange(val);
+                                  if (val !== '') setWeightUnitKey('imperial');
+                                },
+                                onEndEditing: () => {
+                                  onBlur(); // RHF's internal blur
+                                  handleWeightBlur(); // Your custom conversion logic
+                                },
+                              }}
+                              errors={errors}
+                            />
+                          )}
+                        />
+                        <Controller
+                          control={control}
+                          name="weightLbs"
+                          rules={{
+                            required: 'This field is required',
+                            validate: value =>
+                              validateRange(
+                                value,
+                                0,
+                                20,
+                                false,
+                                'Only valid numbers (0–20) are allowed',
+                              ),
+                          }}
+                          render={({field: {onChange, onBlur, value}}) => (
+                            <BmiTextField
+                              required
+                              label="Pounds (lb)"
+                              name="weightLbs"
+                              style={{flex: 1}}
+                              fieldProps={{
+                                value:
+                                  value !== undefined && value !== null
+                                    ? value.toString()
+                                    : '',
+                                onChangeText: val => {
+                                  onChange(val);
+                                  if (val !== '') setWeightUnitKey('imperial');
+                                },
+                                onEndEditing: () => {
+                                  onBlur();
+                                  handleWeightBlur();
+                                },
+                              }}
+                              errors={errors}
+                            />
+                          )}
+                        />
+                      </View>
+                    ) : (
+                      <Controller
+                        control={control}
+                        name="weightKg"
+                        rules={{
+                          required: 'This field is required',
+                          validate: value =>
+                            validateRange(
+                              value,
+                              40,
+                              500,
+                              true,
+                              'Only whole numbers from 40 to 500 are allowed',
+                            ),
+                        }}
+                        render={({field: {onChange, onBlur, value}}) => (
+                          <BmiTextField
+                            required
+                            label="Kilograms (kg)"
+                            name="weightKg"
+                            fieldProps={{
+                              value:
+                                value !== undefined && value !== null
+                                  ? value.toString()
+                                  : '',
+                              onChangeText: val => {
+                                onChange(val);
+                                if (val !== '') setWeightUnitKey('metrics');
+                              },
+                              onEndEditing: () => {
+                                onBlur(); // RHF blur tracking
+                                handleKgBlur(); // Your conversion to st/lbs
+                              },
+                            }}
+                            errors={errors}
+                          />
+                        )}
                       />
-                      <Text style={styles.infoText}>
-                        Your previous recorded weight was{' '}
-                        <Text style={styles.boldText}>{lastBmi?.kg} kg</Text>
-                      </Text>
-                    </View>
-                  </View>
-                ) : (
-                  <View style={styles.infoBox}>
-                    <View style={styles.infoRow}>
-                      <Ionicons
-                        name="information-circle"
-                        size={20}
-                        color="#856404"
-                      />
-                      <Text style={styles.infoText}>
-                        Your previous recorded weight was{' '}
-                        <Text style={styles.boldText}>
-                          {lastBmi?.stones} st & {lastBmi?.pound} lbs
-                        </Text>
-                      </Text>
-                    </View>
-                  </View>
-                )
-              ) : (
-                ''
-              )}
-            </>
-          )}
-        </View>
+                    )}
 
-            <View style={styles.buttonWrap}>
-              <NextButton
-                label="Next"
-                onPress={handleNext}
-                type="button"
-                disabled={!isStepValid()}
-                style={styles.submitButton}
-              />
-              {localStep === 2 ? (
-                <BackButton
+                    {lastBmi ? (
+                      lastBmi?.weight_unit == 'metrics' ||
+                      lastBmi?.weight_unit == 'metric' ? (
+                        <View style={styles.infoBox}>
+                          <View style={styles.infoRow}>
+                            <Ionicons
+                              name="information-circle"
+                              size={20}
+                              color="#856404"
+                            />
+                            <Text style={styles.infoText}>
+                              Your previous recorded weight was{' '}
+                              <Text style={styles.boldText}>
+                                {lastBmi?.kg} kg
+                              </Text>
+                            </Text>
+                          </View>
+                        </View>
+                      ) : (
+                        <View style={styles.infoBox}>
+                          <View style={styles.infoRow}>
+                            <Ionicons
+                              name="information-circle"
+                              size={20}
+                              color="#856404"
+                            />
+                            <Text style={styles.infoText}>
+                              Your previous recorded weight was{' '}
+                              <Text style={styles.boldText}>
+                                {lastBmi?.stones} st & {lastBmi?.pound} lbs
+                              </Text>
+                            </Text>
+                          </View>
+                        </View>
+                      )
+                    ) : (
+                      ''
+                    )}
+                  </>
+                )}
+              </View>
+
+              <View style={styles.buttonWrap}>
+                <NextButton
+                  label="Next"
+                  onPress={handleNext}
                   type="button"
-                  label="Back"
-                  onPress={() => setLocalStep(1)}
+                  disabled={!isStepValid()}
+                  style={styles.submitButton}
                 />
-              ) : (
-                <BackButton label="Back" onPress={back} />
-              )}
+                {localStep === 2 ? (
+                  <BackButton
+                    type="button"
+                    label="Back"
+                    onPress={() => setLocalStep(1)}
+                  />
+                ) : (
+                  <BackButton label="Back" onPress={back} />
+                )}
+              </View>
             </View>
           </View>
-        </View>
-      </ScrollView>
+        </ScrollView>
+      </KeyboardAvoidingView>
     </>
   );
 }
@@ -731,6 +774,10 @@ export default function CalculateBmi() {
 const PRIMARY = '#47317c';
 
 const styles = StyleSheet.create({
+  screen: {
+    flex: 1,
+    backgroundColor: '#FBFBFD',
+  },
   container: {
     backgroundColor: '#FBFBFD',
     flexGrow: 1,
@@ -806,7 +853,6 @@ const styles = StyleSheet.create({
     marginTop: 6,
   },
   submitButton: {
-    backgroundColor: PRIMARY,
     borderRadius: 12,
     minHeight: 48,
   },

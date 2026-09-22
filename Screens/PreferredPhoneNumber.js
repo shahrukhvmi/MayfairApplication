@@ -56,8 +56,8 @@ export default function PreferredPhoneNumber() {
     if (rawPhone) {
       phoneNumberRef.current = nationalPhone;
       setValue('phoneNo', rawPhone);
-      trigger('phoneNo');
     }
+    trigger('phoneNo');
   }, [rawPhone]);
 
   const onSubmit = data => {
@@ -87,7 +87,7 @@ export default function PreferredPhoneNumber() {
       <Header />
       <KeyboardAvoidingView
         style={styles.screen}
-        behavior={Platform.select({ios: 'padding', android: undefined})}>
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
         <ScrollView
           contentContainerStyle={styles.container}
           showsVerticalScrollIndicator={false}>
@@ -317,7 +317,6 @@ const styles = StyleSheet.create({
     marginTop: 24,
   },
   submitButton: {
-    backgroundColor: PRIMARY,
     borderRadius: 12,
     minHeight: 48,
   },
